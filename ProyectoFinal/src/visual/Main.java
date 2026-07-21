@@ -575,7 +575,7 @@ public class Main extends JFrame {
                 mntmListarVacunas.setVisible(false);
             }
         }
-        }
+    
     }
 
     private void cargarRespaldo() {

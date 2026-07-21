@@ -11,8 +11,6 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 
-import org.omg.CORBA.PUBLIC_MEMBER;
-
 import logico.Clinica;
 import logico.Enfermedad;
 import logico.Paciente;
