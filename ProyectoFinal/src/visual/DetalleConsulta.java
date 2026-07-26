@@ -33,7 +33,6 @@ public class DetalleConsulta extends JDialog {
 	private JTextField txtCodigoDiagnostico;
 	private JTextField txtEnfermedad;
 	private JTextField txtImportante;
-	private JTextArea txtSintomas;
 	private JTextArea txtDescripcionDiagnostico;
 	private JTextArea txtTratamiento;
 	private JTextArea txtObservaciones;
@@ -72,7 +71,7 @@ public class DetalleConsulta extends JDialog {
 		panelInfoGeneral.setBackground(Color.WHITE);
 		panelInfoGeneral.setBorder(new TitledBorder(
 			new LineBorder(new Color(70, 130, 180), 2), 
-			"Información General", 
+			"Informacion General", 
 			TitledBorder.LEFT, 
 			TitledBorder.TOP, 
 			new Font("Bahnschrift", Font.BOLD, 14),
@@ -82,7 +81,7 @@ public class DetalleConsulta extends JDialog {
 		contentPanel.add(panelInfoGeneral);
 		panelInfoGeneral.setLayout(null);
 		
-		JLabel lblCodigo = new JLabel("Código:");
+		JLabel lblCodigo = new JLabel("Codigo:");
 		lblCodigo.setFont(new Font("Verdana", Font.BOLD, 11));
 		lblCodigo.setForeground(new Color(70, 130, 180));
 		lblCodigo.setBounds(15, 25, 80, 20);
@@ -125,7 +124,7 @@ public class DetalleConsulta extends JDialog {
 		txtPaciente.setText(consulta.getPaciente().getNombre());
 		panelInfoGeneral.add(txtPaciente);
 		
-		JLabel lblCedula = new JLabel("Cédula:");
+		JLabel lblCedula = new JLabel("Cedula:");
 		lblCedula.setFont(new Font("Verdana", Font.BOLD, 11));
 		lblCedula.setForeground(new Color(70, 130, 180));
 		lblCedula.setBounds(364, 60, 70, 20);
@@ -165,7 +164,7 @@ public class DetalleConsulta extends JDialog {
 		txtImportante.setBackground(new Color(224, 247, 250));
 		txtImportante.setForeground(new Color(70, 130, 180));
 		if(consulta.getEsImportante()) {
-			txtImportante.setText("SÍ");
+			txtImportante.setText("Sï¿½");
 			txtImportante.setForeground(new Color(220, 20, 60));
 		} else {
 			txtImportante.setText("NO");
@@ -174,37 +173,11 @@ public class DetalleConsulta extends JDialog {
 		txtImportante.setBounds(450, 95, 244, 20);
 		panelInfoGeneral.add(txtImportante);
 		
-		JPanel panelSintomas = new JPanel();
-		panelSintomas.setBackground(Color.WHITE);
-		panelSintomas.setBorder(new TitledBorder(
-			new LineBorder(new Color(100, 149, 237), 2), 
-			"Síntomas Presentados", 
-			TitledBorder.LEFT, 
-			TitledBorder.TOP, 
-			new Font("Bahnschrift", Font.BOLD, 14),
-			new Color(100, 149, 237)
-		));
-		panelSintomas.setBounds(10, 150, 714, 88);
-		contentPanel.add(panelSintomas);
-		panelSintomas.setLayout(new BorderLayout(0, 0));
-		
-		JScrollPane scrollSintomas = new JScrollPane();
-		panelSintomas.add(scrollSintomas, BorderLayout.CENTER);
-		
-		txtSintomas = new JTextArea();
-		txtSintomas.setEditable(false);
-		txtSintomas.setLineWrap(true);
-		txtSintomas.setWrapStyleWord(true);
-		txtSintomas.setFont(new Font("Bahnschrift", Font.PLAIN, 12));
-		txtSintomas.setBackground(new Color(240, 248, 255));
-		txtSintomas.setText(consulta.getSintomas() != null ? consulta.getSintomas() : "No se registraron síntomas.");
-		scrollSintomas.setViewportView(txtSintomas);
-		
 		JPanel panelDiagnostico = new JPanel();
 		panelDiagnostico.setBackground(Color.WHITE);
 		panelDiagnostico.setBorder(new TitledBorder(
 			new LineBorder(new Color(135, 206, 235), 2), 
-			"Diagnóstico", 
+			"Diagnostico", 
 			TitledBorder.LEFT, 
 			TitledBorder.TOP, 
 			new Font("Bahnschrift", Font.BOLD, 14),
@@ -214,7 +187,7 @@ public class DetalleConsulta extends JDialog {
 		contentPanel.add(panelDiagnostico);
 		panelDiagnostico.setLayout(null);
 		
-		JLabel lblCodigoDiag = new JLabel("Código:");
+		JLabel lblCodigoDiag = new JLabel("Codigo:");
 		lblCodigoDiag.setFont(new Font("Verdana", Font.BOLD, 11));
 		lblCodigoDiag.setForeground(new Color(70, 130, 180));
 		lblCodigoDiag.setBounds(15, 25, 80, 20);
@@ -228,7 +201,7 @@ public class DetalleConsulta extends JDialog {
 		if(consulta.getDiagnostico() != null) {
 			txtCodigoDiagnostico.setText(consulta.getDiagnostico().getCodigoDiagnostico());
 		} else {
-			txtCodigoDiagnostico.setText("Sin diagnóstico");
+			txtCodigoDiagnostico.setText("Sin diagnï¿½stico");
 		}
 		panelDiagnostico.add(txtCodigoDiagnostico);
 		
@@ -251,7 +224,7 @@ public class DetalleConsulta extends JDialog {
 		}
 		panelDiagnostico.add(txtEnfermedad);
 		
-		JLabel lblDescripcion = new JLabel("Descripción:");
+		JLabel lblDescripcion = new JLabel("Descripcion:");
 		lblDescripcion.setFont(new Font("Verdana", Font.BOLD, 11));
 		lblDescripcion.setForeground(new Color(70, 130, 180));
 		lblDescripcion.setBounds(15, 55, 90, 20);
@@ -270,7 +243,7 @@ public class DetalleConsulta extends JDialog {
 		if(consulta.getDiagnostico() != null) {
 			txtDescripcionDiagnostico.setText(consulta.getDiagnostico().getDescripcion());
 		} else {
-			txtDescripcionDiagnostico.setText("No se realizó diagnóstico.");
+			txtDescripcionDiagnostico.setText("No se realizï¿½ diagnï¿½stico.");
 		}
 		scrollDiagnostico.setViewportView(txtDescripcionDiagnostico);
 		
@@ -297,7 +270,7 @@ public class DetalleConsulta extends JDialog {
 		txtTratamiento.setWrapStyleWord(true);
 		txtTratamiento.setFont(new Font("Bahnschrift", Font.PLAIN, 12));
 		txtTratamiento.setBackground(new Color(240, 248, 255));
-		txtTratamiento.setText(consulta.getTratamiento() != null ? consulta.getTratamiento() : "No se prescribió tratamiento.");
+		txtTratamiento.setText(consulta.getTratamiento() != null ? consulta.getTratamiento() : "No se prescribiï¿½ tratamiento.");
 		scrollTratamiento.setViewportView(txtTratamiento);
 		
 		JPanel panelObservaciones = new JPanel();

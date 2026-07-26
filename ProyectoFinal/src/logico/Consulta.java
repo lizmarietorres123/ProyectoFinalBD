@@ -1,9 +1,10 @@
 package logico;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
 
-public class Consulta implements Serializable{
+public class Consulta implements Serializable {
    
 	private static final long serialVersionUID = 675187258451876275L;
 	
@@ -11,19 +12,17 @@ public class Consulta implements Serializable{
     private Paciente paciente;
     private Doctor doctor;
     private Date fecha;
-    private String sintomas;
-    private Diagnostico diagnostico;
+    private ArrayList<Diagnostico> diagnosticos;
     private String tratamiento;
     private String observaciones;
-    //Que tenga el doctor sobre la consulta.
     private boolean esImportante;
-    // LAS IMPORTANTES VAN DENTRO DE LA HISTORIA CLINICA DEL PACIENTE
     
     public Consulta(String id, Paciente paciente, Doctor doctor, Date fecha) {
         this.id = id;
         this.paciente = paciente;
         this.doctor = doctor;
         this.fecha = fecha;
+        this.diagnosticos = new ArrayList<>();
         this.esImportante = false;
     }
     
@@ -59,20 +58,18 @@ public class Consulta implements Serializable{
         this.fecha = fecha;
     }
     
-    public String getSintomas() {
-        return sintomas;
+    public ArrayList<Diagnostico> getDiagnosticos() {
+        return diagnosticos;
     }
     
-    public void setSintomas(String sintomas) {
-        this.sintomas = sintomas;
+    public void setDiagnosticos(ArrayList<Diagnostico> diagnosticos) {
+        this.diagnosticos = diagnosticos;
     }
     
-    public Diagnostico getDiagnostico() {
-        return diagnostico;
-    }
-    
-    public void setDiagnostico(Diagnostico diagnostico) {
-        this.diagnostico = diagnostico;
+    public void addDiagnostico(Diagnostico diagnostico) {
+        if (diagnostico != null) {
+            this.diagnosticos.add(diagnostico);
+        }
     }
     
     public String getTratamiento() {
@@ -98,6 +95,4 @@ public class Consulta implements Serializable{
     public void setEsImportante(boolean esImportante) {
         this.esImportante = esImportante;
     }
-    
-    
 }

@@ -1,12 +1,11 @@
 package logico;
 
-import java.util.Date;
-import java.util.Random;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import utilidad.AuthException;
+import java.util.Date;
+import java.util.Random;
 
 public class Clinica implements Serializable {
     private static final long serialVersionUID = -2147265011502063886L;
@@ -82,13 +81,13 @@ public class Clinica implements Serializable {
         this.enfermedades = enfermedades;
     }
     
-	public ArrayList<Especialidad> getEspecialidades() {
-		return especialidades;
-	}
+    public ArrayList<Especialidad> getEspecialidades() {
+        return especialidades;
+    }
 
-	public void setEspecialidades(ArrayList<Especialidad> especialidades) {
-		this.especialidades = especialidades;
-	}
+    public void setEspecialidades(ArrayList<Especialidad> especialidades) {
+        this.especialidades = especialidades;
+    }
 
     public void setClinica(Clinica auxClinica) {
         if(auxClinica != null)
@@ -109,32 +108,26 @@ public class Clinica implements Serializable {
         regUsuario(staff);
         
         ArrayList<String> especialidades1 = new ArrayList<>();
-        especialidades1.add("Pediatr�a");
-        especialidades1.add("Dermatolog�a");
-        Doctor doctor1 = new Doctor("DOC-" + genCodigoDoctores, "Dr. Juan P�rez", 20, especialidades1);
+        especialidades1.add("Pediatría");
+        especialidades1.add("Dermatología");
+        Doctor doctor1 = new Doctor("DOC-" + genCodigoDoctores, "Dr. Juan Pérez", 20, especialidades1);
         doctor1.setUsuario(usuarioDoctor1);
-        doctores.add(doctor1);
-        genCodigoDoctores++;
+        regDoctor(doctor1);
         
         ArrayList<String> especialidades2 = new ArrayList<>();
-        especialidades2.add("Cardiolog�a");
+        especialidades2.add("Cardiología");
         especialidades2.add("Medicina General");
-        Doctor doctor2 = new Doctor("DOC-" + genCodigoDoctores, "Dra. Mar�a Gonz�lez", 20, especialidades2);
+        Doctor doctor2 = new Doctor("DOC-" + genCodigoDoctores, "Dra. María González", 20, especialidades2);
         doctor2.setUsuario(usuarioDoctor2);
-        doctores.add(doctor2);
-        genCodigoDoctores++;
+        regDoctor(doctor2);
         
-        Clinica.getInstancia().crearPacientePrueba("Cristina Garcia Hernandez", "0315400566");
-        Clinica.getInstancia().crearPacientePrueba("Cristina Mirabal", "0319084701");
-        Clinica.getInstancia().crearPacientePrueba("Altagracia Rodr�guez Fernandez", "0315400567");
-        Clinica.getInstancia().crearPacientePrueba("Maria Antonieta De las Nieves", "0312435679");
-        
-        doctor1.setPacientes(Clinica.getInstancia().getPacientes());
+        doctor1.setPacientes(getPacientes());
         
         crearEnfermDatos();
-        crearVacsClinicaPrueba(enfermedades.get(0));
+        if (!enfermedades.isEmpty()) {
+            crearVacsClinicaPrueba(enfermedades.get(0));
+        }
     }
-    
 
     private void iniciarContadores() {
         contadores = new ArrayList<Integer>();
@@ -149,17 +142,22 @@ public class Clinica implements Serializable {
     }
 
     public void asignarContadores() {
-        genCodigoPacientes = contadores.get(0);
-        genCodigoDoctores = contadores.get(1);
-        genCodigoCitas = contadores.get(2);
-        genCodigoConsultas = contadores.get(3);
-        genCodigoDiagnosticos = contadores.get(4);
-        genCodigoEnfermedad = contadores.get(5);
-        genCodigoVacuna = contadores.get(6);
-        genCodigoUsuarios = contadores.get(7);
+        if (contadores != null && contadores.size() >= 8) {
+            genCodigoPacientes = contadores.get(0);
+            genCodigoDoctores = contadores.get(1);
+            genCodigoCitas = contadores.get(2);
+            genCodigoConsultas = contadores.get(3);
+            genCodigoDiagnosticos = contadores.get(4);
+            genCodigoEnfermedad = contadores.get(5);
+            genCodigoVacuna = contadores.get(6);
+            genCodigoUsuarios = contadores.get(7);
+        }
     }
 
     public void guardarContadores() {
+        if (contadores == null) {
+            iniciarContadores();
+        }
         contadores.set(0, genCodigoPacientes);
         contadores.set(1, genCodigoDoctores);
         contadores.set(2, genCodigoCitas);
@@ -171,41 +169,39 @@ public class Clinica implements Serializable {
     }
 
     public Paciente buscarPacienteXId(String id) {
-        Paciente auxPaciente = null;
-        int i = 0;
-        while(auxPaciente == null && i < pacientes.size()) {
-            if(pacientes.get(i).getIdPaciente().equalsIgnoreCase(id))
-                auxPaciente = pacientes.get(i);
-            i++;
+        if (id == null) return null;
+        for (Paciente p : pacientes) {
+            if (p.getIdPaciente().equalsIgnoreCase(id)) {
+                return p;
+            }
         }
-        return auxPaciente;
+        return null;
     }
 
     public Cita buscarCitaXId(String id) {
-        Cita auxCita = null;
-        int i = 0;
-        while(auxCita == null && i < citas.size()) {
-            if(citas.get(i).getIdCita().equals(id))
-                auxCita = citas.get(i);
-            i++;
+        if (id == null) return null;
+        for (Cita c : citas) {
+            if (c.getIdCita().equals(id)) {
+                return c;
+            }
         }
-        return auxCita;
+        return null;
     }
 
     public Doctor buscarDoctorXId(String id) {
-        Doctor auxDoctor = null;
-        int i = 0;
-        while(auxDoctor == null && i < doctores.size()) {
-            if(doctores.get(i).getIdDoctor().equals(id))
-                auxDoctor = doctores.get(i);
-            i++;
+        if (id == null) return null;
+        for (Doctor d : doctores) {
+            if (d.getIdDoctor().equals(id)) {
+                return d;
+            }
         }
-        return auxDoctor;
+        return null;
     }
 
     public Doctor buscarDoctorXUsuario(Usuario usuario) {
-        for(Doctor doc : doctores) {
-            if(doc.getUsuario() != null && doc.getUsuario().getNombre().equals(usuario.getNombre())) {
+        if (usuario == null) return null;
+        for (Doctor doc : doctores) {
+            if (doc.getUsuario() != null && doc.getUsuario().getNombre().equals(usuario.getNombre())) {
                 return doc;
             }
         }
@@ -213,50 +209,61 @@ public class Clinica implements Serializable {
     }
 
     public void regPaciente(Paciente paciente) {
-        pacientes.add(paciente);
-        genCodigoPacientes++;
+        if (paciente != null) {
+            pacientes.add(paciente);
+            genCodigoPacientes++;
+        }
+    }
+
+    public void regDoctor(Doctor doctor) {
+        if (doctor != null) {
+            doctores.add(doctor);
+            genCodigoDoctores++;
+        }
     }
 
     public void regCita(Cita cita) {
-        citas.add(cita);
-        genCodigoCitas++;
+        if (cita != null) {
+            citas.add(cita);
+            genCodigoCitas++;
+        }
     }
+  
 
-    public Cita crearCitaPrueba(String nombre, Doctor doctor, Date fecha, String motivo) {
-        String idCita = "C-" + genCodigoCitas;
-        Cita nuevaCita = new Cita("CI-1", "1016", nombre, "849", doctor, fecha, motivo);
-        regCita(nuevaCita);
-        genCodigoCitas++;
-        return nuevaCita;
-    } 
-
-    
     public void realizarConsulta(Consulta consulta, Cita cita) {
-
-    	consulta.getPaciente().getHistorialClinico().add(consulta);
-    	consulta.getPaciente().addConsultaToResumen(consulta);
-    	cita.setConsultaGenerada(consulta);
-        cita.completar();
-        
-        genCodigoConsultas++;
-    	consultas.add(consulta);
-    	
+        if (consulta != null && cita != null) {
+            if (consulta.getPaciente() != null) {
+                if (consulta.getPaciente().getHistorialClinico() != null) {
+                    consulta.getPaciente().getHistorialClinico().add(consulta);
+                }
+                consulta.getPaciente().addConsultaToResumen(consulta);
+            }
+            cita.setConsultaGenerada(consulta);
+            cita.completar();
+            
+            genCodigoConsultas++;
+            consultas.add(consulta);
+        }
     }
 
     public int contarCitasXDia(Doctor doctor, Date fecha) {
+        if (doctor == null || fecha == null) return 0;
+        
         Calendar calendFecha = Calendar.getInstance();
         calendFecha.setTime(fecha);
         int contador = 0;
         
-        for(int i = 0; i < citas.size(); i++) {
-            Cita cita = citas.get(i);
-            if(cita.getDoctor().getIdDoctor().equals(doctor.getIdDoctor()) && 
-               cita.getEstado() == EstadoCita.PROGRAMADA) {
+        for (Cita cita : citas) {
+            if (cita.getDoctor() != null && 
+                cita.getDoctor().getIdDoctor().equals(doctor.getIdDoctor()) && 
+                cita.getEstado() == EstadoCita.PROGRAMADA && 
+                cita.getFechaHora() != null) {
+                
                 Calendar calendCita = Calendar.getInstance();
                 calendCita.setTime(cita.getFechaHora());
                 
-                if(calendFecha.get(Calendar.YEAR) == calendCita.get(Calendar.YEAR) && 
-                   calendFecha.get(Calendar.DAY_OF_YEAR) == calendCita.get(Calendar.DAY_OF_YEAR)) {
+                if (calendFecha.get(Calendar.YEAR) == calendCita.get(Calendar.YEAR) && 
+                    calendFecha.get(Calendar.DAY_OF_YEAR) == calendCita.get(Calendar.DAY_OF_YEAR)) {
                     contador++;
                 }
             }
@@ -265,20 +272,22 @@ public class Clinica implements Serializable {
     }
     
     public Paciente buscarPacienteXIdentificacion(String cedula) {
-        Paciente auxPaciente = null;
-        int i = 0;
-        while(auxPaciente == null && i < pacientes.size()) {
-            if(pacientes.get(i).getCedula().equalsIgnoreCase(cedula))
-                auxPaciente = pacientes.get(i);
-            i++;
+        if (cedula == null) return null;
+        for (Paciente p : pacientes) {
+            if (p.getCedula().equalsIgnoreCase(cedula)) {
+                return p;
+            }
         }
-        return auxPaciente;
+        return null;
     }
 
     public ArrayList<Consulta> getConsultasXDoctor(Doctor doctor) {
         ArrayList<Consulta> consultasDoctor = new ArrayList<>();
-        for(Consulta consulta : consultas) {
-            if(consulta.getDoctor().getIdDoctor().equals(doctor.getIdDoctor())) {
+        if (doctor == null) return consultasDoctor;
+
+        for (Consulta consulta : consultas) {
+            if (consulta.getDoctor() != null && 
+                consulta.getDoctor().getIdDoctor().equals(doctor.getIdDoctor())) {
                 consultasDoctor.add(consulta);
             }
         }
@@ -286,119 +295,104 @@ public class Clinica implements Serializable {
     }
 
     public void crearDoctorPrueba() {
-        ArrayList<String> especialidades = new ArrayList<>();
-        especialidades.add("Pediatr�a");
-        especialidades.add("Dermatolog�a");
+        ArrayList<String> especialidadesPrueba = new ArrayList<>();
+        especialidadesPrueba.add("Pediatría");
+        especialidadesPrueba.add("Dermatología");
         Doctor doctorPrueba = new Doctor(
-            "DOC"+ genCodigoDoctores,
+            "DOC-" + genCodigoDoctores,
             "El tejas",
             20,
-            especialidades
+            especialidadesPrueba
         );
-        doctores.add(doctorPrueba);
-    }
-
-    public Paciente crearPacientePrueba(String nombre, String cedula) {
-    	
-    	Calendar cal = Calendar.getInstance();
-    	cal.set(1990, Calendar.MARCH, 15); 
-    	Date fecha = cal.getTime();
-    	
-        Paciente auxPaciente = new Paciente("PAC-"+genCodigoPacientes, nombre, cedula, "849", 
-        		fecha, "U", (float)100, (float)5.2, "A+", null);
-        genCodigoPacientes++;
-        pacientes.add(auxPaciente);
-        return auxPaciente;
+        regDoctor(doctorPrueba);
     }
     
-	public Vacuna vacunaPrueba(String nombre, String cod, Enfermedad e) {
-		return new Vacuna(cod, nombre, e, 10);
-	}
-	
-	public void crearVacsClinicaPrueba(Enfermedad e) {
-		ArrayList<Vacuna> vacs = new ArrayList<>();
-		vacs.add(vacunaPrueba("1930","Cybac", e));
-		vacs.add(vacunaPrueba("2030","Brinx", e));
-		vacs.add(vacunaPrueba("4030","Fancil", e));
-		vacs.add(vacunaPrueba("5030","Trouse", e));
-		vacs.add(vacunaPrueba("1830","Cyrmac", e));
-		
-		vacunas = vacs;
-		genCodigoVacuna += 5;
-	}
-	
-	public Enfermedad enfermPrueba(String cod, String nombre) {
-		Random random = new Random();
-		Enfermedad e = new Enfermedad(cod, nombre, false, false, "Dolor de cabeza", "");
-		e.setCasosReportados(random.nextInt(350)+1);
-		return e;
-	}
-	
-	public void crearEnfermDatos() {
-		Random random = new Random();
-		
-		ArrayList<String> enfermedadesComunes = new ArrayList<>(Arrays.asList(
-			    "Gripe",
-			    "Hipertensi�n",
-			    "Diabetes",
-			    "Asma",
-			    "Gastritis"
-			));
-		
-		for (String enferm : enfermedadesComunes) {
-			enfermedades.add(enfermPrueba(
-					String.valueOf(random.nextInt(1000) + 999), 
-					enferm));
-		}
-	}
+    public Vacuna vacunaPrueba(String nombre, String cod, Enfermedad e) {
+        return new Vacuna(cod, nombre, e, 10);
+    }
+    
+    public void crearVacsClinicaPrueba(Enfermedad e) {
+        ArrayList<Vacuna> vacs = new ArrayList<>();
+        vacs.add(vacunaPrueba("1930", "Cybac", e));
+        vacs.add(vacunaPrueba("2030", "Brinx", e));
+        vacs.add(vacunaPrueba("4030", "Fancil", e));
+        vacs.add(vacunaPrueba("5030", "Trouse", e));
+        vacs.add(vacunaPrueba("1830", "Cyrmac", e));
+        
+        vacunas = vacs;
+        genCodigoVacuna += 5;
+    }
+    
+    public Enfermedad enfermPrueba(String cod, String nombre) {
+        Random random = new Random();
+        Enfermedad e = new Enfermedad(cod, nombre, false, false, "Dolor de cabeza", "");
+        e.setCasosReportados(random.nextInt(350) + 1);
+        return e;
+    }
+    
+    public void crearEnfermDatos() {
+        Random random = new Random();
+        
+        ArrayList<String> enfermedadesComunes = new ArrayList<>(Arrays.asList(
+                "Gripe",
+                "Hipertensión",
+                "Diabetes",
+                "Asma",
+                "Gastritis"
+            ));
+        
+        for (String enferm : enfermedadesComunes) {
+            enfermedades.add(enfermPrueba(
+                    String.valueOf(random.nextInt(1000) + 999), 
+                    enferm));
+        }
+    }
 
     public Consulta buscarConsultaXId(String id) {
-        Consulta auxConsulta = null;
-        int i = 0;
-        while(auxConsulta == null && i < consultas.size()) {
-            if(consultas.get(i).getId().equals(id)) {
-                auxConsulta = consultas.get(i);
+        if (id == null) return null;
+        for (Consulta c : consultas) {
+            if (c.getId().equals(id)) {
+                return c;
             }
-            i++;
         }
-        return auxConsulta;
+        return null;
     }
     
     public Vacuna buscarVacunaXId(String id) {
-		Vacuna aux = null;
-		int i = 0;
-
-		while(aux == null && i < vacunas.size()) {
-			if(vacunas.get(i).getId().equals(id)) {
-				aux = vacunas.get(i);
-			}
-			i++;
-		}
-
-		return aux;
-	}
+        if (id == null) return null;
+        for (Vacuna v : vacunas) {
+            if (v.getId().equals(id)) {
+                return v;
+            }
+        }
+        return null;
+    }
 
     public ArrayList<Consulta> getConsultasVisiblesXDoctor(Doctor doctor) {
         ArrayList<Consulta> consultasVisibles = new ArrayList<>();
+        if (doctor == null) return consultasVisibles;
         
-        for(Consulta consulta : consultas) {
-            if(consulta.getDoctor().getIdDoctor().equals(doctor.getIdDoctor())) {
+        for (Consulta consulta : consultas) {
+            if (consulta.getDoctor() != null && 
+                consulta.getDoctor().getIdDoctor().equals(doctor.getIdDoctor())) {
                 consultasVisibles.add(consulta);
             }
         }
         
-        for(Paciente paciente : pacientes) {
-            for(Consulta consultaImportante : paciente.getResumen()) {
-                boolean yaExiste = false;
-                int i = 0;
-                while(i < consultasVisibles.size() && !yaExiste) {
-                    if(consultasVisibles.get(i).getId().equals(consultaImportante.getId())) {
-                        yaExiste = true;
+        for (Paciente paciente : pacientes) {
+            if (paciente.getResumen() != null) {
+                for (Consulta consultaImportante : paciente.getResumen()) {
+                    boolean yaExiste = false;
+                    int i = 0;
+                    while (i < consultasVisibles.size() && !yaExiste) {
+                        if (consultasVisibles.get(i).getId().equals(consultaImportante.getId())) {
+                            yaExiste = true;
+                        }
+                        i++;
                     }
-                    i++;
-                }
-                if(!yaExiste) {
-                    consultasVisibles.add(consultaImportante);
+                    if (!yaExiste) {
+                        consultasVisibles.add(consultaImportante);
+                    }
                 }
             }
         }
@@ -407,53 +401,57 @@ public class Clinica implements Serializable {
     }
 
     public void registrarEnfermedad(Enfermedad enfermedad) {
-        enfermedades.add(enfermedad);
-        genCodigoEnfermedad++;
+        if (enfermedad != null) {
+            enfermedades.add(enfermedad);
+            genCodigoEnfermedad++;
+        }
     }
 
     public void registrarEnfermedadBajoVigilancia(Enfermedad enfermedad) {
-        enfermedad.activarVigilancia();
-        enfermedades.add(enfermedad);
-        genCodigoEnfermedad++;
+        if (enfermedad != null) {
+            enfermedad.activarVigilancia();
+            enfermedades.add(enfermedad);
+            genCodigoEnfermedad++;
+        }
     }
 
     public Enfermedad buscarEnfermedadXId(String id) {
-        Enfermedad aux = null;
-        int i = 0;
-        while(aux == null && i < enfermedades.size()) {
-            if(enfermedades.get(i).getId().equals(id)) {
-                aux = enfermedades.get(i);
+        if (id == null) return null;
+        for (Enfermedad e : enfermedades) {
+            if (e.getId().equals(id)) {
+                return e;
             }
-            i++;
         }
-        return aux;
+        return null;
     }
     
     public void regUsuario(Usuario usuario) {
-        usuarios.add(usuario);
-        genCodigoUsuarios++; 
+        if (usuario != null) {
+            usuarios.add(usuario);
+            genCodigoUsuarios++;
+        }
     }
 
     public void reportarCasoEnfermedad(String id) {
         Enfermedad enf = buscarEnfermedadXId(id);
-        if(enf != null) {
+        if (enf != null) {
             enf.reportarCaso();
         }
     }
 
     public Usuario getUsuarioActual() {
-		return usuarioActual;
-	}
+        return usuarioActual;
+    }
 
     public static Doctor getDoctorActual() {
         return loginDoctor;
     }
+
     public ArrayList<Usuario> getUsuarios() {
         return usuarios;
     }
-    public void setUsuarioActual(Usuario usuarioActual) {
-		this.usuarioActual = usuarioActual;
-	}
 
-    
+    public void setUsuarioActual(Usuario usuarioActual) {
+        this.usuarioActual = usuarioActual;
+    }
 }

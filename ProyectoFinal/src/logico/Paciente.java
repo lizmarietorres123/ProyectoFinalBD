@@ -1,15 +1,16 @@
 package logico;
 
-import java.util.Date;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Date;
 
-public class Paciente implements Serializable{
+public class Paciente implements Serializable {
 
 	private static final long serialVersionUID = 2532314229066693215L;
 	
 	private String idPaciente;
 	private String nombre;
+	private String apellido;
 	private String cedula;
 	private String telefono;
 	private Date fecNacim;
@@ -21,17 +22,15 @@ public class Paciente implements Serializable{
 
 	private ArrayList<Vacuna> vacunas;
 	private ArrayList<Consulta> resumen; 
-	// Son las consultas que cada doctor elige como importantes. Todos los doctores las pueden ver.
 	private ArrayList<Consulta> historialClinico; 
-	// Guarda todas las consultas que el paciente a tenido. Al mostrar las de cada doctor, se puede hacer revisando a qué doctor pertenece cada consulta.
-    private ArrayList<Enfermedad> enfermedades;
-    
+	private ArrayList<Enfermedad> enfermedades;
 
-	public Paciente(String idPaciente, String nombre, String cedula, String telefono, Date fecNacim,  
+	public Paciente(String idPaciente, String nombre, String apellido, String cedula, String telefono, Date fecNacim,  
 			String sexo, float peso, float estatura, String tipoSangre, String direccion) {
 		super();
 		this.idPaciente = idPaciente;
 		this.nombre = nombre;
+		this.apellido = apellido;
 		this.cedula = cedula;
 		this.telefono = telefono;
 		this.fecNacim = fecNacim;
@@ -41,13 +40,12 @@ public class Paciente implements Serializable{
 		this.tipoSangre = tipoSangre;
 		this.direccion = direccion;
 
-		vacunas = new ArrayList<>();
-		resumen = new ArrayList<>();
-		historialClinico = new ArrayList<>();
-		enfermedades = new ArrayList<>();
+		this.vacunas = new ArrayList<>();
+		this.resumen = new ArrayList<>();
+		this.historialClinico = new ArrayList<>();
+		this.enfermedades = new ArrayList<>();
 	}
 
-	
 	public String getIdPaciente() {
 		return idPaciente;
 	}
@@ -62,6 +60,14 @@ public class Paciente implements Serializable{
 
 	public void setNombre(String nombre) {
 		this.nombre = nombre;
+	}
+
+	public String getApellido() {
+		return apellido;
+	}
+
+	public void setApellido(String apellido) {
+		this.apellido = apellido;
 	}
 
 	public String getCedula() {
@@ -86,6 +92,14 @@ public class Paciente implements Serializable{
 
 	public void setFecNacim(Date fecNacim) {
 		this.fecNacim = fecNacim;
+	}
+
+	public String getSexo() {
+		return sexo;
+	}
+
+	public void setSexo(String sexo) {
+		this.sexo = sexo;
 	}
 
 	public float getPeso() {
@@ -144,136 +158,66 @@ public class Paciente implements Serializable{
 		this.historialClinico = historialClinico;
 	}
 
-	public void addConsultaToResumen(Consulta consulta) {
-		if(consulta.getEsImportante())
-			resumen.add(consulta);
-	}
-	
-	public ArrayList<String> getDoctores(){
-		ArrayList<String> doctores = new ArrayList<>();
-		
-		for (Consulta consulta : historialClinico) {
-			String nomDoc = consulta.getDoctor().getNombre();
-			
-			if(!doctores.contains(nomDoc))
-				doctores.add(nomDoc);
-		}
-		
-		if(doctores.size() == 0)
-			doctores = null;
-		
-		return doctores;
-	}
-
-	public void mostrarHistorialXDoctor(Doctor doctor) {
-		
-		
-		
-	}
-
 	public ArrayList<Enfermedad> getEnfermedades() {
-	    return enfermedades;
+		return enfermedades;
 	}
 
 	public void setEnfermedades(ArrayList<Enfermedad> enfermedades) {
-	    this.enfermedades = enfermedades;
-	}
-	
-	public String getSexo() {
-		return sexo;
+		this.enfermedades = enfermedades;
 	}
 
-	public void setSexo(String sexo) {
-		this.sexo = sexo;
+	public void addConsultaToResumen(Consulta consulta) {
+		if (consulta != null && consulta.getEsImportante()) {
+			resumen.add(consulta);
+		}
 	}
 	
+	public ArrayList<String> getDoctores() {
+		ArrayList<String> doctores = new ArrayList<>();
+		
+		for (Consulta consulta : historialClinico) {
+			if (consulta.getDoctor() != null) {
+				String nomDoc = consulta.getDoctor().getNombre();
+				if (!doctores.contains(nomDoc)) {
+					doctores.add(nomDoc);
+				}
+			}
+		}
+		
+		return doctores.isEmpty() ? null : doctores;
+	}
+
 	public void agregarEnfermedad(Enfermedad e) {
-        if(!enfermedades.contains(e)) {
-            enfermedades.add(e);
-        }
-    }
+		if (e != null && !enfermedades.contains(e)) {
+			enfermedades.add(e);
+		}
+	}
 
-	
-    public Enfermedad buscarEnfermedadPorId(String id) {
-        for (Enfermedad e : enfermedades) {
-            if (e.getId().equalsIgnoreCase(id)) {
-                return e;
-            }
-        }
-        return null;
-    }
-    
+	public Enfermedad buscarEnfermedadPorId(String id) {
+		for (Enfermedad e : enfermedades) {
+			if (e.getId().equalsIgnoreCase(id)) {
+				return e;
+			}
+		}
+		return null;
+	}
 
-    public ArrayList<Enfermedad> getEnfermedadesBajoVigilancia() {
-        ArrayList<Enfermedad> lista = new ArrayList<>();
-        for (Enfermedad e : enfermedades) {
-            if (e.isVigilancia()) {
-                lista.add(e);
-            }
-        }
-        return lista;
-    }
-    /*
-    public void agregarVacuna(Vacuna v) {
-        if (v != null && !vacunas.contains(v)) {
-        	System.out.println(Vacuna Agregada);
-        	v.setAplicada(true);
-            vacunas.add(v);
-        }
-    }
-    */
-    
-    public void agregarVacuna(Vacuna v) {
-        	System.out.println("Vacuna Agregada");
-        	v.setAplicada(true);
-            vacunas.add(v);
-        
-    }
-    
-    public Vacuna buscarVacunaPorId(String id) {
-        for (Vacuna v : vacunas) {
-            if (v.getId().equalsIgnoreCase(id)) {
-                return v;
-            }
-        }
-        return null;
-    }
-    
-    public ArrayList<Vacuna> getVacunasAplicadas() {
-        ArrayList<Vacuna> lista = new ArrayList<>();
-        for (Vacuna v : vacunas) {
-            if (v.isAplicada()) {
-                lista.add(v);
-            }
-        }
-        return lista;
-    }
-    
-    public ArrayList<Vacuna> getVacunasPendientes() {
-        ArrayList<Vacuna> lista = new ArrayList<>();
-        for (Vacuna v : vacunas) {
-            if (!v.isAplicada()) {
-                lista.add(v);
-            }
-        }
-        return lista;
-    }
-    
-    public boolean aplicarVacuna(String idVacuna, String doctor) {
-        Vacuna v = buscarVacunaPorId(idVacuna);
-        if (v != null && !v.isAplicada()) {
-            v.aplicarVacuna(doctor);
-            return true;
-        }
-        return false;
-    }
-    
-    public ArrayList<Boolean> getEstadosVacunas() {
-        ArrayList<Boolean> estados = new ArrayList<>();
-        for (Vacuna v : vacunas) {
-            estados.add(v.isAplicada());
-        }
-        return estados;
-    }
+	public ArrayList<Enfermedad> getEnfermedadesBajoVigilancia() {
+		ArrayList<Enfermedad> lista = new ArrayList<>();
+		for (Enfermedad e : enfermedades) {
+			if (e.isVigilancia()) {
+				lista.add(e);
+			}
+		}
+		return lista;
+	}
 
+	public Vacuna buscarVacunaPorId(String id) {
+		for (Vacuna v : vacunas) {
+			if (v.getId().equalsIgnoreCase(id)) {
+				return v;
+			}
+		}
+		return null;
+	}
 }

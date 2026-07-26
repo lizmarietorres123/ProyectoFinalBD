@@ -1,4 +1,4 @@
-package visual;
+package visual.registro;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -45,7 +45,7 @@ public class CrearDiagnostico extends JDialog {
     }
     
     public CrearDiagnostico() {
-        setTitle("Crear Diagnóstico");
+        setTitle("Crear Diagnï¿½stico");
         setModal(true);
         setBounds(100, 100, 600, 500);
         getContentPane().setLayout(new BorderLayout());
@@ -56,12 +56,12 @@ public class CrearDiagnostico extends JDialog {
         
         JPanel panel = new JPanel();
         panel.setBackground(new Color(176, 224, 230));
-        panel.setBorder(new TitledBorder(new LineBorder(new Color(135, 206, 235), 2), "Información del Diagnóstico", TitledBorder.CENTER, TitledBorder.TOP, null, new Color(70, 130, 180)));
+        panel.setBorder(new TitledBorder(new LineBorder(new Color(135, 206, 235), 2), "Informacion del Diagnostico", TitledBorder.CENTER, TitledBorder.TOP, null, new Color(70, 130, 180)));
         panel.setBounds(10, 11, 564, 400);
         contentPanel.add(panel);
         panel.setLayout(null);
         
-        JLabel lblCodigo = new JLabel("Código Diagnóstico:");
+        JLabel lblCodigo = new JLabel("Codigo Diagnostico:");
         lblCodigo.setForeground(new Color(70, 130, 180));
         lblCodigo.setFont(new Font("Bahnschrift", Font.BOLD, 13));
         lblCodigo.setBounds(10, 30, 150, 14);
@@ -113,7 +113,7 @@ public class CrearDiagnostico extends JDialog {
         txtDetallesEnfermedad.setFont(new Font("Bahnschrift", Font.PLAIN, 12));
         scrollDetalles.setViewportView(txtDetallesEnfermedad);
         
-        JLabel lblDescripcion = new JLabel("Descripción:");
+        JLabel lblDescripcion = new JLabel("Descripcion:");
         lblDescripcion.setForeground(new Color(70, 130, 180));
         lblDescripcion.setFont(new Font("Bahnschrift", Font.BOLD, 13));
         lblDescripcion.setBounds(10, 195, 150, 14);
@@ -189,8 +189,8 @@ public class CrearDiagnostico extends JDialog {
             if(enfermedad != null) {
                 StringBuilder detalles = new StringBuilder();
                 detalles.append("Nombre: ").append(enfermedad.getNombre()).append("\n");
-                detalles.append("En Vigilancia: ").append(enfermedad.isVigilancia() ? "Sí" : "No").append("\n");
-                detalles.append("Síntomas: ").append(enfermedad.getSintomas()).append("\n");
+                detalles.append("En Vigilancia: ").append(enfermedad.isVigilancia() ? "Sï¿½" : "No").append("\n");
+                detalles.append("Sï¿½ntomas: ").append(enfermedad.getSintomas()).append("\n");
                 
                 txtDetallesEnfermedad.setText(detalles.toString());
             }
@@ -201,7 +201,7 @@ public class CrearDiagnostico extends JDialog {
     
     private void crearDiagnostico() {
         if(txtDescripcion.getText().trim().isEmpty()) {
-            JOptionPane.showMessageDialog(null, "Debe ingresar una descripción.", "Campo Requerido", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(null, "Debe ingresar una descripciï¿½n.", "Campo Requerido", JOptionPane.WARNING_MESSAGE);
             return;
         }
         
@@ -227,8 +227,8 @@ public class CrearDiagnostico extends JDialog {
         Clinica.genCodigoDiagnosticos++;
         
         JOptionPane.showMessageDialog(null, 
-            "Diagnóstico creado exitosamente.\nEnfermedad: " + enfermedadSeleccionada.getNombre(), 
-            "Éxito", 
+            "Diagnï¿½stico creado exitosamente.\nEnfermedad: " + enfermedadSeleccionada.getNombre(), 
+            "ï¿½xito", 
             JOptionPane.INFORMATION_MESSAGE);
         
         dispose();

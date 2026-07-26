@@ -86,7 +86,7 @@ public class RegistrarVacuna extends JDialog {
 		}
 		cbEnfermedad.setSelectedIndex(-1);
 		
-		JLabel lblEdadMin = new JLabel("Edad minima:");
+		JLabel lblEdadMin = new JLabel("Edad mínima:");
 		lblEdadMin.setForeground(new Color(70, 130, 180));
 		lblEdadMin.setFont(new Font("Verdana", Font.BOLD, 12));
 		lblEdadMin.setBounds(10, 117, 120, 20);
@@ -178,8 +178,7 @@ public class RegistrarVacuna extends JDialog {
 		miVacuna.setFabricante(txtFabricante.getText().trim());
 		miVacuna.setEnfermedad((Enfermedad) cbEnfermedad.getSelectedItem());
 		
-		//ListarVacuna.loadVacunas();
-		JOptionPane.showMessageDialog(null, "Vacuna modificada con �xito.", "Modificaci�n Exitosa", JOptionPane.INFORMATION_MESSAGE);
+		JOptionPane.showMessageDialog(null, "Vacuna modificada con éxito.", "Modificación Exitosa", JOptionPane.INFORMATION_MESSAGE);
 		dispose();
 	}
 	
@@ -201,14 +200,13 @@ public class RegistrarVacuna extends JDialog {
 		String nombre = txtNombre.getText().trim();
 		String fabricante = txtFabricante.getText().trim();
 		
-		Vacuna vacuna = new Vacuna(id, nombre, enfermedad, edadMin);
-		vacuna.setFabricante(fabricante);
+		Vacuna vacuna = new Vacuna(id, nombre, fabricante, enfermedad, edadMin);
 		
 		Clinica.getInstancia().getVacunas().add(vacuna);
 		Clinica.genCodigoVacuna++;
 		
 		limpiarCampos();
-		JOptionPane.showMessageDialog(null, "Vacuna registrada con �xito.", "�xito", JOptionPane.INFORMATION_MESSAGE);
+		JOptionPane.showMessageDialog(null, "Vacuna registrada con éxito.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
 	}
 
 	private void limpiarCampos() {
