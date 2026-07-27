@@ -26,7 +26,6 @@ import javax.swing.DefaultComboBoxModel;
 
 import controllers.ConsultaController;
 import logico.Cita;
-import logico.Clinica;
 import logico.Consulta;
 import logico.Diagnostico;
 import logico.EstadoCita;
@@ -330,7 +329,7 @@ public class RealizarConsulta extends JDialog {
 
 		String f = filtro.toLowerCase();
 
-		for (Cita cita : Clinica.getInstancia().getCitas()) {
+		for (Cita cita : controller.obtenerTodasLasCitas()) {
 			if (cita.getEstado() == EstadoCita.PROGRAMADA) {
 				String idCita = cita.getIdCita() != null ? cita.getIdCita().toLowerCase() : "";
 				String nombrePers = cita.getNombrePersona() != null ? cita.getNombrePersona().toLowerCase() : "";
@@ -358,7 +357,7 @@ public class RealizarConsulta extends JDialog {
 			if (citaElegida != null) {
 				pacienteActual = citaElegida.getPaciente();
 				if (pacienteActual == null) {
-					pacienteActual = Clinica.getInstancia().buscarPacienteXIdentificacion(citaElegida.getIdPersona());
+					pacienteActual = controller.buscarPacientePorIdentificacion(citaElegida.getIdPersona());
 				}
 
 				if (pacienteActual != null) {

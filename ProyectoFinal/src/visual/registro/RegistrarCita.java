@@ -30,6 +30,7 @@ import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 
 import controllers.CitaController;
+import logico.Cita;
 import logico.Clinica;
 import logico.Doctor;
 import logico.Paciente;
@@ -45,12 +46,16 @@ public class RegistrarCita extends JDialog {
 	private JComboBox<DoctorItem> cbxDoctor;
 	private JLabel lblTipo;
 	private JLabel lblInfoDoctor;
+	private TitledBorder borderPanel;
+	private JButton okButton;
+
 	private boolean filtrandoDoctor = false;
 	private boolean filtrandoPaciente = false;
 
 	private final CitaController controller;
 	private Paciente auxPaciente;
 	private Doctor auxDoctor;
+	private Cita citaEditar;
 
 	private static class PacienteItem {
 		private final Paciente paciente;
@@ -166,7 +171,7 @@ public class RegistrarCita extends JDialog {
 
 	public static void main(String[] args) {
 		try {
-			RegistrarCita dialog = new RegistrarCita();
+			RegistrarCita dialog = new RegistrarCita(null);
 			dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 			dialog.setVisible(true);
 		} catch (Exception e) {
@@ -175,11 +180,16 @@ public class RegistrarCita extends JDialog {
 	}
 
 	public RegistrarCita() {
+		this(null);
+	}
+
+	public RegistrarCita(Cita cita) {
 		this.controller = new CitaController();
+		this.citaEditar = cita;
 		this.auxPaciente = null;
 		this.auxDoctor = null;
 
-		setTitle("Registrar: Cita");
+		setTitle(citaEditar == null ? "Registrar: Cita" : "Modificar: Cita");
 		setBounds(100, 100, 548, 340);
 		setLocationRelativeTo(null);
 		setModal(true);
@@ -192,13 +202,14 @@ public class RegistrarCita extends JDialog {
 
 		JPanel panel = new JPanel();
 		panel.setBounds(25, 10, 482, 240);
-		panel.setBorder(new TitledBorder(
+		borderPanel = new TitledBorder(
 				new LineBorder(new Color(70, 130, 180), 1, true),
-				" Registrar Cita ",
+				citaEditar == null ? " Registrar Cita " : " Modificar Cita ",
 				TitledBorder.LEFT,
 				TitledBorder.TOP,
 				new Font("Dialog", Font.BOLD, 13),
-				new Color(70, 130, 180)));
+				new Color(70, 130, 180));
+		panel.setBorder(borderPanel);
 		panel.setBackground(Color.WHITE);
 		panel.setLayout(null);
 		contentPanel.add(panel);
@@ -209,7 +220,7 @@ public class RegistrarCita extends JDialog {
 		lblCodigo.setBounds(25, 30, 60, 22);
 		panel.add(lblCodigo);
 
-		txtIdCita = new JTextField(controller.generarNuevoIdCita());
+		txtIdCita = new JTextField(citaEditar == null ? controller.generarNuevoIdCita() : citaEditar.getIdCita());
 		txtIdCita.setEnabled(false);
 		txtIdCita.setEditable(false);
 		txtIdCita.setFont(new Font("Dialog", Font.BOLD, 12));
@@ -225,7 +236,8 @@ public class RegistrarCita extends JDialog {
 		lblFecha.setBounds(294, 30, 60, 22);
 		panel.add(lblFecha);
 
-		spnFecha = new JSpinner(new SpinnerDateModel(new Date(), null, null, Calendar.DAY_OF_YEAR));
+		Date fechaInicial = (citaEditar != null && citaEditar.getFechaHora() != null) ? citaEditar.getFechaHora() : new Date();
+		spnFecha = new JSpinner(new SpinnerDateModel(fechaInicial, null, null, Calendar.DAY_OF_YEAR));
 		spnFecha.setFont(new Font("Dialog", Font.PLAIN, 12));
 		spnFecha.setBorder(new LineBorder(new Color(70, 130, 180)));
 		Formato.setSpinner(spnFecha);
@@ -372,10 +384,10 @@ public class RegistrarCita extends JDialog {
 		buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
 		getContentPane().add(buttonPane, BorderLayout.SOUTH);
 
-		JButton okButton = new JButton("Registrar");
+		okButton = new JButton(citaEditar == null ? "Registrar" : "Guardar");
 		okButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				ejecutarRegistroCita();
+				ejecutarGuardadoCita();
 			}
 		});
 		okButton.setFont(new Font("Dialog", Font.PLAIN, 12));
@@ -397,6 +409,44 @@ public class RegistrarCita extends JDialog {
 
 		actualizarComboPacientes("");
 		actualizarComboDoctores("");
+
+		if (citaEditar != null) {
+			cargarDatosModificacion();
+		}
+	}
+
+	private void cargarDatosModificacion() {
+		if (citaEditar == null) return;
+
+		// Cargar paciente
+		if (citaEditar.getPaciente() != null) {
+			auxPaciente = citaEditar.getPaciente();
+			for (int i = 0; i < cbxPaciente.getItemCount(); i++) {
+				PacienteItem item = cbxPaciente.getItemAt(i);
+				if (item != null && item.getPaciente() != null && item.getPaciente().getCedula().equalsIgnoreCase(auxPaciente.getCedula())) {
+					cbxPaciente.setSelectedIndex(i);
+					lblTipo.setText("*Encontrado.");
+					lblTipo.setForeground(new Color(0, 128, 0));
+					break;
+				}
+			}
+		}
+
+		// Cargar doctor
+		if (citaEditar.getDoctor() != null) {
+			auxDoctor = citaEditar.getDoctor();
+			for (int i = 0; i < cbxDoctor.getItemCount(); i++) {
+				DoctorItem item = cbxDoctor.getItemAt(i);
+				if (item != null && item.getDoctor() != null && item.getDoctor().getIdDoctor().equalsIgnoreCase(auxDoctor.getIdDoctor())) {
+					cbxDoctor.setSelectedIndex(i);
+					String esp = (auxDoctor.getEspecialidades() != null && !auxDoctor.getEspecialidades().isEmpty())
+							? String.join(", ", auxDoctor.getEspecialidades()) : "General";
+					lblInfoDoctor.setText("✓ " + auxDoctor.getNombre() + " (" + esp + ")");
+					lblInfoDoctor.setForeground(new Color(0, 128, 0));
+					break;
+				}
+			}
+		}
 	}
 
 	private void actualizarComboPacientes(String filtro) {
@@ -512,7 +562,7 @@ public class RegistrarCita extends JDialog {
 		lblInfoDoctor.setForeground(new Color(120, 130, 140));
 	}
 
-	private void ejecutarRegistroCita() {
+	private void ejecutarGuardadoCita() {
 		if (auxPaciente == null) {
 			seleccionarPaciente();
 		}
@@ -528,18 +578,31 @@ public class RegistrarCita extends JDialog {
 		}
 
 		Date fechaCita = (Date) spnFecha.getValue();
-		boolean exito = controller.registrarCita(
-				txtIdCita.getText(),
-				auxPaciente,
-				auxDoctor,
-				fechaCita
-		);
 
-		if (exito) {
-			JOptionPane.showMessageDialog(this, "Cita registrada exitosamente.", "Información", JOptionPane.INFORMATION_MESSAGE);
-			limpiarCampos();
+		if (citaEditar == null) {
+			// MODO REGISTRO
+			boolean exito = controller.registrarCita(
+					txtIdCita.getText(),
+					auxPaciente,
+					auxDoctor,
+					fechaCita
+			);
+
+			if (exito) {
+				JOptionPane.showMessageDialog(this, "Cita registrada exitosamente.", "Información", JOptionPane.INFORMATION_MESSAGE);
+				limpiarCampos();
+			} else {
+				JOptionPane.showMessageDialog(this, "Ocurrió un error al registrar la cita.", "Error", JOptionPane.ERROR_MESSAGE);
+			}
 		} else {
-			JOptionPane.showMessageDialog(this, "Ocurrió un error al registrar la cita.", "Error", JOptionPane.ERROR_MESSAGE);
+			// MODO MODIFICACIÓN
+			boolean exito = controller.modificarCita(citaEditar, auxPaciente, auxDoctor, fechaCita);
+			if (exito) {
+				JOptionPane.showMessageDialog(this, "Cita modificada exitosamente.", "Información", JOptionPane.INFORMATION_MESSAGE);
+				dispose();
+			} else {
+				JOptionPane.showMessageDialog(this, "Ocurrió un error al modificar la cita.", "Error", JOptionPane.ERROR_MESSAGE);
+			}
 		}
 	}
 

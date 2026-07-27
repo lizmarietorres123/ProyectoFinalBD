@@ -1,30 +1,51 @@
-package controllers;
+package controlador;
 
 import java.util.ArrayList;
-import java.util.List;
-
 import logico.Clinica;
 import logico.Doctor;
-import logico.Especialidad;
 
 public class DoctorController {
 
-	public List<Especialidad> obtenerTodasLasEspecialidades() {
-		List<Especialidad> catalogo = new ArrayList<>();
-		if (Clinica.getInstancia().getEspecialidades() != null) {
-			for (Especialidad esp : Clinica.getInstancia().getEspecialidades()) {
-				if (esp != null) {
-					catalogo.add(esp);
-				}
-			}
-		}
-		return catalogo;
+	public DoctorController() {
 	}
 
-	public boolean guardarDoctor(Doctor doctor) {
-		if (doctor == null) {
-			return false;
+	public ArrayList<Doctor> obtenerTodos() {
+		return Clinica.getInstancia().getDoctores();
+	}
+
+	public Doctor buscarPorId(String id) {
+		if (id == null) return null;
+		for (Doctor d : obtenerTodos()) {
+			if (d.getIdDoctor().equalsIgnoreCase(id)) {
+				return d;
+			}
 		}
-		return true;
+		return null;
+	}
+
+	public boolean registrar(Doctor doctor) {
+		if (doctor != null && buscarPorId(doctor.getIdDoctor()) == null) {
+			Clinica.getInstancia().getDoctores().add(doctor);
+			return true;
+		}
+		return false;
+	}
+
+	public boolean actualizar(Doctor doctorActualizado) {
+		Doctor actual = buscarPorId(doctorActualizado.getIdDoctor());
+		if (actual != null) {
+			actual.setNombre(doctorActualizado.getNombre());
+			actual.setCupoDiario(doctorActualizado.getCupoDiario());
+			actual.setEspecialidades(doctorActualizado.getEspecialidades()); //[cite: 33]
+			return true;
+		}
+		return false;
+	}
+
+	public boolean eliminar(Doctor doctor) {
+		if (doctor != null) {
+			return Clinica.getInstancia().getDoctores().remove(doctor);
+		}
+		return false;
 	}
 }

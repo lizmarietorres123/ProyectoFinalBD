@@ -7,6 +7,7 @@ import logico.Cita;
 import logico.Clinica;
 import logico.Consulta;
 import logico.Diagnostico;
+import logico.Doctor;
 import logico.Enfermedad;
 import logico.EstadoCita;
 import logico.Paciente;
@@ -29,11 +30,27 @@ public class ConsultaController {
         return programadas;
     }
 
+    public List<Cita> obtenerTodasLasCitas() {
+        return Clinica.getInstancia().getCitas();
+    }
+
     public Cita obtenerCitaPorCodigo(String codigo) {
         if (codigo == null || codigo.trim().isEmpty()) {
             return null;
         }
         return Clinica.getInstancia().buscarCitaXId(codigo.trim());
+    }
+
+    public Paciente buscarPacientePorIdentificacion(String idPersona) {
+        return Clinica.getInstancia().buscarPacienteXIdentificacion(idPersona);
+    }
+
+    public List<Consulta> obtenerConsultasVisiblesXDoctor(Doctor doctor) {
+        return Clinica.getInstancia().getConsultasVisiblesXDoctor(doctor);
+    }
+
+    public Consulta buscarConsultaPorCodigo(String codigo) {
+        return Clinica.getInstancia().buscarConsultaXId(codigo);
     }
 
     public Consulta registrarConsulta(Cita citaElegida, List<Diagnostico> diagnosticos, String tratamiento, String observaciones, boolean esImportante) {

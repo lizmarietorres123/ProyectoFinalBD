@@ -10,7 +10,8 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
+import java.text.SimpleDateFormat;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -25,36 +26,31 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 
-import logico.Clinica;
-import logico.Enfermedad;
-import logico.Paciente;
-import logico.Vacuna;
-import visual.registro.RegistrarVacuna;
+import controllers.CitaController;
+import logico.Cita;
+import visual.registro.RegistrarCita;
 
-public class ListarVacuna extends JDialog {
+public class ListarCita extends JDialog {
 
     private static final long serialVersionUID = 1L;
     private final JPanel contentPanel = new JPanel();
     private DefaultTableModel model;
     private Object[] row;
-    private Paciente auxPaciente;
-    private String auxOpcion;
-    private boolean esModoAplicar;
-    private Vacuna auxVacuna = null;
+    private Cita auxCita = null;
+    private final CitaController controller;
 
     private JTextField txtBuscar;
     private JTable table;
     private JPanel panelBarra;
     private JPanel panelTable;
 
-    private JButton btnAplicar;
     private JButton btnModificar;
     private JButton btnEliminar;
     private JButton btnCancelar;
 
     public static void main(String[] args) {
         try {
-            ListarVacuna dialog = new ListarVacuna(null, "Mantenimiento");
+            ListarCita dialog = new ListarCita();
             dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
             dialog.setVisible(true);
         } catch (Exception e) {
@@ -62,13 +58,14 @@ public class ListarVacuna extends JDialog {
         }
     }
 
-    public ListarVacuna(Paciente paciente, String opcion) {
-        auxPaciente = paciente;
-        auxOpcion = opcion != null ? opcion : "Mantenimiento";
-        esModoAplicar = (auxPaciente != null) && (auxOpcion.equalsIgnoreCase("Aplicar") || auxOpcion.equalsIgnoreCase("Agregar"));
+    public ListarCita() {
+        this.controller = new CitaController();
 
+        setTitle("Listado de Citas");
         setBounds(100, 100, 818, 541);
         setLocationRelativeTo(null);
+        setModal(true);
+
         getContentPane().setLayout(new BorderLayout());
         contentPanel.setBackground(new Color(240, 248, 255));
         contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -89,7 +86,7 @@ public class ListarVacuna extends JDialog {
         panelBarra.add(lblBuscar);
 
         txtBuscar = new JTextField();
-        txtBuscar.setToolTipText("Filtrar por código, nombre, fabricante o enfermedad");
+        txtBuscar.setToolTipText("Filtrar por código, paciente, cédula, doctor o estado");
         txtBuscar.setBounds(90, 16, 625, 28);
         txtBuscar.setFont(new Font("Bahnschrift", Font.PLAIN, 13));
         txtBuscar.addKeyListener(new KeyAdapter() {
@@ -116,18 +113,13 @@ public class ListarVacuna extends JDialog {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public Class<?> getColumnClass(int columnIndex) {
-                if (esModoAplicar && columnIndex == 0) {
-                    return Boolean.class;
-                }
-                return String.class;
-            }
-
-            @Override
             public boolean isCellEditable(int row, int column) {
-                return esModoAplicar && column == 0;
+                return false;
             }
         };
+
+        String[] headers = {"Código", "Paciente", "Doctor", "Fecha y Hora", "Estado"};
+        model.setColumnIdentifiers(headers);
 
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         table.setFont(new Font("Bahnschrift", Font.PLAIN, 12));
@@ -147,10 +139,9 @@ public class ListarVacuna extends JDialog {
             public void mouseClicked(MouseEvent e) {
                 int index = table.getSelectedRow();
                 if (index > -1) {
-                    int colCodigo = esModoAplicar ? 1 : 0;
-                    String id = table.getValueAt(index, colCodigo).toString();
-                    auxVacuna = Clinica.getInstancia().buscarVacunaXId(id);
-                    if (!esModoAplicar && auxVacuna != null) {
+                    String id = table.getValueAt(index, 0).toString();
+                    auxCita = controller.buscarCitaPorId(id);
+                    if (auxCita != null) {
                         btnModificar.setEnabled(true);
                         btnEliminar.setEnabled(true);
                     }
@@ -172,21 +163,21 @@ public class ListarVacuna extends JDialog {
         btnEliminar.setEnabled(false);
         btnEliminar.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                if (auxVacuna != null) {
+                if (auxCita != null) {
                     int option = JOptionPane.showConfirmDialog(
                             null,
-                            "¿Está seguro que desea eliminar la vacuna: " + auxVacuna.getNombre() + "?",
+                            "¿Está seguro que desea eliminar la cita " + auxCita.getIdCita() + " de " + auxCita.getNombrePersona() + "?",
                             "Confirmación",
                             JOptionPane.WARNING_MESSAGE
                     );
                     if (option == JOptionPane.OK_OPTION) {
-                        Clinica.getInstancia().getVacunas().remove(auxVacuna);
-                        auxVacuna = null;
+                        controller.eliminarCita(auxCita);
+                        auxCita = null;
                         btnEliminar.setEnabled(false);
                         btnModificar.setEnabled(false);
                         filtrarTabla(txtBuscar.getText());
                         JOptionPane.showMessageDialog(null,
-                                "Vacuna eliminada exitosamente.",
+                                "Cita eliminada exitosamente.",
                                 "Éxito",
                                 JOptionPane.INFORMATION_MESSAGE);
                     }
@@ -202,26 +193,18 @@ public class ListarVacuna extends JDialog {
         btnModificar.setEnabled(false);
         btnModificar.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                if (auxVacuna != null) {
-                    RegistrarVacuna modVacuna = new RegistrarVacuna(auxVacuna);
-                    modVacuna.setModal(true);
-                    modVacuna.setVisible(true);
+                if (auxCita != null) {
+                    RegistrarCita modCita = new RegistrarCita(auxCita);
+                    modCita.setModal(true);
+                    modCita.setVisible(true);
                     filtrarTabla(txtBuscar.getText());
+                    btnModificar.setEnabled(false);
+                    btnEliminar.setEnabled(false);
+                    auxCita = null;
                 }
             }
         });
         buttonPane.add(btnModificar);
-
-        btnAplicar = new JButton("Aplicar Vacunas");
-        btnAplicar.setFont(new Font("Bahnschrift", Font.BOLD, 13));
-        btnAplicar.setForeground(new Color(70, 130, 180));
-        btnAplicar.setBackground(new Color(255, 245, 238));
-        btnAplicar.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                aplicarVacunasSeleccionadas();
-            }
-        });
-        buttonPane.add(btnAplicar);
 
         btnCancelar = new JButton("Volver");
         btnCancelar.setFont(new Font("Bahnschrift", Font.BOLD, 13));
@@ -234,109 +217,24 @@ public class ListarVacuna extends JDialog {
         });
         buttonPane.add(btnCancelar);
 
-        configurarVistaSegunModo();
         filtrarTabla("");
-    }
-
-    private void configurarVistaSegunModo() {
-        if (esModoAplicar) {
-            setTitle("Aplicar Vacunas a Paciente: " + (auxPaciente != null ? auxPaciente.getNombre() : ""));
-            String[] headers = {"Aplicar", "Código", "Nombre", "Enfermedades", "Fabricante"};
-            model.setColumnIdentifiers(headers);
-
-            btnAplicar.setVisible(true);
-            btnModificar.setVisible(false);
-            btnEliminar.setVisible(false);
-        } else {
-            setTitle("Listado de Vacunas");
-            String[] headers = {"Código", "Nombre", "Enfermedades", "Fabricante"};
-            model.setColumnIdentifiers(headers);
-
-            btnAplicar.setVisible(false);
-            btnModificar.setVisible(true);
-            btnEliminar.setVisible(true);
-        }
-    }
-
-    private String formatEnfermedades(Vacuna v) {
-        if (v == null || v.getEnfermedades() == null || v.getEnfermedades().isEmpty()) {
-            return "N/A";
-        }
-        StringBuilder sb = new StringBuilder();
-        for (Enfermedad e : v.getEnfermedades()) {
-            if (e != null && e.getNombre() != null) {
-                sb.append(e.getNombre()).append(", ");
-            }
-        }
-        return sb.toString().replaceAll(", $", "");
-    }
-
-    private void aplicarVacunasSeleccionadas() {
-        if (auxPaciente == null) {
-            JOptionPane.showMessageDialog(this, "No hay paciente seleccionado.", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        int aplicadas = 0;
-        for (int i = 0; i < table.getRowCount(); i++) {
-            Boolean seleccionado = (Boolean) table.getValueAt(i, 0);
-            if (seleccionado != null && seleccionado) {
-                String codigo = table.getValueAt(i, 1).toString();
-                Vacuna v = Clinica.getInstancia().buscarVacunaXId(codigo);
-                if (v != null) {
-                    if (auxPaciente.getVacunas() == null || !auxPaciente.getVacunas().contains(v)) {
-                        auxPaciente.agregarVacuna(v);
-                        aplicadas++;
-                    }
-                }
-            }
-        }
-
-        if (aplicadas > 0) {
-            JOptionPane.showMessageDialog(this,
-                    "Se aplicaron exitosamente " + aplicadas + " vacuna(s) al paciente " + auxPaciente.getNombre(),
-                    "Vacunas Aplicadas",
-                    JOptionPane.INFORMATION_MESSAGE);
-            dispose();
-        } else {
-            JOptionPane.showMessageDialog(this,
-                    "No se seleccionaron nuevas vacunas para aplicar.",
-                    "Información",
-                    JOptionPane.INFORMATION_MESSAGE);
-        }
     }
 
     private void filtrarTabla(String filtro) {
         model.setRowCount(0);
-        String f = filtro != null ? filtro.toLowerCase().trim() : "";
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+        List<Cita> citas = controller.filtrarCitas(filtro);
 
-        ArrayList<Vacuna> vacunas = Clinica.getInstancia().getVacunas();
-        if (vacunas != null) {
-            for (Vacuna v : vacunas) {
-                if (v != null) {
-                    String id = v.getId() != null ? v.getId().toLowerCase() : "";
-                    String nombre = v.getNombre() != null ? v.getNombre().toLowerCase() : "";
-                    String fabricante = v.getFabricante() != null ? v.getFabricante().toLowerCase() : "";
-                    String enfermedades = formatEnfermedades(v).toLowerCase();
-
-                    if (f.isEmpty() || id.contains(f) || nombre.contains(f) || fabricante.contains(f) || enfermedades.contains(f)) {
-                        if (esModoAplicar) {
-                            boolean yaAplicada = (auxPaciente != null && auxPaciente.getVacunas() != null && auxPaciente.getVacunas().contains(v));
-                            row = new Object[5];
-                            row[0] = Boolean.valueOf(yaAplicada);
-                            row[1] = v.getId();
-                            row[2] = v.getNombre();
-                            row[3] = formatEnfermedades(v);
-                            row[4] = v.getFabricante() != null ? v.getFabricante() : "N/A";
-                        } else {
-                            row = new Object[4];
-                            row[0] = v.getId();
-                            row[1] = v.getNombre();
-                            row[2] = formatEnfermedades(v);
-                            row[3] = v.getFabricante() != null ? v.getFabricante() : "N/A";
-                        }
-                        model.addRow(row);
-                    }
+        if (citas != null) {
+            for (Cita c : citas) {
+                if (c != null) {
+                    row = new Object[5];
+                    row[0] = c.getIdCita();
+                    row[1] = c.getNombrePersona();
+                    row[2] = (c.getDoctor() != null) ? "Dr. " + c.getDoctor().getNombre() : "N/A";
+                    row[3] = (c.getFechaHora() != null) ? sdf.format(c.getFechaHora()) : "N/A";
+                    row[4] = (c.getEstado() != null) ? c.getEstado().toString() : "N/A";
+                    model.addRow(row);
                 }
             }
         }

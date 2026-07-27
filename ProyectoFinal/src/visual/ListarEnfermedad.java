@@ -175,7 +175,7 @@ public class ListarEnfermedad extends JDialog {
 		});
 		buttonPane.add(btnEliminar);
 
-		btnModificar = new JButton("Modificar");
+		btnModificar = new JButton("Ver Detalles");
 		btnModificar.setFont(new Font("Bahnschrift", Font.BOLD, 13));
 		btnModificar.setForeground(new Color(70, 130, 180));
 		btnModificar.setBackground(new Color(255, 245, 238));

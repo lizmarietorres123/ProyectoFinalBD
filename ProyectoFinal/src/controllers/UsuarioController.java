@@ -1,30 +1,50 @@
-package controllers;
+package controlador;
 
+import java.util.ArrayList;
 import logico.Clinica;
 import logico.Usuario;
-import utilidad.Formato;
 
 public class UsuarioController {
-	
-	public String getNextCode() {
-		return "USR-" + Clinica.getInstancia().genCodigoUsuarios;
+
+	public UsuarioController() {
 	}
 
-	public boolean guardarUsuario(String codigo, String nombre, String contrasenia, String tipo) {
-		if (Formato.entradaVacia(codigo, "El código de usuario es obligatorio.") || 
-			Formato.entradaVacia(nombre, "El nombre de usuario es obligatorio.") || 
-			Formato.entradaVacia(contrasenia, "La contraseña es obligatoria.")) {
-			return false;
-		}
-		
-		if (tipo.equals("<<Seleccione>>")) {
-			javax.swing.JOptionPane.showMessageDialog(null, "Debe seleccionar un tipo de usuario válido.", "Campo Requerido", javax.swing.JOptionPane.WARNING_MESSAGE);
-			return false;
-		}
+	public ArrayList<Usuario> obtenerTodos() {
+		return Clinica.getInstancia().getUsuarios();
+	}
 
-		Usuario nuevoUsuario = new Usuario(codigo, contrasenia, tipo); 
+	public Usuario buscarPorUsername(String username) {
+		if (username == null) return null;
+		for (Usuario u : obtenerTodos()) {
+			if (u.getNombre().equalsIgnoreCase(username)) {
+				return u;
+			}
+		}
+		return null;
+	}
 
-		Clinica.getInstancia().regUsuario(nuevoUsuario);
-		return true;
+	public boolean registrar(Usuario usuario) {
+		if (usuario != null) {
+			Clinica.getInstancia().getUsuarios().add(usuario);
+			return true;
+		}
+		return false;
+	}
+
+	public boolean actualizar(Usuario usuarioOriginal, String nuevoNombre, String nuevaPassword, String nuevoTipo) {
+		if (usuarioOriginal != null) {
+			usuarioOriginal.setNombre(nuevoNombre);
+			usuarioOriginal.setPassword(nuevaPassword); //[cite: 34]
+			usuarioOriginal.setTipo(nuevoTipo);
+			return true;
+		}
+		return false;
+	}
+
+	public boolean eliminar(Usuario usuario) {
+		if (usuario != null) {
+			return Clinica.getInstancia().getUsuarios().remove(usuario);
+		}
+		return false;
 	}
 }

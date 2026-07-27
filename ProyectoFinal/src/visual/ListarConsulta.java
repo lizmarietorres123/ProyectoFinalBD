@@ -14,11 +14,12 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
@@ -36,26 +37,24 @@ import logico.Clinica;
 import logico.Consulta;
 import logico.Diagnostico;
 import logico.Doctor;
+import logico.Paciente;
 
 public class ListarConsulta extends JDialog {
 
 	private static final long serialVersionUID = 1L;
 	private final JPanel contentPanel = new JPanel();
+	private JTable table;
 	private DefaultTableModel model;
 	private Object[] row;
-	private Doctor doctor;
-	private Consulta auxConsulta = null;
 
-	private JSpinner spnFecIni;
-	private JSpinner spnFecFin;
-	private JTextField txtBuscarPaciente;
-	private JCheckBox chkSoloImportantes;
-	private JTable table;
-	private JPanel panelBarra;
-	private JPanel panelTable;
+	private Doctor doctorActual;
+
+	private JTextField txtBuscar;
+	private JSpinner spnFechaInicio;
+	private JSpinner spnFechaFin;
 
 	private JButton btnVerDetalle;
-	private JButton btnCancelar;
+	private JButton btnCerrar;
 
 	public static void main(String[] args) {
 		try {
@@ -67,106 +66,111 @@ public class ListarConsulta extends JDialog {
 		}
 	}
 
-	public ListarConsulta(Doctor selectDoctor) {
-		if (selectDoctor == null) {
+	public ListarConsulta(Doctor doctor) {
+		if (doctor != null) {
+			this.doctorActual = doctor;
+		} else if (Clinica.getDoctorActual() != null) {
+			this.doctorActual = Clinica.getDoctorActual();
+		} else {
 			ArrayList<String> especialidades = new ArrayList<>();
-			especialidades.add("Pediatría");
-			especialidades.add("Dermatología");
-			selectDoctor = new Doctor("DOC-1", "Liz Marie Torres", 20, especialidades);
+			especialidades.add("Medicina General");
+			this.doctorActual = new Doctor("DOC-1", "Doctor General", 10, especialidades);
 		}
-		this.doctor = selectDoctor;
-		String tituloDoctor = (doctor != null) ? "Dr. " + doctor.getNombre() : "General";
-		setTitle("Listado de Consultas - " + tituloDoctor);
 
-		setBounds(100, 100, 880, 560);
+		setTitle("Listado de Consultas - Dr(a). " + doctorActual.getNombre());
+		setBounds(100, 100, 880, 580);
 		setLocationRelativeTo(null);
 		getContentPane().setLayout(new BorderLayout());
+
 		contentPanel.setBackground(new Color(240, 248, 255));
-		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+		contentPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
 		contentPanel.setLayout(null);
 
-		panelBarra = new JPanel();
+		JPanel panelBarra = new JPanel();
 		panelBarra.setBackground(Color.WHITE);
-		panelBarra.setBorder(new LineBorder(new Color(70, 130, 180)));
-		panelBarra.setBounds(28, 15, 808, 95);
+		panelBarra.setBorder(new LineBorder(new Color(135, 206, 235), 2));
+		panelBarra.setBounds(20, 15, 824, 85);
 		panelBarra.setLayout(null);
 		contentPanel.add(panelBarra);
 
-		JLabel lblPaciente = new JLabel("Paciente:");
-		lblPaciente.setForeground(new Color(70, 130, 180));
-		lblPaciente.setFont(new Font("Bahnschrift", Font.BOLD, 13));
-		lblPaciente.setBounds(15, 15, 70, 25);
-		panelBarra.add(lblPaciente);
+		JLabel lblDoctorInfo = new JLabel("Doctor:");
+		lblDoctorInfo.setFont(new Font("Bahnschrift", Font.BOLD, 14));
+		lblDoctorInfo.setForeground(new Color(70, 130, 180));
+		lblDoctorInfo.setBounds(15, 12, 60, 20);
+		panelBarra.add(lblDoctorInfo);
 
-		txtBuscarPaciente = new JTextField();
-		txtBuscarPaciente.setToolTipText("Filtrar por nombre o apellido del paciente");
-		txtBuscarPaciente.setFont(new Font("Bahnschrift", Font.PLAIN, 13));
-		txtBuscarPaciente.setBounds(85, 14, 300, 26);
-		txtBuscarPaciente.addKeyListener(new KeyAdapter() {
+		JLabel lblNombreDoctor = new JLabel(doctorActual.getNombre());
+		lblNombreDoctor.setFont(new Font("Bahnschrift", Font.PLAIN, 14));
+		lblNombreDoctor.setForeground(new Color(70, 130, 180));
+		lblNombreDoctor.setBounds(80, 12, 350, 20);
+		panelBarra.add(lblNombreDoctor);
+
+		JLabel lblBuscar = new JLabel("Buscar:");
+		lblBuscar.setFont(new Font("Bahnschrift", Font.BOLD, 13));
+		lblBuscar.setForeground(new Color(70, 130, 180));
+		lblBuscar.setBounds(15, 45, 60, 25);
+		panelBarra.add(lblBuscar);
+
+		txtBuscar = new JTextField();
+		txtBuscar.setFont(new Font("Bahnschrift", Font.PLAIN, 13));
+		txtBuscar.setBackground(new Color(224, 247, 250));
+		txtBuscar.setBorder(new LineBorder(new Color(173, 216, 230), 1));
+		txtBuscar.setBounds(80, 45, 350, 25);
+		txtBuscar.setToolTipText("Buscar por código de consulta, paciente, cédula o diagnóstico");
+		txtBuscar.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
-				filtrarTabla();
+				aplicarFiltros();
 			}
 		});
-		panelBarra.add(txtBuscarPaciente);
+		panelBarra.add(txtBuscar);
 
 		JLabel lblFechaInicio = new JLabel("Desde:");
 		lblFechaInicio.setFont(new Font("Bahnschrift", Font.BOLD, 13));
 		lblFechaInicio.setForeground(new Color(70, 130, 180));
-		lblFechaInicio.setBounds(405, 15, 50, 25);
+		lblFechaInicio.setBounds(455, 45, 50, 25);
 		panelBarra.add(lblFechaInicio);
 
-		Calendar calInicio = Calendar.getInstance();
-		calInicio.set(2000, Calendar.JANUARY, 1);
+		Calendar cal = Calendar.getInstance();
+		cal.set(2024, Calendar.JANUARY, 1);
+		Date fechaDefectoInicio = cal.getTime();
 
-		spnFecIni = new JSpinner();
-		spnFecIni.setFont(new Font("Bahnschrift", Font.PLAIN, 13));
-		spnFecIni.setModel(new SpinnerDateModel(calInicio.getTime(), null, null, Calendar.DAY_OF_YEAR));
-		spnFecIni.setEditor(new JSpinner.DateEditor(spnFecIni, "dd/MM/yyyy"));
-		spnFecIni.setBounds(460, 14, 120, 26);
-		spnFecIni.addChangeListener(new ChangeListener() {
+		spnFechaInicio = new JSpinner(new SpinnerDateModel(fechaDefectoInicio, null, null, Calendar.DAY_OF_YEAR));
+		spnFechaInicio.setFont(new Font("Bahnschrift", Font.PLAIN, 12));
+		spnFechaInicio.setEditor(new JSpinner.DateEditor(spnFechaInicio, "dd/MM/yyyy"));
+		spnFechaInicio.setBounds(510, 45, 120, 25);
+		spnFechaInicio.addChangeListener(new ChangeListener() {
+			@Override
 			public void stateChanged(ChangeEvent e) {
-				filtrarTabla();
+				aplicarFiltros();
 			}
 		});
-		panelBarra.add(spnFecIni);
+		panelBarra.add(spnFechaInicio);
 
 		JLabel lblFechaFin = new JLabel("Hasta:");
 		lblFechaFin.setFont(new Font("Bahnschrift", Font.BOLD, 13));
 		lblFechaFin.setForeground(new Color(70, 130, 180));
-		lblFechaFin.setBounds(595, 15, 50, 25);
+		lblFechaFin.setBounds(645, 45, 50, 25);
 		panelBarra.add(lblFechaFin);
 
-		spnFecFin = new JSpinner();
-		spnFecFin.setFont(new Font("Bahnschrift", Font.PLAIN, 13));
-		spnFecFin.setModel(new SpinnerDateModel(new Date(), null, null, Calendar.DAY_OF_YEAR));
-		spnFecFin.setEditor(new JSpinner.DateEditor(spnFecFin, "dd/MM/yyyy"));
-		spnFecFin.setBounds(650, 14, 120, 26);
-		spnFecFin.addChangeListener(new ChangeListener() {
+		spnFechaFin = new JSpinner(new SpinnerDateModel(new Date(), null, null, Calendar.DAY_OF_YEAR));
+		spnFechaFin.setFont(new Font("Bahnschrift", Font.PLAIN, 12));
+		spnFechaFin.setEditor(new JSpinner.DateEditor(spnFechaFin, "dd/MM/yyyy"));
+		spnFechaFin.setBounds(695, 45, 114, 25);
+		spnFechaFin.addChangeListener(new ChangeListener() {
+			@Override
 			public void stateChanged(ChangeEvent e) {
-				filtrarTabla();
+				aplicarFiltros();
 			}
 		});
-		panelBarra.add(spnFecFin);
+		panelBarra.add(spnFechaFin);
 
-		chkSoloImportantes = new JCheckBox("Solo consultas importantes");
-		chkSoloImportantes.setFont(new Font("Bahnschrift", Font.BOLD, 12));
-		chkSoloImportantes.setForeground(new Color(70, 130, 180));
-		chkSoloImportantes.setBackground(Color.WHITE);
-		chkSoloImportantes.setBounds(15, 55, 250, 23);
-		chkSoloImportantes.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				filtrarTabla();
-			}
-		});
-		panelBarra.add(chkSoloImportantes);
-
-		panelTable = new JPanel();
-		panelTable.setBounds(28, 120, 808, 320);
-		panelTable.setBorder(new LineBorder(new Color(70, 130, 180)));
-		contentPanel.add(panelTable);
+		JPanel panelTable = new JPanel();
+		panelTable.setBounds(20, 110, 824, 365);
+		panelTable.setBorder(new LineBorder(new Color(135, 206, 235), 2));
 		panelTable.setLayout(new BorderLayout(0, 0));
+		contentPanel.add(panelTable);
 
 		JScrollPane scrollPane = new JScrollPane();
 		panelTable.add(scrollPane, BorderLayout.CENTER);
@@ -180,11 +184,10 @@ public class ListarConsulta extends JDialog {
 			}
 		};
 
-		String[] headers = {"Código", "Paciente", "Fecha", "Diagnóstico", "Tipo", "Importante"};
+		String[] headers = {"Código", "Paciente", "Fecha", "Diagnóstico Principal", "Tipo", "Importante"};
 		model.setColumnIdentifiers(headers);
 
-		table = new JTable();
-		table.setModel(model);
+		table = new JTable(model);
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		table.setFont(new Font("Bahnschrift", Font.PLAIN, 12));
 		table.setBackground(Color.WHITE);
@@ -195,27 +198,27 @@ public class ListarConsulta extends JDialog {
 		table.getTableHeader().setBackground(new Color(135, 206, 235));
 		table.getTableHeader().setForeground(new Color(70, 130, 180));
 
-		table.getColumnModel().getColumn(0).setPreferredWidth(80);
+		table.getColumnModel().getColumn(0).setPreferredWidth(90);
 		table.getColumnModel().getColumn(1).setPreferredWidth(180);
 		table.getColumnModel().getColumn(2).setPreferredWidth(90);
-		table.getColumnModel().getColumn(3).setPreferredWidth(250);
-		table.getColumnModel().getColumn(4).setPreferredWidth(100);
+		table.getColumnModel().getColumn(3).setPreferredWidth(260);
+		table.getColumnModel().getColumn(4).setPreferredWidth(90);
 		table.getColumnModel().getColumn(5).setPreferredWidth(80);
 
 		table.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				int index = table.getSelectedRow();
-				if (index > -1) {
+				int selectedRow = table.getSelectedRow();
+				if (selectedRow >= 0) {
 					btnVerDetalle.setEnabled(true);
-					String codigo = table.getValueAt(index, 0).toString();
-					auxConsulta = Clinica.getInstancia().buscarConsultaXId(codigo);
-				}
-				if (e.getClickCount() == 2 && auxConsulta != null) {
-					mostrarDetalleConsulta(auxConsulta);
+					if (e.getClickCount() == 2) {
+						String idConsulta = table.getValueAt(selectedRow, 0).toString();
+						mostrarDetalleConsulta(idConsulta);
+					}
 				}
 			}
 		});
+
 		scrollPane.setViewportView(table);
 
 		JPanel buttonPane = new JPanel();
@@ -223,134 +226,172 @@ public class ListarConsulta extends JDialog {
 		buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
 		getContentPane().add(buttonPane, BorderLayout.SOUTH);
 
-		btnVerDetalle = new JButton("Ver Detalle");
+		btnVerDetalle = new JButton("Ver Detalles");
 		btnVerDetalle.setFont(new Font("Bahnschrift", Font.BOLD, 13));
 		btnVerDetalle.setForeground(new Color(70, 130, 180));
 		btnVerDetalle.setBackground(new Color(255, 245, 238));
+		btnVerDetalle.setBorder(new LineBorder(new Color(135, 206, 235), 2));
 		btnVerDetalle.setFocusPainted(false);
 		btnVerDetalle.setEnabled(false);
 		btnVerDetalle.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if (auxConsulta != null) {
-					mostrarDetalleConsulta(auxConsulta);
+				int selectedRow = table.getSelectedRow();
+				if (selectedRow >= 0) {
+					String idConsulta = table.getValueAt(selectedRow, 0).toString();
+					mostrarDetalleConsulta(idConsulta);
+				} else {
+					JOptionPane.showMessageDialog(null, "Debe seleccionar una consulta de la lista.", "Atención", JOptionPane.WARNING_MESSAGE);
 				}
 			}
 		});
 		buttonPane.add(btnVerDetalle);
 
-		btnCancelar = new JButton("Volver");
-		btnCancelar.setFont(new Font("Bahnschrift", Font.BOLD, 13));
-		btnCancelar.setForeground(new Color(70, 130, 180));
-		btnCancelar.setBackground(new Color(255, 245, 238));
-		btnCancelar.addActionListener(new ActionListener() {
+		btnCerrar = new JButton("Volver");
+		btnCerrar.setFont(new Font("Bahnschrift", Font.BOLD, 13));
+		btnCerrar.setForeground(new Color(70, 130, 180));
+		btnCerrar.setBackground(new Color(255, 245, 238));
+		btnCerrar.setBorder(new LineBorder(new Color(135, 206, 235), 2));
+		btnCerrar.setFocusPainted(false);
+		btnCerrar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				dispose();
 			}
 		});
-		buttonPane.add(btnCancelar);
+		buttonPane.add(btnCerrar);
 
-		filtrarTabla();
+		aplicarFiltros();
 	}
 
-	private void filtrarTabla() {
+	private void aplicarFiltros() {
 		model.setRowCount(0);
+		btnVerDetalle.setEnabled(false);
 
-		Date fechaInicio = (Date) spnFecIni.getValue();
-		Date fechaFin = (Date) spnFecFin.getValue();
-		String filtroPaciente = txtBuscarPaciente.getText().trim().toLowerCase();
-		boolean soloImportantes = chkSoloImportantes.isSelected();
+		String filtroTexto = txtBuscar.getText().trim().toLowerCase();
+		Date fechaInicio = (Date) spnFechaInicio.getValue();
+		Date fechaFin = (Date) spnFechaFin.getValue();
 
-		ArrayList<Consulta> consultas = (doctor != null)
-				? Clinica.getInstancia().getConsultasVisiblesXDoctor(doctor)
-				: Clinica.getInstancia().getConsultas();
+		List<Consulta> listaConsultas = Clinica.getInstancia().getConsultasXDoctor(doctorActual);
 
-		if (consultas != null) {
-			for (Consulta c : consultas) {
+		if (listaConsultas != null) {
+			for (Consulta c : listaConsultas) {
 				if (c != null) {
-					boolean coincideFecha = dentroDelRango(c.getFecha(), fechaInicio, fechaFin);
+					boolean cumpleFiltro = true;
 
-					String nombreComp = "";
-					if (c.getPaciente() != null) {
-						String nombre = c.getPaciente().getNombre() != null ? c.getPaciente().getNombre() : "";
-						String apellido = c.getPaciente().getApellido() != null ? c.getPaciente().getApellido() : "";
-						nombreComp = (nombre + " " + apellido).trim().toLowerCase();
+					if (fechaInicio != null && fechaFin != null) {
+						if (!enRangoFecha(c.getFecha(), fechaInicio, fechaFin)) {
+							cumpleFiltro = false;
+						}
 					}
-					boolean coincidePaciente = filtroPaciente.isEmpty() || nombreComp.contains(filtroPaciente);
 
-					boolean coincideImportante = !soloImportantes || c.getEsImportante();
+					if (cumpleFiltro && !filtroTexto.isEmpty()) {
+						String idConsulta = c.getId() != null ? c.getId().toLowerCase() : "";
+						String nombrePac = (c.getPaciente() != null && c.getPaciente().getNombre() != null) ? c.getPaciente().getNombre().toLowerCase() : "";
+						String apellidoPac = (c.getPaciente() != null && c.getPaciente().getApellido() != null) ? c.getPaciente().getApellido().toLowerCase() : "";
+						String cedulaPac = (c.getPaciente() != null && c.getPaciente().getCedula() != null) ? c.getPaciente().getCedula().toLowerCase() : "";
+						String resumenDiag = obtenerResumenDiagnostico(c).toLowerCase();
 
-					if (coincideFecha && coincidePaciente && coincideImportante) {
+						boolean coincide = idConsulta.contains(filtroTexto)
+								|| nombrePac.contains(filtroTexto)
+								|| apellidoPac.contains(filtroTexto)
+								|| cedulaPac.contains(filtroTexto)
+								|| resumenDiag.contains(filtroTexto);
+
+						if (!coincide) {
+							cumpleFiltro = false;
+						}
+					}
+
+					if (cumpleFiltro) {
 						row = new Object[6];
 						row[0] = c.getId();
-						row[1] = c.getPaciente() != null
-								? (c.getPaciente().getNombre() + (c.getPaciente().getApellido() != null ? " " + c.getPaciente().getApellido() : "")).trim()
-								: "Sin Paciente";
+						row[1] = formatearNombrePaciente(c.getPaciente());
 						row[2] = formatearFecha(c.getFecha());
 						row[3] = obtenerResumenDiagnostico(c);
-
-						if (doctor != null && c.getDoctor() != null && c.getDoctor().getIdDoctor() != null) {
-							row[4] = c.getDoctor().getIdDoctor().equals(doctor.getIdDoctor()) ? "Propia" : "Pública";
-						} else {
-							row[4] = (c.getDoctor() != null) ? "Dr. " + c.getDoctor().getNombre() : "General";
-						}
-
+						row[4] = determinarTipoConsulta(c);
 						row[5] = c.getEsImportante() ? "Sí" : "No";
 						model.addRow(row);
 					}
 				}
 			}
 		}
-
-		auxConsulta = null;
-		if (btnVerDetalle != null) {
-			btnVerDetalle.setEnabled(false);
-		}
 	}
 
-	private boolean dentroDelRango(Date fecha, Date inicio, Date fin) {
+	private boolean enRangoFecha(Date fecha, Date inicio, Date fin) {
 		if (fecha == null) return false;
-
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
-		int fechaInt = Integer.parseInt(sdf.format(fecha));
-
-		if (inicio != null) {
-			int inicioInt = Integer.parseInt(sdf.format(inicio));
-			if (fechaInt < inicioInt) return false;
-		}
-		if (fin != null) {
-			int finInt = Integer.parseInt(sdf.format(fin));
-			if (fechaInt > finInt) return false;
-		}
-
-		return true;
+		int fInt = Integer.parseInt(sdf.format(fecha));
+		int iInt = Integer.parseInt(sdf.format(inicio));
+		int finInt = Integer.parseInt(sdf.format(fin));
+		return fInt >= iInt && fInt <= finInt;
 	}
 
 	private String formatearFecha(Date fecha) {
-		if (fecha == null) return "";
+		if (fecha == null) return "N/A";
 		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 		return sdf.format(fecha);
 	}
 
+	private String formatearNombrePaciente(Paciente p) {
+		if (p == null) return "Desconocido";
+		String nombre = p.getNombre() != null ? p.getNombre() : "";
+		String apellido = p.getApellido() != null ? p.getApellido() : "";
+		return (nombre + " " + apellido).trim();
+	}
+
 	private String obtenerResumenDiagnostico(Consulta c) {
-		if (c.getDiagnosticos() != null && !c.getDiagnosticos().isEmpty()) {
+		if (c != null && c.getDiagnosticos() != null && !c.getDiagnosticos().isEmpty()) {
 			StringBuilder sb = new StringBuilder();
 			for (int i = 0; i < c.getDiagnosticos().size(); i++) {
 				Diagnostico d = c.getDiagnosticos().get(i);
 				if (d != null) {
-					String desc = d.getDescripcion();
-					sb.append((desc != null && !desc.isEmpty()) ? desc : d.getCodigoDiagnostico());
-					if (i < c.getDiagnosticos().size() - 1) sb.append(", ");
+					if (d.getEnfermedadDiagnosticada() != null && d.getEnfermedadDiagnosticada().getNombre() != null) {
+						sb.append(d.getEnfermedadDiagnosticada().getNombre());
+					} else if (d.getDescripcion() != null) {
+						sb.append(d.getDescripcion());
+					}
+
+					if (i < c.getDiagnosticos().size() - 1) {
+						sb.append(", ");
+					}
 				}
 			}
-			String res = sb.toString();
-			return res.length() > 40 ? res.substring(0, 37) + "..." : res;
+			String result = sb.toString().trim();
+			if (!result.isEmpty()) {
+				return result.length() > 45 ? result.substring(0, 42) + "..." : result;
+			}
 		}
 		return "Sin diagnóstico";
 	}
 
-	private void mostrarDetalleConsulta(Consulta c) {
-		DetalleConsulta dialogo = new DetalleConsulta(c);
-		dialogo.setModal(true);
-		dialogo.setVisible(true);
+	private String determinarTipoConsulta(Consulta c) {
+		if (c != null && c.getDoctor() != null && doctorActual != null) {
+			if (c.getDoctor().getIdDoctor().equalsIgnoreCase(doctorActual.getIdDoctor())) {
+				return "Propia";
+			}
+		}
+		return "Pública";
+	}
+
+	private void mostrarDetalleConsulta(String idConsulta) {
+		Consulta consultaEncontrada = Clinica.getInstancia().buscarConsultaXId(idConsulta);
+		if (consultaEncontrada != null) {
+			try {
+				DetalleConsulta dialogo = new DetalleConsulta(consultaEncontrada);
+				dialogo.setModal(true);
+				dialogo.setVisible(true);
+			} catch (NoClassDefFoundError | Exception e) {
+				StringBuilder sb = new StringBuilder();
+				sb.append("Código: ").append(consultaEncontrada.getId()).append("\n");
+				sb.append("Paciente: ").append(formatearNombrePaciente(consultaEncontrada.getPaciente())).append("\n");
+				sb.append("Doctor: ").append(consultaEncontrada.getDoctor() != null ? consultaEncontrada.getDoctor().getNombre() : "N/A").append("\n");
+				sb.append("Fecha: ").append(formatearFecha(consultaEncontrada.getFecha())).append("\n");
+				sb.append("Tratamiento: ").append(consultaEncontrada.getTratamiento()).append("\n");
+				sb.append("Observaciones: ").append(consultaEncontrada.getObservaciones()).append("\n");
+
+				JOptionPane.showMessageDialog(this, sb.toString(), "Detalle de Consulta " + consultaEncontrada.getId(), JOptionPane.INFORMATION_MESSAGE);
+			}
+		} else {
+			JOptionPane.showMessageDialog(this, "No se encontró la consulta seleccionada.", "Error", JOptionPane.ERROR_MESSAGE);
+		}
 	}
 }

@@ -46,7 +46,6 @@ public class ListarPaciente extends JDialog {
 
 	private JButton btnModificar;
 	private JButton btnEliminar;
-	private JButton btnDetalle;
 	private JButton btnCancelar;
 
 	public static void main(String[] args) {
@@ -139,7 +138,6 @@ public class ListarPaciente extends JDialog {
 					if (auxPaciente != null) {
 						btnModificar.setEnabled(true);
 						btnEliminar.setEnabled(true);
-						btnDetalle.setEnabled(true);
 					}
 				}
 			}
@@ -170,7 +168,6 @@ public class ListarPaciente extends JDialog {
 						auxPaciente = null;
 						btnEliminar.setEnabled(false);
 						btnModificar.setEnabled(false);
-						btnDetalle.setEnabled(false);
 						filtrarTabla(txtBuscar.getText());
 						JOptionPane.showMessageDialog(null,
 								"Paciente eliminado exitosamente.",
@@ -182,7 +179,7 @@ public class ListarPaciente extends JDialog {
 		});
 		buttonPane.add(btnEliminar);
 
-		btnModificar = new JButton("Modificar");
+		btnModificar = new JButton("Ver Detalles");
 		btnModificar.setFont(new Font("Bahnschrift", Font.BOLD, 13));
 		btnModificar.setForeground(new Color(70, 130, 180));
 		btnModificar.setBackground(new Color(255, 245, 238));
@@ -198,23 +195,6 @@ public class ListarPaciente extends JDialog {
 			}
 		});
 		buttonPane.add(btnModificar);
-
-		btnDetalle = new JButton("Ver Detalle");
-		btnDetalle.setFont(new Font("Bahnschrift", Font.BOLD, 13));
-		btnDetalle.setForeground(new Color(70, 130, 180));
-		btnDetalle.setBackground(new Color(255, 245, 238));
-		btnDetalle.setEnabled(false);
-		btnDetalle.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				if (auxPaciente != null) {
-					DetallePaciente detalle = new DetallePaciente(auxPaciente);
-					detalle.setModal(true);
-					detalle.setLocationRelativeTo(null);
-					detalle.setVisible(true);
-				}
-			}
-		});
-		buttonPane.add(btnDetalle);
 
 		btnCancelar = new JButton("Volver");
 		btnCancelar.setFont(new Font("Bahnschrift", Font.BOLD, 13));
@@ -269,6 +249,5 @@ public class ListarPaciente extends JDialog {
 		auxPaciente = null;
 		if (btnModificar != null) btnModificar.setEnabled(false);
 		if (btnEliminar != null) btnEliminar.setEnabled(false);
-		if (btnDetalle != null) btnDetalle.setEnabled(false);
 	}
 }
