@@ -1,41 +1,39 @@
 package visual.registro;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JSpinner;
+import javax.swing.JTextField;
+import javax.swing.SpinnerDateModel;
+import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 
 import controllers.CitaController;
-
-import javax.swing.SwingConstants;
-import javax.swing.DefaultListCellRenderer;
-import javax.swing.JList;
-
+import logico.Clinica;
 import logico.Doctor;
 import logico.Paciente;
 import utilidad.Formato;
-
-import java.awt.Font;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.FlowLayout;
-
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JTextField;
-import javax.swing.JSpinner;
-import javax.swing.SpinnerDateModel;
-import java.util.Date;
-import java.util.List;
-import java.util.Calendar;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import javax.swing.JComboBox;
 
 public class RegistrarCita extends JDialog {
 
@@ -43,15 +41,70 @@ public class RegistrarCita extends JDialog {
 	private final JPanel contentPanel = new JPanel();
 	private JTextField txtIdCita;
 	private JSpinner spnFecha;
+	private JComboBox<PacienteItem> cbxPaciente;
 	private JComboBox<DoctorItem> cbxDoctor;
-	private JTextField txtNombrePersona;
-	private JTextField txtIdPersona;
 	private JLabel lblTipo;
 	private JLabel lblInfoDoctor;
-	private boolean filtrando = false;
+	private boolean filtrandoDoctor = false;
+	private boolean filtrandoPaciente = false;
 
-	// Instancia del controlador
 	private final CitaController controller;
+	private Paciente auxPaciente;
+	private Doctor auxDoctor;
+
+	private static class PacienteItem {
+		private final Paciente paciente;
+
+		public PacienteItem(Paciente paciente) {
+			this.paciente = paciente;
+		}
+
+		public Paciente getPaciente() {
+			return paciente;
+		}
+
+		@Override
+		public String toString() {
+			if (paciente == null) {
+				return "";
+			}
+			String apellido = (paciente.getApellido() != null) ? paciente.getApellido() : "";
+			return paciente.getCedula() + " - " + (paciente.getNombre() + " " + apellido).trim();
+		}
+	}
+
+	private class PacienteCellRenderer extends DefaultListCellRenderer {
+		private static final long serialVersionUID = 1L;
+
+		@Override
+		public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+			JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+			label.setBorder(new EmptyBorder(4, 6, 4, 6));
+
+			if (value instanceof PacienteItem) {
+				PacienteItem item = (PacienteItem) value;
+				if (item.getPaciente() == null) {
+					label.setText("-- Escriba cédula o nombre del paciente --");
+					label.setForeground(Color.GRAY);
+					label.setFont(new Font("Dialog", Font.ITALIC, 12));
+				} else {
+					Paciente p = item.getPaciente();
+					String apellido = (p.getApellido() != null) ? p.getApellido() : "";
+					label.setText("👤 " + p.getCedula() + " - " + (p.getNombre() + " " + apellido).trim());
+					label.setFont(new Font("Dialog", Font.PLAIN, 12));
+
+					if (isSelected) {
+						label.setBackground(new Color(70, 130, 180));
+						label.setForeground(Color.WHITE);
+					} else {
+						label.setBackground(Color.WHITE);
+						label.setForeground(new Color(40, 40, 40));
+					}
+				}
+			}
+			return label;
+		}
+	}
 
 	private static class DoctorItem {
 		private final Doctor doctor;
@@ -123,26 +176,28 @@ public class RegistrarCita extends JDialog {
 
 	public RegistrarCita() {
 		this.controller = new CitaController();
+		this.auxPaciente = null;
+		this.auxDoctor = null;
 
 		setTitle("Registrar: Cita");
-		setBounds(100, 100, 548, 390);
+		setBounds(100, 100, 548, 340);
 		setLocationRelativeTo(null);
 		setModal(true);
-		
+
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPanel.setBackground(new Color(240, 248, 255));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
 		contentPanel.setLayout(null);
-		
+
 		JPanel panel = new JPanel();
-		panel.setBounds(25, 10, 482, 290);
+		panel.setBounds(25, 10, 482, 240);
 		panel.setBorder(new TitledBorder(
-				new LineBorder(new Color(70, 130, 180), 1, true), 
-				" Registrar Cita ", 
-				TitledBorder.LEFT, 
-				TitledBorder.TOP, 
-				new Font("Dialog", Font.BOLD, 13), 
+				new LineBorder(new Color(70, 130, 180), 1, true),
+				" Registrar Cita ",
+				TitledBorder.LEFT,
+				TitledBorder.TOP,
+				new Font("Dialog", Font.BOLD, 13),
 				new Color(70, 130, 180)));
 		panel.setBackground(Color.WHITE);
 		panel.setLayout(null);
@@ -186,24 +241,52 @@ public class RegistrarCita extends JDialog {
 		lblSeccionPaciente.setBounds(25, 68, 433, 22);
 		panel.add(lblSeccionPaciente);
 
-		JLabel lblIdentificacion = new JLabel("Cédula:");
+		JLabel lblIdentificacion = new JLabel("Paciente:");
 		lblIdentificacion.setForeground(new Color(70, 130, 180));
 		lblIdentificacion.setFont(new Font("Dialog", Font.BOLD, 12));
-		lblIdentificacion.setBounds(25, 100, 100, 22);
+		lblIdentificacion.setBounds(25, 100, 70, 22);
 		panel.add(lblIdentificacion);
 
-		txtIdPersona = new JTextField();
-		txtIdPersona.setFont(new Font("Dialog", Font.PLAIN, 12));
-		txtIdPersona.setBorder(new LineBorder(new Color(70, 130, 180)));
-		txtIdPersona.setBackground(new Color(245, 250, 255));
-		txtIdPersona.setBounds(78, 100, 200, 22);
-		txtIdPersona.addKeyListener(new KeyAdapter() {
+		cbxPaciente = new JComboBox<>();
+		cbxPaciente.setEditable(true);
+		cbxPaciente.setRenderer(new PacienteCellRenderer());
+		cbxPaciente.setFont(new Font("Dialog", Font.PLAIN, 12));
+		cbxPaciente.setBackground(Color.WHITE);
+		cbxPaciente.setBorder(new LineBorder(new Color(70, 130, 180)));
+		cbxPaciente.setBounds(95, 100, 243, 24);
+
+		JTextField editorPaciente = (JTextField) cbxPaciente.getEditor().getEditorComponent();
+		editorPaciente.setBackground(new Color(245, 250, 255));
+		editorPaciente.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
-				 manejarAutocompletadoCedula(e);
+				if (e.getKeyCode() == KeyEvent.VK_DOWN || e.getKeyCode() == KeyEvent.VK_UP ||
+						e.getKeyCode() == KeyEvent.VK_ENTER || e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+					return;
+				}
+
+				String texto = editorPaciente.getText();
+				int caretPosition = editorPaciente.getCaretPosition();
+
+				actualizarComboPacientes(texto);
+
+				editorPaciente.setText(texto);
+				try {
+					editorPaciente.setCaretPosition(Math.min(caretPosition, texto.length()));
+				} catch (Exception ignored) {}
+
+				if (!texto.trim().isEmpty() && cbxPaciente.getItemCount() > 1) {
+					cbxPaciente.showPopup();
+				}
 			}
 		});
-		panel.add(txtIdPersona);
+
+		cbxPaciente.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				seleccionarPaciente();
+			}
+		});
+		panel.add(cbxPaciente);
 
 		JButton btnCrear = new JButton("+ Nuevo");
 		btnCrear.setFont(new Font("Dialog", Font.BOLD, 11));
@@ -219,34 +302,21 @@ public class RegistrarCita extends JDialog {
 
 		lblTipo = new JLabel("");
 		lblTipo.setFont(new Font("Dialog", Font.ITALIC, 11));
-		lblTipo.setBounds(346, 118, 150, 22);
+		lblTipo.setBounds(95, 124, 243, 18);
 		panel.add(lblTipo);
-
-		JLabel lblPaciente = new JLabel("Nombre:");
-		lblPaciente.setForeground(new Color(70, 130, 180));
-		lblPaciente.setFont(new Font("Dialog", Font.BOLD, 12));
-		lblPaciente.setBounds(24, 145, 100, 22);
-		panel.add(lblPaciente);
-
-		txtNombrePersona = new JTextField();
-		txtNombrePersona.setFont(new Font("Dialog", Font.PLAIN, 12));
-		txtNombrePersona.setBackground(new Color(245, 250, 255));
-		txtNombrePersona.setBorder(new LineBorder(new Color(70, 130, 180)));
-		txtNombrePersona.setBounds(77, 145, 380, 22);
-		panel.add(txtNombrePersona);
 
 		JLabel lblSeccionDoctor = new JLabel("DATOS DEL DOCTOR", SwingConstants.CENTER);
 		lblSeccionDoctor.setOpaque(true);
 		lblSeccionDoctor.setBackground(new Color(230, 242, 250));
 		lblSeccionDoctor.setForeground(new Color(70, 130, 180));
 		lblSeccionDoctor.setFont(new Font("Dialog", Font.BOLD, 11));
-		lblSeccionDoctor.setBounds(24, 182, 433, 22);
+		lblSeccionDoctor.setBounds(25, 145, 433, 22);
 		panel.add(lblSeccionDoctor);
 
 		JLabel lblDoctor = new JLabel("Doctor:");
 		lblDoctor.setForeground(new Color(70, 130, 180));
 		lblDoctor.setFont(new Font("Dialog", Font.BOLD, 12));
-		lblDoctor.setBounds(24, 215, 100, 22);
+		lblDoctor.setBounds(25, 178, 60, 22);
 		panel.add(lblDoctor);
 
 		cbxDoctor = new JComboBox<>();
@@ -255,26 +325,26 @@ public class RegistrarCita extends JDialog {
 		cbxDoctor.setFont(new Font("Dialog", Font.PLAIN, 12));
 		cbxDoctor.setBackground(Color.WHITE);
 		cbxDoctor.setBorder(new LineBorder(new Color(70, 130, 180)));
-		cbxDoctor.setBounds(77, 215, 380, 24);
+		cbxDoctor.setBounds(95, 178, 363, 24);
 
-		JTextField editor = (JTextField) cbxDoctor.getEditor().getEditorComponent();
-		editor.setBackground(new Color(245, 250, 255));
-		editor.addKeyListener(new KeyAdapter() {
+		JTextField editorDoctor = (JTextField) cbxDoctor.getEditor().getEditorComponent();
+		editorDoctor.setBackground(new Color(245, 250, 255));
+		editorDoctor.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
-				if (e.getKeyCode() == KeyEvent.VK_DOWN || e.getKeyCode() == KeyEvent.VK_UP || 
-					e.getKeyCode() == KeyEvent.VK_ENTER || e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+				if (e.getKeyCode() == KeyEvent.VK_DOWN || e.getKeyCode() == KeyEvent.VK_UP ||
+						e.getKeyCode() == KeyEvent.VK_ENTER || e.getKeyCode() == KeyEvent.VK_ESCAPE) {
 					return;
 				}
 
-				String texto = editor.getText();
-				int caretPosition = editor.getCaretPosition();
+				String texto = editorDoctor.getText();
+				int caretPosition = editorDoctor.getCaretPosition();
 
 				actualizarComboDoctores(texto);
 
-				editor.setText(texto);
+				editorDoctor.setText(texto);
 				try {
-					editor.setCaretPosition(Math.min(caretPosition, texto.length()));
+					editorDoctor.setCaretPosition(Math.min(caretPosition, texto.length()));
 				} catch (Exception ignored) {}
 
 				if (!texto.trim().isEmpty() && cbxDoctor.getItemCount() > 1) {
@@ -293,7 +363,7 @@ public class RegistrarCita extends JDialog {
 		lblInfoDoctor = new JLabel("🩺 Escriba o seleccione un doctor...", SwingConstants.LEFT);
 		lblInfoDoctor.setForeground(new Color(120, 130, 140));
 		lblInfoDoctor.setFont(new Font("Dialog", Font.ITALIC, 11));
-		lblInfoDoctor.setBounds(77, 243, 380, 20);
+		lblInfoDoctor.setBounds(95, 204, 363, 20);
 		panel.add(lblInfoDoctor);
 
 		JPanel buttonPane = new JPanel();
@@ -325,82 +395,110 @@ public class RegistrarCita extends JDialog {
 		cancelButton.setForeground(new Color(70, 130, 180));
 		buttonPane.add(cancelButton);
 
+		actualizarComboPacientes("");
 		actualizarComboDoctores("");
 	}
 
+	private void actualizarComboPacientes(String filtro) {
+		filtrandoPaciente = true;
+		cbxPaciente.removeAllItems();
+		cbxPaciente.addItem(new PacienteItem(null));
+
+		String f = filtro.trim().toLowerCase();
+		for (Paciente p : Clinica.getInstancia().getPacientes()) {
+			String cedula = p.getCedula() != null ? p.getCedula().toLowerCase() : "";
+			String nombre = p.getNombre() != null ? p.getNombre().toLowerCase() : "";
+			String apellido = p.getApellido() != null ? p.getApellido().toLowerCase() : "";
+			String nombreCompleto = (nombre + " " + apellido).trim();
+
+			if (f.isEmpty() || cedula.contains(f) || nombreCompleto.contains(f)) {
+				cbxPaciente.addItem(new PacienteItem(p));
+			}
+		}
+		filtrandoPaciente = false;
+	}
+
+	private void seleccionarPaciente() {
+		if (filtrandoPaciente) return;
+
+		Object itemSeleccionado = cbxPaciente.getSelectedItem();
+		if (itemSeleccionado instanceof PacienteItem) {
+			PacienteItem item = (PacienteItem) itemSeleccionado;
+			if (item.getPaciente() != null) {
+				auxPaciente = item.getPaciente();
+				lblTipo.setText("*Encontrado.");
+				lblTipo.setForeground(new Color(0, 128, 0));
+				return;
+			}
+		}
+
+		auxPaciente = null;
+		lblTipo.setText("");
+	}
+
 	private void abrirVentanaCrearPaciente() {
+		cbxPaciente.setSelectedIndex(-1);
+		auxPaciente = null;
+		lblTipo.setText("");
+
 		RegistrarPaciente regPacienteDialog = new RegistrarPaciente(null);
+
+		JTextField editorPaciente = (JTextField) cbxPaciente.getEditor().getEditorComponent();
+		String textoFiltro = editorPaciente.getText().trim();
+
 		regPacienteDialog.setDatosIniciales(
-			txtIdPersona.getText().trim(), 
-			txtNombrePersona.getText().trim(), 
-			""
+				textoFiltro,
+				"",
+				""
 		);
+
 		regPacienteDialog.setModal(true);
 		regPacienteDialog.setVisible(true);
 
 		Paciente pacienteNuevo = regPacienteDialog.getPacienteCreado();
 		if (pacienteNuevo != null) {
-			controller.setAuxPaciente(pacienteNuevo);
-			txtIdPersona.setText(pacienteNuevo.getCedula());
-			txtNombrePersona.setText(pacienteNuevo.getNombre());
-			lblTipo.setText("*Encontrado.");
-			lblTipo.setForeground(new Color(0, 128, 0));
-		}
-	}
+			auxPaciente = pacienteNuevo;
+			actualizarComboPacientes("");
 
-	private void manejarAutocompletadoCedula(KeyEvent e) {
-		String textoActual = txtIdPersona.getText();
-		String cedulaSugerida = controller.autocompletarCedula(textoActual, e.getKeyCode());
-
-		if (cedulaSugerida != null) {
-			txtNombrePersona.setText(controller.getAuxPaciente().getNombre());
-			lblTipo.setText("*Encontrado.");
-			lblTipo.setForeground(new Color(0, 128, 0));
-
-			int posInicioSeleccion = textoActual.length();
-			txtIdPersona.setText(cedulaSugerida);
-			txtIdPersona.setSelectionStart(posInicioSeleccion);
-			txtIdPersona.setSelectionEnd(cedulaSugerida.length());
-		} else {
-			Paciente p = controller.getAuxPaciente();
-			if (p != null) {
-				txtNombrePersona.setText(p.getNombre());
-				lblTipo.setText("*Encontrado.");
-				lblTipo.setForeground(new Color(0, 128, 0));
-			} else if (txtIdPersona.getText().trim().isEmpty()) {
-				txtNombrePersona.setText("");
-				lblTipo.setText("");
-			} else {
-				txtNombrePersona.setText("");
-				lblTipo.setText("*No encontrado.");
-				lblTipo.setForeground(Color.RED);
+			for (int i = 0; i < cbxPaciente.getItemCount(); i++) {
+				PacienteItem item = cbxPaciente.getItemAt(i);
+				if (item.getPaciente() != null && item.getPaciente().getCedula().equalsIgnoreCase(pacienteNuevo.getCedula())) {
+					cbxPaciente.setSelectedIndex(i);
+					lblTipo.setText("*Encontrado.");
+					lblTipo.setForeground(new Color(0, 128, 0));
+					break;
+				}
 			}
+		} else {
+			((JTextField) cbxPaciente.getEditor().getEditorComponent()).setText("");
 		}
 	}
 
 	private void actualizarComboDoctores(String filtro) {
-		filtrando = true;
+		filtrandoDoctor = true;
 		cbxDoctor.removeAllItems();
 		cbxDoctor.addItem(new DoctorItem(null));
 
 		List<Doctor> doctores = controller.obtenerDoctoresFiltrados(filtro);
-		for (Doctor d : doctores) {
-			cbxDoctor.addItem(new DoctorItem(d));
+		if (doctores != null) {
+			for (Doctor d : doctores) {
+				cbxDoctor.addItem(new DoctorItem(d));
+			}
 		}
 
-		filtrando = false;
+		filtrandoDoctor = false;
 	}
 
 	private void seleccionarDoctor() {
-		if (filtrando) return;
+		if (filtrandoDoctor) return;
 
 		Object itemSeleccionado = cbxDoctor.getSelectedItem();
 		if (itemSeleccionado instanceof DoctorItem) {
 			DoctorItem item = (DoctorItem) itemSeleccionado;
 			if (item.getDoctor() != null) {
 				Doctor doc = item.getDoctor();
-				controller.setAuxDoctor(doc);
-				
+				auxDoctor = doc;
+
 				String esp = (doc.getEspecialidades() != null && !doc.getEspecialidades().isEmpty())
 						? String.join(", ", doc.getEspecialidades()) : "General";
 				lblInfoDoctor.setText("✓ " + doc.getNombre() + " (" + esp + ")");
@@ -409,32 +507,49 @@ public class RegistrarCita extends JDialog {
 			}
 		}
 
-		controller.limpiarDoctor();
+		auxDoctor = null;
 		lblInfoDoctor.setText("🩺 Escriba o seleccione un doctor...");
 		lblInfoDoctor.setForeground(new Color(120, 130, 140));
 	}
 
 	private void ejecutarRegistroCita() {
+		if (auxPaciente == null) {
+			seleccionarPaciente();
+		}
+
+		if (auxPaciente == null) {
+			JOptionPane.showMessageDialog(this, "Debe seleccionar o crear un paciente válido.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+			return;
+		}
+
+		if (auxDoctor == null) {
+			JOptionPane.showMessageDialog(this, "Debe seleccionar un doctor.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+			return;
+		}
+
+		Date fechaCita = (Date) spnFecha.getValue();
 		boolean exito = controller.registrarCita(
-			txtIdCita.getText(),
-			txtIdPersona.getText(),
-			txtNombrePersona.getText(),
-			(Date) spnFecha.getValue()
+				txtIdCita.getText(),
+				auxPaciente,
+				auxDoctor,
+				fechaCita
 		);
 
 		if (exito) {
-			JOptionPane.showMessageDialog(null, "Cita registrada exitosamente.", "Información", JOptionPane.INFORMATION_MESSAGE);
+			JOptionPane.showMessageDialog(this, "Cita registrada exitosamente.", "Información", JOptionPane.INFORMATION_MESSAGE);
 			limpiarCampos();
+		} else {
+			JOptionPane.showMessageDialog(this, "Ocurrió un error al registrar la cita.", "Error", JOptionPane.ERROR_MESSAGE);
 		}
 	}
 
 	private void limpiarCampos() {
-		txtIdPersona.setText("");
-		txtNombrePersona.setText("");
+		actualizarComboPacientes("");
+		((JTextField) cbxPaciente.getEditor().getEditorComponent()).setText("");
 		lblTipo.setText("");
-		controller.limpiarPaciente();
-		controller.limpiarDoctor();
-		
+		auxPaciente = null;
+		auxDoctor = null;
+
 		actualizarComboDoctores("");
 		lblInfoDoctor.setText("🩺 Escriba o seleccione un doctor...");
 		lblInfoDoctor.setForeground(new Color(120, 130, 140));

@@ -34,6 +34,7 @@ public class RegistrarPaciente extends JDialog {
 	private static final long serialVersionUID = 1L;
 	private final JPanel contentPanel = new JPanel();
 	private JTextField txtNombre;
+	private JTextField txtApellido;
 	private JTextField txtTelefono;
 	private JTextField txtCedula;
 	private JTextField txtPeso;
@@ -42,7 +43,7 @@ public class RegistrarPaciente extends JDialog {
 	private JComboBox<String> cbxSexo;
 	private JComboBox<String> cbxTipoSangre;
 	private JTextArea txtDireccion;
-	
+
 	private Paciente miPaciente = null;
 	private final PacienteController pacienteController;
 
@@ -84,7 +85,7 @@ public class RegistrarPaciente extends JDialog {
 		panel.setLayout(null);
 
 		JLabel lblNombre = new JLabel("Nombre:");
-		lblNombre.setBounds(12, 40, 80, 20);
+		lblNombre.setBounds(12, 40, 60, 20);
 		lblNombre.setForeground(new Color(70, 130, 180));
 		lblNombre.setFont(new Font("Verdana", Font.BOLD, 12));
 		panel.add(lblNombre);
@@ -93,9 +94,23 @@ public class RegistrarPaciente extends JDialog {
 		txtNombre.setFont(new Font("Bahnschrift", Font.PLAIN, 12));
 		txtNombre.setBackground(new Color(224, 247, 250));
 		txtNombre.setBorder(new LineBorder(new Color(173, 216, 230), 1));
-		txtNombre.setBounds(97, 39, 468, 20);
+		txtNombre.setBounds(77, 39, 190, 20);
 		panel.add(txtNombre);
 		txtNombre.setColumns(10);
+
+		JLabel lblApellido = new JLabel("Apellido:");
+		lblApellido.setBounds(280, 40, 65, 20);
+		lblApellido.setForeground(new Color(70, 130, 180));
+		lblApellido.setFont(new Font("Verdana", Font.BOLD, 12));
+		panel.add(lblApellido);
+
+		txtApellido = new JTextField();
+		txtApellido.setFont(new Font("Bahnschrift", Font.PLAIN, 12));
+		txtApellido.setBackground(new Color(224, 247, 250));
+		txtApellido.setBorder(new LineBorder(new Color(173, 216, 230), 1));
+		txtApellido.setBounds(350, 39, 215, 20);
+		panel.add(txtApellido);
+		txtApellido.setColumns(10);
 
 		JLabel lblCedula = new JLabel("Cédula:");
 		lblCedula.setBounds(369, 90, 60, 20);
@@ -279,7 +294,7 @@ public class RegistrarPaciente extends JDialog {
 		return pacienteController.getPacienteCreado();
 	}
 
-	public void setDatosIniciales(String cedula, String nombre, String telefono) {
+	public void setDatosIniciales(String cedula, String nombre, String apellido) {
 		if (miPaciente == null) {
 			if (cedula != null && !cedula.isEmpty()) {
 				txtCedula.setText(cedula);
@@ -287,8 +302,8 @@ public class RegistrarPaciente extends JDialog {
 			if (nombre != null && !nombre.isEmpty()) {
 				txtNombre.setText(nombre);
 			}
-			if (telefono != null && !telefono.isEmpty()) {
-				txtTelefono.setText(telefono);
+			if (apellido != null && !apellido.isEmpty()) {
+				txtApellido.setText(apellido);
 			}
 		}
 	}
@@ -296,6 +311,7 @@ public class RegistrarPaciente extends JDialog {
 	private void cargarDatos() {
 		if (miPaciente != null) {
 			txtNombre.setText(miPaciente.getNombre());
+			txtApellido.setText(miPaciente.getApellido());
 			txtCedula.setText(miPaciente.getCedula());
 			txtCedula.setEditable(false);
 			txtTelefono.setText(miPaciente.getTelefono());
@@ -304,21 +320,24 @@ public class RegistrarPaciente extends JDialog {
 			txtEstatura.setText(String.valueOf(miPaciente.getEstatura()));
 			cbxSexo.setSelectedItem(miPaciente.getSexo());
 			cbxTipoSangre.setSelectedItem(miPaciente.getTipoSangre());
-			spnFechaNacim.setValue(miPaciente.getFecNacim());
+			if (miPaciente.getFecNacim() != null) {
+				spnFechaNacim.setValue(miPaciente.getFecNacim());
+			}
 		}
 	}
 
 	private void modificarPaciente() {
 		boolean exito = pacienteController.modificarPaciente(
-			miPaciente,
-			txtNombre.getText(),
-			txtTelefono.getText(),
-			(Date) spnFechaNacim.getValue(),
-			(String) cbxSexo.getSelectedItem(),
-			txtPeso.getText(),
-			txtEstatura.getText(),
-			(String) cbxTipoSangre.getSelectedItem(),
-			txtDireccion.getText()
+				miPaciente,
+				txtNombre.getText(),
+				txtApellido.getText(),
+				txtTelefono.getText(),
+				(Date) spnFechaNacim.getValue(),
+				(String) cbxSexo.getSelectedItem(),
+				txtPeso.getText(),
+				txtEstatura.getText(),
+				(String) cbxTipoSangre.getSelectedItem(),
+				txtDireccion.getText()
 		);
 
 		if (exito) {
@@ -329,18 +348,19 @@ public class RegistrarPaciente extends JDialog {
 
 	private void registrarPaciente() {
 		boolean exito = pacienteController.registrarPaciente(
-			txtNombre.getText(),
-			txtCedula.getText(),
-			txtTelefono.getText(),
-			(Date) spnFechaNacim.getValue(),
-			(String) cbxSexo.getSelectedItem(),
-			txtPeso.getText(),
-			txtEstatura.getText(),
-			(String) cbxTipoSangre.getSelectedItem(),
-			txtDireccion.getText()
+				txtNombre.getText(),
+				txtApellido.getText(),
+				txtCedula.getText(),
+				txtTelefono.getText(),
+				(Date) spnFechaNacim.getValue(),
+				(String) cbxSexo.getSelectedItem(),
+				txtPeso.getText(),
+				txtEstatura.getText(),
+				(String) cbxTipoSangre.getSelectedItem(),
+				txtDireccion.getText()
 		);
 
-		if (exito) {
+		if (exito && pacienteController.getPacienteCreado() != null) {
 			String idPaciente = pacienteController.getPacienteCreado().getIdPaciente();
 			JOptionPane.showMessageDialog(null, "Paciente registrado con éxito.\nCódigo: " + idPaciente, "Registro Exitoso", JOptionPane.INFORMATION_MESSAGE);
 			dispose();

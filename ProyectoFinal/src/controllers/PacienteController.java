@@ -22,21 +22,24 @@ public class PacienteController {
 			return false;
 		}
 		String cedulaLimpia = cedula.replace("-", "").replaceAll("\\s+", "");
-		
+
 		for (Paciente p : Clinica.getInstancia().getPacientes()) {
-			String cedulaP = p.getCedula().replace("-", "").replaceAll("\\s+", "");
-			if (cedulaP.equalsIgnoreCase(cedulaLimpia)) {
-				return true;
+			if (p.getCedula() != null) {
+				String cedulaP = p.getCedula().replace("-", "").replaceAll("\\s+", "");
+				if (cedulaP.equalsIgnoreCase(cedulaLimpia)) {
+					return true;
+				}
 			}
 		}
 		return false;
 	}
 
-	public boolean registrarPaciente(String nombre, String cedula, String telefono, Date fecNacim, 
-	                                 String sexo, String pesoStr, String estaturaStr, 
+	public boolean registrarPaciente(String nombre, String apellido, String cedula, String telefono, Date fecNacim,
+	                                 String sexo, String pesoStr, String estaturaStr,
 	                                 String tipoSangre, String direccion) {
 
 		if (Formato.entradaVacia(nombre, "Debe ingresar el nombre del paciente.")) return false;
+		if (Formato.entradaVacia(apellido, "Debe ingresar el apellido del paciente.")) return false;
 		if (Formato.entradaVacia(cedula, "Debe ingresar la cédula del paciente.")) return false;
 		if (existeCedula(cedula.trim())) {
 			Formato.entradaVacia("", "Ya existe un paciente registrado con esta cédula.");
@@ -54,6 +57,7 @@ public class PacienteController {
 		Paciente paciente = new Paciente(
 				idPaciente,
 				nombre.trim(),
+				apellido.trim(),
 				cedula.trim(),
 				telefono.trim(),
 				fecNacim,
@@ -69,13 +73,14 @@ public class PacienteController {
 		return true;
 	}
 
-	public boolean modificarPaciente(Paciente paciente, String nombre, String telefono, Date fecNacim, 
-	                                 String sexo, String pesoStr, String estaturaStr, 
+	public boolean modificarPaciente(Paciente paciente, String nombre, String apellido, String telefono, Date fecNacim,
+	                                 String sexo, String pesoStr, String estaturaStr,
 	                                 String tipoSangre, String direccion) {
 
 		if (paciente == null) return false;
 
 		if (Formato.entradaVacia(nombre, "Debe ingresar el nombre del paciente.")) return false;
+		if (Formato.entradaVacia(apellido, "Debe ingresar el apellido del paciente.")) return false;
 		if (Formato.entradaVacia(telefono, "Debe ingresar el teléfono del paciente.")) return false;
 		if (Formato.verificarEntradaRegex(telefono.trim(), "^[0-9-]+$", "El teléfono solo puede contener números y guiones.")) return false;
 		if (Formato.entradaVacia(direccion, "Debe ingresar la dirección del paciente.")) return false;
@@ -85,6 +90,7 @@ public class PacienteController {
 		if (Formato.verificarEntradaRegex(estaturaStr.trim(), "^[0-9]+(\\.[0-9]+)?$", "La estatura debe ser un número válido.")) return false;
 
 		paciente.setNombre(nombre.trim());
+		paciente.setApellido(apellido.trim());
 		paciente.setTelefono(telefono.trim());
 		paciente.setFecNacim(fecNacim);
 		paciente.setSexo(sexo);

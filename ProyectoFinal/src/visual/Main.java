@@ -44,7 +44,6 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.awt.event.ActionEvent;
 import java.awt.Dimension;
-import java.awt.Toolkit;
 import java.awt.BorderLayout;
 import javax.swing.border.LineBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -63,7 +62,7 @@ public class Main extends JFrame {
     private JMenu mnAdmin;
     private JMenu mnRegistro;
     private JMenu mnListado;
-    
+
     private JMenuItem mntmRespaldo;
     private JMenuItem mntmCargarRespaldo;
     private JMenuItem mntmEnfermedad;
@@ -72,7 +71,7 @@ public class Main extends JFrame {
     private JMenuItem mntmDoctor;
     private JMenuItem mntmEspecialidad;
     private JMenuItem mntmUsuario;
-    
+
     private JMenuItem mntmPaciente;
     private JMenuItem mntmCita;
     private JMenuItem mntmConsulta;
@@ -98,48 +97,48 @@ public class Main extends JFrame {
     public Main() {
         Servidor servidor = new Servidor(7000);
         servidor.start();
-        
+
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
                 guardarDatos();
             }
         });
-        
+
         setTitle("Sistema de Gestion Clinica");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         dim = getToolkit().getScreenSize();
         setSize(dim.width - 40, dim.height - 60);
         setLocationRelativeTo(null);
-        
+
         contentPane = new JPanel();
         contentPane.setForeground(Color.WHITE);
         contentPane.setBackground(new Color(240, 248, 255));
         contentPane.setBorder(new EmptyBorder(0, 0, 0, 0));
         setContentPane(contentPane);
         contentPane.setLayout(new BorderLayout());
-        
+
         panelLateral = new JPanel();
         panelLateral.setBackground(new Color(176, 224, 230));
         panelLateral.setPreferredSize(new Dimension(280, dim.height));
         panelLateral.setBorder(new LineBorder(new Color(135, 206, 235), 2));
         contentPane.add(panelLateral, BorderLayout.WEST);
         panelLateral.setLayout(null);
-        
+
         JLabel lblTitulo = new JLabel("CLINICA");
         lblTitulo.setHorizontalAlignment(SwingConstants.CENTER);
         lblTitulo.setFont(new Font("Bahnschrift", Font.BOLD, 28));
         lblTitulo.setForeground(new Color(70, 130, 180));
         lblTitulo.setBounds(0, 20, 280, 40);
         panelLateral.add(lblTitulo);
-        
+
         JLabel lblSubtitulo = new JLabel("Sistema de Gestion");
         lblSubtitulo.setHorizontalAlignment(SwingConstants.CENTER);
         lblSubtitulo.setFont(new Font("Bahnschrift", Font.PLAIN, 14));
         lblSubtitulo.setForeground(new Color(100, 149, 237));
         lblSubtitulo.setBounds(0, 60, 280, 20);
         panelLateral.add(lblSubtitulo);
-        
+
         JMenuBar menuBarAdmin = new JMenuBar();
         menuBarAdmin.setBackground(new Color(224, 247, 250));
         menuBarAdmin.setBorder(new LineBorder(new Color(173, 216, 230), 1));
@@ -197,7 +196,7 @@ public class Main extends JFrame {
         mntmReporte.setForeground(new Color(70, 130, 180));
         mntmReporte.setFont(new Font("Bahnschrift", Font.PLAIN, 16));
         mnAdmin.add(mntmReporte);
-        
+
 
         JMenuBar menuBarReg = new JMenuBar();
         menuBarReg.setBackground(new Color(224, 247, 250));
@@ -290,12 +289,11 @@ public class Main extends JFrame {
         mntmVacuna.setForeground(new Color(70, 130, 180));
         mntmVacuna.setFont(new Font("Bahnschrift", Font.PLAIN, 16));
         mnRegistro.add(mntmVacuna);
-        
+
         mntmDoctor = new JMenuItem(" Doctor");
         mntmDoctor.setIcon(cargarIcono("recursos/doctor.png", 24, 24));
         mntmDoctor.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                // Se asume que la clase se llama RegistrarDoctor y acepta el Frame padre
                 RegistrarDoctor regDoctor = new RegistrarDoctor();
                 regDoctor.setModal(true);
                 regDoctor.setVisible(true);
@@ -336,7 +334,7 @@ public class Main extends JFrame {
         mntmUsuario.setForeground(new Color(70, 130, 180));
         mntmUsuario.setFont(new Font("Bahnschrift", Font.PLAIN, 16));
         mnRegistro.add(mntmUsuario);
-        
+
         JMenuBar menuBarList = new JMenuBar();
         menuBarList.setBackground(new Color(224, 247, 250));
         menuBarList.setBorder(new LineBorder(new Color(173, 216, 230), 1));
@@ -359,16 +357,10 @@ public class Main extends JFrame {
         mntmListarConsultas.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent arg0) {
                 Doctor doctorActual = Clinica.getDoctorActual();
-                if(doctorActual != null) {
-                    MostrarConsulta mostrarconsulta = new MostrarConsulta(doctorActual);
-                    mostrarconsulta.setModal(true);
-                    mostrarconsulta.setVisible(true);
-                } else {
-                    JOptionPane.showMessageDialog(null, 
-                        "Debe iniciar sesion como Doctor para ver las consultas.", 
-                        "Acceso Denegado", 
-                        JOptionPane.WARNING_MESSAGE);
-                }
+                // Permitir abrir ListarConsulta independientemente del tipo de usuario
+                ListarConsulta mostrarconsulta = new ListarConsulta(doctorActual);
+                mostrarconsulta.setModal(true);
+                mostrarconsulta.setVisible(true);
             }
         });
         mntmListarConsultas.setPreferredSize(new Dimension(240, 40));
@@ -381,7 +373,7 @@ public class Main extends JFrame {
         mntmListarPacientes.setIcon(cargarIcono("recursos/paciente.png", 24, 24));
         mntmListarPacientes.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent arg0) {
-                MostrarPaciente mostrarPacientes = new MostrarPaciente();
+                ListarPaciente mostrarPacientes = new ListarPaciente();
                 mostrarPacientes.setModal(true);
                 mostrarPacientes.setVisible(true);
             }
@@ -416,34 +408,32 @@ public class Main extends JFrame {
                 listarVac.setVisible(true);
             }
         });
-        
+
         mntmListarVacunas.setPreferredSize(new Dimension(240, 40));
         mntmListarVacunas.setForeground(new Color(70, 130, 180));
         mntmListarVacunas.setFont(new Font("Bahnschrift", Font.PLAIN, 16));
         mntmListarVacunas.setBackground(Color.WHITE);
         mnListado.add(mntmListarVacunas);
-        
+
         JPanel panel_1 = new JPanel();
         panel_1.setBackground(new Color(240, 248, 255));
         panel_1.setLayout(new BorderLayout());
         contentPane.add(panel_1, BorderLayout.CENTER);
-        
+
         lblImagen = new JLabel("");
         lblImagen.setHorizontalAlignment(SwingConstants.CENTER);
         panel_1.add(lblImagen, BorderLayout.CENTER);
-        
+
         addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
                 cargarImagenCentral();
             }
         });
-        
+
         cargarImagenCentral();
         configurarPermisos();
     }
-    
-    
 
     private void crearRespaldo() {
         FileOutputStream clinicaOut;
@@ -455,24 +445,24 @@ public class Main extends JFrame {
             clinicaWrite.writeObject(Clinica.getInstancia());
             clinicaOut.close();
             clinicaWrite.close();
-            
+
             enviarArchivo("clinica", "clinica.dat");
-            JOptionPane.showMessageDialog(null, 
-                "Respaldo enviado exitosamente al servidor", 
-                "Respaldo Completado", 
-                JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(null,
+                    "Respaldo enviado exitosamente al servidor",
+                    "Respaldo Completado",
+                    JOptionPane.INFORMATION_MESSAGE);
         } catch (FileNotFoundException ex) {
             ex.printStackTrace();
-            JOptionPane.showMessageDialog(null, 
-                "Error al crear el archivo de respaldo", 
-                "Error", 
-                JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null,
+                    "Error al crear el archivo de respaldo",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
         } catch (IOException ex) {
             ex.printStackTrace();
-            JOptionPane.showMessageDialog(null, 
-                "Error al guardar los datos", 
-                "Error", 
-                JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null,
+                    "Error al guardar los datos",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -480,26 +470,26 @@ public class Main extends JFrame {
         try {
             sfd = new Socket("127.0.0.1", 7000);
             File archivo = new File(nombreArchivo);
-            
+
             if (!archivo.exists()) {
-                JOptionPane.showMessageDialog(null, 
-                    "Archivo " + nombreArchivo + " no encontrado", 
-                    "Error", 
-                    JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(null,
+                        "Archivo " + nombreArchivo + " no encontrado",
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            
+
             EntradaSocket = new DataInputStream(new FileInputStream(archivo));
             SalidaSocket = new DataOutputStream(sfd.getOutputStream());
-            
+
             SalidaSocket.writeUTF(tipo);
-            
+
             int unByte;
             while ((unByte = EntradaSocket.read()) != -1) {
                 SalidaSocket.write(unByte);
             }
             SalidaSocket.flush();
-            
+
             if (EntradaSocket != null) {
                 EntradaSocket.close();
             }
@@ -510,120 +500,119 @@ public class Main extends JFrame {
                 sfd.close();
             }
         } catch (UnknownHostException uhe) {
-            JOptionPane.showMessageDialog(null, 
-                "No se puede acceder al servidor: " + uhe.getMessage(),
-                "Error de Conexi�n", 
-                JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null,
+                    "No se puede acceder al servidor: " + uhe.getMessage(),
+                    "Error de Conexión",
+                    JOptionPane.ERROR_MESSAGE);
         } catch (IOException ioe) {
-            JOptionPane.showMessageDialog(null, 
-                "Error durante la transferencia: " + ioe.getMessage(), 
-                "Error de Comunicaci�n", 
-                JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null,
+                    "Error durante la transferencia: " + ioe.getMessage(),
+                    "Error de Comunicación",
+                    JOptionPane.ERROR_MESSAGE);
         }
     }
+
     private void configurarPermisos() {
         if(Clinica.getInstancia().getUsuarioActual() != null) {
             String tipoUsuario = Clinica.getInstancia().getUsuarioActual().getTipo();
-            
+
             if(tipoUsuario.equalsIgnoreCase("Admin")) {
                 mnAdmin.setEnabled(true);
                 mnRegistro.setEnabled(true);
                 mnListado.setEnabled(true);
                 mntmEnfermedad.setVisible(true);
                 mntmVacuna.setVisible(true);
-                
-                // Nuevas opciones para Admin
+
                 mntmDoctor.setVisible(true);
                 mntmEspecialidad.setVisible(true);
                 mntmUsuario.setVisible(true);
-                
+
                 mntmListarEnfermedades.setEnabled(true);
                 mntmListarEnfermedades.setVisible(true);
                 mntmListarVacunas.setEnabled(true);
                 mntmListarVacunas.setVisible(true);
-                
+
             } else if(tipoUsuario.equalsIgnoreCase("Doctor")) {
                 mnAdmin.setEnabled(false);
                 mnRegistro.setEnabled(true);
                 mnListado.setEnabled(true);
                 mntmEnfermedad.setVisible(false);
                 mntmVacuna.setVisible(false);
-                
+
                 mntmDoctor.setVisible(false);
                 mntmEspecialidad.setVisible(false);
                 mntmUsuario.setVisible(false);
-                
+
                 mntmListarEnfermedades.setEnabled(false);
                 mntmListarEnfermedades.setVisible(false);
                 mntmListarVacunas.setEnabled(false);
                 mntmListarVacunas.setVisible(false);
-                
+
             } else if(tipoUsuario.equalsIgnoreCase("Staff")) {
                 mnAdmin.setEnabled(false);
                 mnRegistro.setEnabled(true);
                 mnListado.setEnabled(false);
                 mntmEnfermedad.setVisible(false);
                 mntmVacuna.setVisible(false);
-                
+
                 mntmDoctor.setVisible(false);
                 mntmEspecialidad.setVisible(false);
                 mntmUsuario.setVisible(false);
-                
+
                 mntmListarEnfermedades.setEnabled(false);
                 mntmListarEnfermedades.setVisible(false);
                 mntmListarVacunas.setEnabled(false);
                 mntmListarVacunas.setVisible(false);
             }
         }
-    
     }
 
     private void cargarRespaldo() {
         JFileChooser fileChooser = new JFileChooser(new File("."));
-        fileChooser.setDialogTitle("Seleccionar archivo de respaldo de la cl�nica");
+        fileChooser.setDialogTitle("Seleccionar archivo de respaldo de la clínica");
         fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        
+
         FileNameExtensionFilter filtroDat = new FileNameExtensionFilter("Archivos de respaldo (.dat)", "dat");
         fileChooser.setFileFilter(filtroDat);
         fileChooser.setAcceptAllFileFilterUsed(false);
-        
+
         int resultado = fileChooser.showOpenDialog(null);
-        
+
         if (resultado != JFileChooser.APPROVE_OPTION) return;
-        
+
         File archivo = fileChooser.getSelectedFile();
         String nombre = archivo.getName();
-        
+
         if (!nombre.startsWith("clinica_respaldo_") || !nombre.endsWith(".dat")) {
-            JOptionPane.showMessageDialog(null, 
-                "Archivo inv�lido. Debe ser un respaldo tipo 'clinica_respaldo_#.dat'", 
-                "Error", 
-                JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null,
+                    "Archivo inválido. Debe ser un respaldo tipo 'clinica_respaldo_#.dat'",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
             return;
         }
-        
-        int confirm = JOptionPane.showConfirmDialog(null, 
-            "�Deseas restaurar la cl�nica desde este respaldo?\nEsto sobrescribir� los datos actuales.", 
-            "Confirmar Restauraci�n", 
-            JOptionPane.YES_NO_OPTION);
-        
+
+        int confirm = JOptionPane.showConfirmDialog(null,
+                "¿Deseas restaurar la clínica desde este respaldo?\nEsto sobrescribirá los datos actuales.",
+                "Confirmar Restauración",
+                JOptionPane.YES_NO_OPTION);
+
         if (confirm != JOptionPane.YES_OPTION) return;
-        
+
         try (ObjectInputStream clinicaIn = new ObjectInputStream(new FileInputStream(archivo))) {
             Clinica instancia = (Clinica) clinicaIn.readObject();
             Clinica.getInstancia().setClinica(instancia);
             Clinica.getInstancia().asignarContadores();
-            
-            JOptionPane.showMessageDialog(null, 
-                "Respaldo restaurado exitosamente.", 
-                "Restauraci�n completada", 
-                JOptionPane.INFORMATION_MESSAGE);
+
+            JOptionPane.showMessageDialog(null,
+                    "Respaldo restaurado exitosamente.",
+                    "Restauración completada",
+                    JOptionPane.INFORMATION_MESSAGE);
         } catch (IOException | ClassNotFoundException ex) {
             ex.printStackTrace();
-            JOptionPane.showMessageDialog(null, 
-                "Error al cargar archivo: " + ex.getMessage(), 
-                "Error", 
-                JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null,
+                    "Error al cargar archivo: " + ex.getMessage(),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -652,28 +641,29 @@ public class Main extends JFrame {
             }
         } catch (Exception e) {
             lblImagen.setIcon(null);
-            lblImagen.setText("Bienvenido al Sistema de Gesti�n Cl�nica");
+            lblImagen.setText("Bienvenido al Sistema de Gestión Clínica");
             lblImagen.setFont(new Font("Bahnschrift", Font.BOLD, 24));
             lblImagen.setForeground(new Color(70, 130, 180));
         }
     }
+
     private void guardarDatos() {
         try {
             FileOutputStream writeFile = new FileOutputStream("clinica.dat");
             ObjectOutputStream writeObjeto = new ObjectOutputStream(writeFile);
             Clinica.getInstancia().guardarContadores();
             writeObjeto.writeObject(Clinica.getInstancia());
-            
+
             writeObjeto.close();
             writeFile.close();
-            
+
             System.out.println("Datos guardados correctamente");
         } catch (IOException e) {
             e.printStackTrace();
-            JOptionPane.showMessageDialog(null, 
-                "Error al guardar los datos: " + e.getMessage(), 
-                "Error", 
-                JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null,
+                    "Error al guardar los datos: " + e.getMessage(),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
         }
     }
 }

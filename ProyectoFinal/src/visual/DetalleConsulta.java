@@ -198,12 +198,14 @@ public class DetalleConsulta extends JDialog {
 		txtCodigoDiagnostico.setBackground(new Color(224, 247, 250));
 		txtCodigoDiagnostico.setFont(new Font("Bahnschrift", Font.PLAIN, 12));
 		txtCodigoDiagnostico.setBounds(105, 25, 150, 20);
+		/*
 		if(consulta.getDiagnostico() != null) {
 			txtCodigoDiagnostico.setText(consulta.getDiagnostico().getCodigoDiagnostico());
 		} else {
 			txtCodigoDiagnostico.setText("Sin diagn�stico");
 		}
 		panelDiagnostico.add(txtCodigoDiagnostico);
+		*/
 		
 		JLabel lblEnfermedad = new JLabel("Enfermedad:");
 		lblEnfermedad.setFont(new Font("Verdana", Font.BOLD, 11));
@@ -216,12 +218,13 @@ public class DetalleConsulta extends JDialog {
 		txtEnfermedad.setBackground(new Color(224, 247, 250));
 		txtEnfermedad.setFont(new Font("Bahnschrift", Font.PLAIN, 12));
 		txtEnfermedad.setBounds(400, 25, 294, 20);
-		if(consulta.getDiagnostico() != null && 
+		/*if(consulta.getDiagnostico() != null &&
 		   consulta.getDiagnostico().getEnfermedadDiagnosticada() != null) {
 			txtEnfermedad.setText(consulta.getDiagnostico().getEnfermedadDiagnosticada().getNombre());
 		} else {
 			txtEnfermedad.setText("N/A");
 		}
+		 */
 		panelDiagnostico.add(txtEnfermedad);
 		
 		JLabel lblDescripcion = new JLabel("Descripcion:");
@@ -240,11 +243,12 @@ public class DetalleConsulta extends JDialog {
 		txtDescripcionDiagnostico.setWrapStyleWord(true);
 		txtDescripcionDiagnostico.setFont(new Font("Bahnschrift", Font.PLAIN, 12));
 		txtDescripcionDiagnostico.setBackground(new Color(240, 248, 255));
-		if(consulta.getDiagnostico() != null) {
+		/*if(consulta.getDiagnostico() != null) {
 			txtDescripcionDiagnostico.setText(consulta.getDiagnostico().getDescripcion());
 		} else {
 			txtDescripcionDiagnostico.setText("No se realiz� diagn�stico.");
 		}
+		 */
 		scrollDiagnostico.setViewportView(txtDescripcionDiagnostico);
 		
 		JPanel panelTratamiento = new JPanel();

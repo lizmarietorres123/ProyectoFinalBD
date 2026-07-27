@@ -1,26 +1,22 @@
 package logico;
-
 import java.io.Serializable;
+import java.util.ArrayList;
 
 public class Vacuna implements Serializable {
-	
 	private static final long serialVersionUID = -2869118725192181107L;
-	
 	private String id;
 	private String nombre;
 	private String fabricante;
-	private Enfermedad enfermedad;
-	private int edadMinima;
-    
-	public Vacuna(String id, String nombre, String fabricante, Enfermedad enfermedad, int edadMinima) {
+	private ArrayList<Enfermedad> enfermedades;
+
+	public Vacuna(String id, String nombre, String fabricante, ArrayList<Enfermedad> enfermedades) {
 		super();
 		this.id = id;
 		this.nombre = nombre;
 		this.fabricante = fabricante;
-		this.enfermedad = enfermedad;
-		this.edadMinima = edadMinima;
+		this.enfermedades = enfermedades != null ? enfermedades : new ArrayList<>();
 	}
-	
+
 	public String getId() {
 		return id;
 	}
@@ -45,20 +41,12 @@ public class Vacuna implements Serializable {
 		this.fabricante = fabricante;
 	}
 
-	public Enfermedad getEnfermedad() {
-		return enfermedad;
+	public ArrayList<Enfermedad> getEnfermedades() {
+		return enfermedades;
 	}
 
-	public void setEnfermedad(Enfermedad enfermedad) {
-		this.enfermedad = enfermedad;
-	}
-
-	public int getEdadMinima() {
-		return edadMinima;
-	}
-
-	public void setEdadMinima(int edadMinima) {
-		this.edadMinima = edadMinima;
+	public void setEnfermedades(ArrayList<Enfermedad> enfermedades) {
+		this.enfermedades = enfermedades;
 	}
 
 	@Override

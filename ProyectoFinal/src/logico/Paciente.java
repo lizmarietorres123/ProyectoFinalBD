@@ -7,7 +7,7 @@ import java.util.Date;
 public class Paciente implements Serializable {
 
 	private static final long serialVersionUID = 2532314229066693215L;
-	
+
 	private String idPaciente;
 	private String nombre;
 	private String apellido;
@@ -21,12 +21,12 @@ public class Paciente implements Serializable {
 	private String direccion;
 
 	private ArrayList<Vacuna> vacunas;
-	private ArrayList<Consulta> resumen; 
-	private ArrayList<Consulta> historialClinico; 
+	private ArrayList<Consulta> resumen;
+	private ArrayList<Consulta> historialClinico;
 	private ArrayList<Enfermedad> enfermedades;
 
-	public Paciente(String idPaciente, String nombre, String apellido, String cedula, String telefono, Date fecNacim,  
-			String sexo, float peso, float estatura, String tipoSangre, String direccion) {
+	public Paciente(String idPaciente, String nombre, String apellido, String cedula, String telefono, Date fecNacim,
+	                String sexo, float peso, float estatura, String tipoSangre, String direccion) {
 		super();
 		this.idPaciente = idPaciente;
 		this.nombre = nombre;
@@ -171,10 +171,10 @@ public class Paciente implements Serializable {
 			resumen.add(consulta);
 		}
 	}
-	
+
 	public ArrayList<String> getDoctores() {
 		ArrayList<String> doctores = new ArrayList<>();
-		
+
 		for (Consulta consulta : historialClinico) {
 			if (consulta.getDoctor() != null) {
 				String nomDoc = consulta.getDoctor().getNombre();
@@ -183,7 +183,7 @@ public class Paciente implements Serializable {
 				}
 			}
 		}
-		
+
 		return doctores.isEmpty() ? null : doctores;
 	}
 
@@ -194,8 +194,9 @@ public class Paciente implements Serializable {
 	}
 
 	public Enfermedad buscarEnfermedadPorId(String id) {
+		if (id == null) return null;
 		for (Enfermedad e : enfermedades) {
-			if (e.getId().equalsIgnoreCase(id)) {
+			if (e != null && e.getId().equalsIgnoreCase(id)) {
 				return e;
 			}
 		}
@@ -205,16 +206,23 @@ public class Paciente implements Serializable {
 	public ArrayList<Enfermedad> getEnfermedadesBajoVigilancia() {
 		ArrayList<Enfermedad> lista = new ArrayList<>();
 		for (Enfermedad e : enfermedades) {
-			if (e.isVigilancia()) {
+			if (e != null && e.isVigilancia()) {
 				lista.add(e);
 			}
 		}
 		return lista;
 	}
 
+	public void agregarVacuna(Vacuna v) {
+		if (v != null && !vacunas.contains(v)) {
+			vacunas.add(v);
+		}
+	}
+
 	public Vacuna buscarVacunaPorId(String id) {
+		if (id == null || vacunas == null) return null;
 		for (Vacuna v : vacunas) {
-			if (v.getId().equalsIgnoreCase(id)) {
+			if (v != null && v.getId().equalsIgnoreCase(id)) {
 				return v;
 			}
 		}

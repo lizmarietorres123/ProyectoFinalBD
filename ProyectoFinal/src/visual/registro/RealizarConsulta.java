@@ -6,6 +6,8 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -21,30 +23,35 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.DefaultComboBoxModel;
+
+import controllers.ConsultaController;
 import logico.Cita;
 import logico.Clinica;
 import logico.Consulta;
 import logico.Diagnostico;
-import logico.Enfermedad;
 import logico.EstadoCita;
 import logico.Paciente;
 import visual.ListarVacuna;
 
 public class RealizarConsulta extends JDialog {
+	private static final long serialVersionUID = 1L;
 	private final JPanel contentPanel = new JPanel();
-	private JComboBox cbxCita;
+	private JTextField txtBuscarCita;
+	private JComboBox<String> cbxCita;
 	private JTextField txtPaciente;
 	private JTextField txtDoctor;
 	private JTextField txtFechaCita;
-	private JTextField txtDiagnostico;
+	private JTextArea txtDiagnostico;
 	private JButton btnCrearDiagnostico;
-	private JButton btnGestionarPaciente;
+	private JButton btnVerDiagnosticos;
 	private JTextArea txtTratamiento;
 	private JTextArea txtObservaciones;
 	private JCheckBox chckEsImportante;
+
 	private ArrayList<Diagnostico> diagnosticosActuales = new ArrayList<>();
 	private Paciente pacienteActual = null;
 	private Cita citaElegida = null;
+	private ConsultaController controller;
 
 	public static void main(String[] args) {
 		try {
@@ -57,8 +64,10 @@ public class RealizarConsulta extends JDialog {
 	}
 
 	public RealizarConsulta() {
+		controller = new ConsultaController();
+
 		setTitle("Realizar Consulta");
-		setBounds(100, 100, 685, 569);
+		setBounds(100, 100, 685, 580);
 		setLocationRelativeTo(null);
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBackground(new Color(240, 248, 255));
@@ -73,13 +82,36 @@ public class RealizarConsulta extends JDialog {
 		contentPanel.add(panelCita);
 		panelCita.setLayout(null);
 
+		JLabel lblBuscarCita = new JLabel("Buscar:");
+		lblBuscarCita.setForeground(new Color(70, 130, 180));
+		lblBuscarCita.setFont(new Font("Bahnschrift", Font.BOLD, 13));
+		lblBuscarCita.setBounds(10, 30, 50, 14);
+		panelCita.add(lblBuscarCita);
+
+		txtBuscarCita = new JTextField();
+		txtBuscarCita.setFont(new Font("Bahnschrift", Font.PLAIN, 12));
+		txtBuscarCita.setBackground(Color.WHITE);
+		txtBuscarCita.setBounds(65, 27, 140, 20);
+		txtBuscarCita.setToolTipText("Filtrar por código, nombre o cédula");
+		txtBuscarCita.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent e) {
+				cargarCitasFiltro(txtBuscarCita.getText().trim());
+				if (cbxCita.getItemCount() > 1 && !txtBuscarCita.getText().trim().isEmpty()) {
+					cbxCita.showPopup();
+				}
+			}
+		});
+		panelCita.add(txtBuscarCita);
+		txtBuscarCita.setColumns(10);
+
 		JLabel lblCita = new JLabel("Cita:");
 		lblCita.setForeground(new Color(70, 130, 180));
 		lblCita.setFont(new Font("Bahnschrift", Font.BOLD, 13));
-		lblCita.setBounds(10, 30, 80, 14);
+		lblCita.setBounds(215, 30, 35, 14);
 		panelCita.add(lblCita);
 
-		cbxCita = new JComboBox();
+		cbxCita = new JComboBox<>();
 		cbxCita.setFont(new Font("Bahnschrift", Font.PLAIN, 12));
 		cbxCita.setBackground(new Color(224, 247, 250));
 		cbxCita.addActionListener(new ActionListener() {
@@ -87,8 +119,8 @@ public class RealizarConsulta extends JDialog {
 				cargarDatosCita();
 			}
 		});
-		cbxCita.setModel(new DefaultComboBoxModel(new String[] {"<<Seleccione>>"}));
-		cbxCita.setBounds(100, 27, 494, 20);
+		cbxCita.setModel(new DefaultComboBoxModel<>(new String[] {"<<Seleccione>>"}));
+		cbxCita.setBounds(255, 27, 339, 20);
 		panelCita.add(cbxCita);
 
 		JLabel lblPaciente = new JLabel("Paciente:");
@@ -101,24 +133,9 @@ public class RealizarConsulta extends JDialog {
 		txtPaciente.setEditable(false);
 		txtPaciente.setFont(new Font("Bahnschrift", Font.PLAIN, 12));
 		txtPaciente.setBackground(new Color(224, 247, 250));
-		txtPaciente.setBounds(100, 62, 344, 20);
+		txtPaciente.setBounds(100, 62, 494, 20);
 		panelCita.add(txtPaciente);
 		txtPaciente.setColumns(10);
-
-		btnGestionarPaciente = new JButton("Crear Paciente");
-		btnGestionarPaciente.setFont(new Font("Bahnschrift", Font.BOLD, 11));
-		btnGestionarPaciente.setBackground(new Color(176, 224, 230));
-		btnGestionarPaciente.setForeground(new Color(70, 130, 180));
-		btnGestionarPaciente.setBorder(new LineBorder(new Color(135, 206, 235), 2));
-		btnGestionarPaciente.setFocusPainted(false);
-		btnGestionarPaciente.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				gestionarPaciente();
-			}
-		});
-		btnGestionarPaciente.setBounds(454, 62, 140, 20);
-		btnGestionarPaciente.setEnabled(false);
-		panelCita.add(btnGestionarPaciente);
 
 		JLabel lblDoctor = new JLabel("Doctor:");
 		lblDoctor.setForeground(new Color(70, 130, 180));
@@ -151,23 +168,28 @@ public class RealizarConsulta extends JDialog {
 		JPanel panelConsulta = new JPanel();
 		panelConsulta.setBackground(Color.WHITE);
 		panelConsulta.setBorder(new TitledBorder(new LineBorder(new Color(135, 206, 235), 2), "Datos de la Consulta", TitledBorder.CENTER, TitledBorder.TOP, new Font("Bahnschrift", Font.BOLD, 14), new Color(70, 130, 180)));
-		panelConsulta.setBounds(20, 174, 614, 325);
+		panelConsulta.setBounds(20, 170, 614, 335);
 		contentPanel.add(panelConsulta);
 		panelConsulta.setLayout(null);
 
-		JLabel lblDiagnostico = new JLabel("Diagnosticos:");
+		JLabel lblDiagnostico = new JLabel("Diagnósticos:");
 		lblDiagnostico.setForeground(new Color(70, 130, 180));
 		lblDiagnostico.setFont(new Font("Bahnschrift", Font.BOLD, 12));
-		lblDiagnostico.setBounds(10, 37, 85, 14);
+		lblDiagnostico.setBounds(10, 30, 85, 14);
 		panelConsulta.add(lblDiagnostico);
 
-		txtDiagnostico = new JTextField();
+		JScrollPane scrollDiagVis = new JScrollPane();
+		scrollDiagVis.setBorder(new LineBorder(new Color(173, 216, 230), 1));
+		scrollDiagVis.setBounds(100, 25, 205, 50);
+		panelConsulta.add(scrollDiagVis);
+
+		txtDiagnostico = new JTextArea();
 		txtDiagnostico.setEditable(false);
-		txtDiagnostico.setFont(new Font("Bahnschrift", Font.PLAIN, 12));
+		txtDiagnostico.setLineWrap(true);
+		txtDiagnostico.setWrapStyleWord(true);
+		txtDiagnostico.setFont(new Font("Bahnschrift", Font.PLAIN, 11));
 		txtDiagnostico.setBackground(new Color(224, 247, 250));
-		txtDiagnostico.setBounds(100, 34, 344, 20);
-		panelConsulta.add(txtDiagnostico);
-		txtDiagnostico.setColumns(10);
+		scrollDiagVis.setViewportView(txtDiagnostico);
 
 		btnCrearDiagnostico = new JButton("Agregar Diagnóstico");
 		btnCrearDiagnostico.setFont(new Font("Bahnschrift", Font.BOLD, 11));
@@ -180,18 +202,32 @@ public class RealizarConsulta extends JDialog {
 				abrirCrearDiagnostico();
 			}
 		});
-		btnCrearDiagnostico.setBounds(454, 33, 140, 23);
+		btnCrearDiagnostico.setBounds(315, 25, 135, 25);
 		panelConsulta.add(btnCrearDiagnostico);
+
+		btnVerDiagnosticos = new JButton("Ver Diagnósticos");
+		btnVerDiagnosticos.setFont(new Font("Bahnschrift", Font.BOLD, 11));
+		btnVerDiagnosticos.setBackground(new Color(176, 224, 230));
+		btnVerDiagnosticos.setForeground(new Color(70, 130, 180));
+		btnVerDiagnosticos.setBorder(new LineBorder(new Color(135, 206, 235), 2));
+		btnVerDiagnosticos.setFocusPainted(false);
+		btnVerDiagnosticos.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				mostrarDiagnosticos();
+			}
+		});
+		btnVerDiagnosticos.setBounds(455, 25, 139, 25);
+		panelConsulta.add(btnVerDiagnosticos);
 
 		JLabel lblTratamiento = new JLabel("Tratamiento:");
 		lblTratamiento.setForeground(new Color(70, 130, 180));
 		lblTratamiento.setFont(new Font("Bahnschrift", Font.BOLD, 12));
-		lblTratamiento.setBounds(10, 72, 80, 14);
+		lblTratamiento.setBounds(10, 88, 80, 14);
 		panelConsulta.add(lblTratamiento);
 
 		JScrollPane scrollTratamiento = new JScrollPane();
 		scrollTratamiento.setBorder(new LineBorder(new Color(173, 216, 230), 1));
-		scrollTratamiento.setBounds(100, 72, 494, 70);
+		scrollTratamiento.setBounds(100, 85, 494, 65);
 		panelConsulta.add(scrollTratamiento);
 
 		txtTratamiento = new JTextArea();
@@ -204,12 +240,12 @@ public class RealizarConsulta extends JDialog {
 		JLabel lblObservaciones = new JLabel("Observaciones:");
 		lblObservaciones.setForeground(new Color(70, 130, 180));
 		lblObservaciones.setFont(new Font("Bahnschrift", Font.BOLD, 12));
-		lblObservaciones.setBounds(10, 157, 90, 14);
+		lblObservaciones.setBounds(10, 163, 90, 14);
 		panelConsulta.add(lblObservaciones);
 
 		JScrollPane scrollObservaciones = new JScrollPane();
 		scrollObservaciones.setBorder(new LineBorder(new Color(173, 216, 230), 1));
-		scrollObservaciones.setBounds(100, 157, 494, 70);
+		scrollObservaciones.setBounds(100, 160, 494, 65);
 		panelConsulta.add(scrollObservaciones);
 
 		txtObservaciones = new JTextArea();
@@ -223,15 +259,19 @@ public class RealizarConsulta extends JDialog {
 		chckEsImportante.setBackground(Color.WHITE);
 		chckEsImportante.setForeground(new Color(70, 130, 180));
 		chckEsImportante.setFont(new Font("Bahnschrift", Font.BOLD, 12));
-		chckEsImportante.setBounds(100, 280, 494, 23);
+		chckEsImportante.setBounds(100, 295, 494, 23);
 		panelConsulta.add(chckEsImportante);
-		
+
 		JButton btnAplicarVacunas = new JButton("Aplicar Vacunas");
 		btnAplicarVacunas.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				ListarVacuna listarVac = new ListarVacuna(pacienteActual, "Agregar");
-                listarVac.setModal(true);
-                listarVac.setVisible(true);
+				if (pacienteActual != null) {
+					ListarVacuna listarVac = new ListarVacuna(pacienteActual, "Agregar");
+					listarVac.setModal(true);
+					listarVac.setVisible(true);
+				} else {
+					JOptionPane.showMessageDialog(null, "Debe seleccionar una cita con un paciente asignado primero.", "Atención", JOptionPane.WARNING_MESSAGE);
+				}
 			}
 		});
 		btnAplicarVacunas.setForeground(new Color(70, 130, 180));
@@ -239,7 +279,7 @@ public class RealizarConsulta extends JDialog {
 		btnAplicarVacunas.setFocusPainted(false);
 		btnAplicarVacunas.setBorder(new LineBorder(new Color(135, 206, 235), 2));
 		btnAplicarVacunas.setBackground(new Color(176, 224, 230));
-		btnAplicarVacunas.setBounds(100, 240, 494, 23);
+		btnAplicarVacunas.setBounds(100, 235, 494, 23);
 		panelConsulta.add(btnAplicarVacunas);
 
 		JPanel buttonPane = new JPanel();
@@ -276,110 +316,73 @@ public class RealizarConsulta extends JDialog {
 		btnCancelar.setActionCommand("Cancel");
 		buttonPane.add(btnCancelar);
 
-		cargarCitas();
+		cargarCitasFiltro("");
 	}
 
-	private void cargarCitas() {
+	private void cargarCitasFiltro(String filtro) {
 		ActionListener[] listeners = cbxCita.getActionListeners();
-		for(ActionListener listener : listeners) {
+		for (ActionListener listener : listeners) {
 			cbxCita.removeActionListener(listener);
 		}
 
 		cbxCita.removeAllItems();
 		cbxCita.addItem("<<Seleccione>>");
-		for(Cita cita : Clinica.getInstancia().getCitas()) {
-			if(cita.getEstado() == EstadoCita.PROGRAMADA) {
-				String item = cita.getIdCita()+ " - " + cita.getNombrePersona() + " (" + cita.getIdPersona() + ")" + " - (" + utilidad.Formato.getDateString(cita.getFechaHora()) + ")";
-				cbxCita.addItem(item);
+
+		String f = filtro.toLowerCase();
+
+		for (Cita cita : Clinica.getInstancia().getCitas()) {
+			if (cita.getEstado() == EstadoCita.PROGRAMADA) {
+				String idCita = cita.getIdCita() != null ? cita.getIdCita().toLowerCase() : "";
+				String nombrePers = cita.getNombrePersona() != null ? cita.getNombrePersona().toLowerCase() : "";
+				String idPers = cita.getIdPersona() != null ? cita.getIdPersona().toLowerCase() : "";
+
+				if (f.isEmpty() || idCita.contains(f) || nombrePers.contains(f) || idPers.contains(f)) {
+					String item = cita.getIdCita() + " - " + cita.getNombrePersona() + " (" + cita.getIdPersona() + ")" + " - (" + utilidad.Formato.getDateString(cita.getFechaHora()) + ")";
+					cbxCita.addItem(item);
+				}
 			}
 		}
 
-		for(ActionListener listener : listeners) {
+		for (ActionListener listener : listeners) {
 			cbxCita.addActionListener(listener);
 		}
+
+		cargarDatosCita();
 	}
 
 	private void cargarDatosCita() {
-		if(cbxCita.getSelectedIndex() > 0) {
+		if (cbxCita.getSelectedIndex() > 0) {
 			String codigo = cbxCita.getSelectedItem().toString().split(" ")[0];
-			citaElegida = Clinica.getInstancia().buscarCitaXId(codigo);
+			citaElegida = controller.obtenerCitaPorCodigo(codigo);
 
-			if(citaElegida != null) {
-				pacienteActual = Clinica.getInstancia().buscarPacienteXIdentificacion(citaElegida.getIdPersona());
-				
-				if(pacienteActual != null) {
-					btnGestionarPaciente.setText("Modificar Paciente");
-					btnGestionarPaciente.setEnabled(true);
-					txtPaciente.setText(pacienteActual.getNombre() + " - " + pacienteActual.getCedula());
+			if (citaElegida != null) {
+				pacienteActual = citaElegida.getPaciente();
+				if (pacienteActual == null) {
+					pacienteActual = Clinica.getInstancia().buscarPacienteXIdentificacion(citaElegida.getIdPersona());
+				}
+
+				if (pacienteActual != null) {
+					txtPaciente.setText(pacienteActual.getNombre() + " " + (pacienteActual.getApellido() != null ? pacienteActual.getApellido() : "") + " - " + pacienteActual.getCedula());
 				} else {
-					btnGestionarPaciente.setText("Crear Paciente");
-					btnGestionarPaciente.setEnabled(true);
 					txtPaciente.setText(citaElegida.getNombrePersona() + " - " + citaElegida.getIdPersona());
 				}
-				
-				txtDoctor.setText(citaElegida.getDoctor().getNombre());
+
+				txtDoctor.setText(citaElegida.getDoctor() != null ? citaElegida.getDoctor().getNombre() : "");
 				txtFechaCita.setText(utilidad.Formato.getDateString(citaElegida.getFechaHora()));
 			}
 		} else {
 			limpiarCampos();
-			btnGestionarPaciente.setEnabled(false);
 			pacienteActual = null;
 		}
 	}
 
-	private void gestionarPaciente() {
-		if(pacienteActual != null) {
-			modificarPaciente();
-		} else {
-			registroPaciente();
-		}
-	}
-
-	private void modificarPaciente() {
-		RegistrarPaciente dialogo = new RegistrarPaciente(pacienteActual);
-		dialogo.setModal(true);
-		dialogo.setLocationRelativeTo(this);
-		dialogo.setVisible(true);
-
-		txtPaciente.setText(pacienteActual.getNombre() + " - " + pacienteActual.getCedula());
-	}
-
-	private void registroPaciente() {
-		RegistrarPaciente dialogo = new RegistrarPaciente(null);
-		
-		if(citaElegida != null) {
-			dialogo.setDatosIniciales(
-				citaElegida.getIdPersona(),
-				citaElegida.getNombrePersona(),
-				citaElegida.getTelefonoPersona()
-			);
-		}
-		
-		dialogo.setModal(true);
-		dialogo.setLocationRelativeTo(this);
-		dialogo.setVisible(true);
-
-		Paciente nuevoPaciente = dialogo.getPacienteCreado();
-
-		if(nuevoPaciente != null) {
-			pacienteActual = nuevoPaciente;
-			btnGestionarPaciente.setText("Modificar Paciente");
-			txtPaciente.setText(pacienteActual.getNombre() + " - " + pacienteActual.getCedula());
-
-			JOptionPane.showMessageDialog(this,
-					"Paciente registrado exitosamente.\nAhora puede continuar con la consulta.",
-					"Paciente Creado",
-					JOptionPane.INFORMATION_MESSAGE);
-		}
-	}
-
 	private void abrirCrearDiagnostico() {
-		CrearDiagnostico dialogo = new CrearDiagnostico();
+		CrearDiagnostico dialogo = new CrearDiagnostico(diagnosticosActuales, pacienteActual);
 		dialogo.setModal(true);
 		dialogo.setLocationRelativeTo(this);
 		dialogo.setVisible(true);
 		Diagnostico diag = dialogo.getDiagnosticoCreado();
-		if(diag != null) {
+		if (diag != null) {
 			diagnosticosActuales.add(diag);
 			actualizarTextoDiagnosticos();
 			verificarVigilanciaDiagnosticos();
@@ -392,13 +395,59 @@ public class RealizarConsulta extends JDialog {
 		} else {
 			StringBuilder sb = new StringBuilder();
 			for (int i = 0; i < diagnosticosActuales.size(); i++) {
-				sb.append(diagnosticosActuales.get(i).getCodigoDiagnostico());
-				if (i < diagnosticosActuales.size() - 1) {
-					sb.append(", ");
+				Diagnostico d = diagnosticosActuales.get(i);
+				String enf = (d.getEnfermedadDiagnosticada() != null) ? d.getEnfermedadDiagnosticada().getNombre() : "Sin Enfermedad";
+				sb.append("• ").append(d.getCodigoDiagnostico()).append(" - ").append(enf).append("\n");
+			}
+			txtDiagnostico.setText(sb.toString().trim());
+			txtDiagnostico.setCaretPosition(0);
+		}
+	}
+
+	private void mostrarDiagnosticos() {
+		if (diagnosticosActuales.isEmpty()) {
+			JOptionPane.showMessageDialog(this, "No hay diagnósticos creados en esta consulta.", "Diagnósticos de la Consulta", JOptionPane.INFORMATION_MESSAGE);
+			return;
+		}
+
+		if (diagnosticosActuales.size() == 1) {
+			CrearDiagnostico dialogo = new CrearDiagnostico(diagnosticosActuales.get(0), diagnosticosActuales);
+			dialogo.setModal(true);
+			dialogo.setLocationRelativeTo(this);
+			dialogo.setVisible(true);
+		} else {
+			String[] opciones = new String[diagnosticosActuales.size()];
+			for (int i = 0; i < diagnosticosActuales.size(); i++) {
+				Diagnostico d = diagnosticosActuales.get(i);
+				String enf = (d.getEnfermedadDiagnosticada() != null) ? d.getEnfermedadDiagnosticada().getNombre() : "Sin Enfermedad";
+				opciones[i] = d.getCodigoDiagnostico() + " - " + enf;
+			}
+
+			String seleccion = (String) JOptionPane.showInputDialog(
+					this,
+					"Seleccione el diagnóstico que desea ver o editar:",
+					"Ver Diagnósticos",
+					JOptionPane.QUESTION_MESSAGE,
+					null,
+					opciones,
+					opciones[0]
+			);
+
+			if (seleccion != null) {
+				for (Diagnostico d : diagnosticosActuales) {
+					if (seleccion.startsWith(d.getCodigoDiagnostico())) {
+						CrearDiagnostico dialogo = new CrearDiagnostico(d, diagnosticosActuales);
+						dialogo.setModal(true);
+						dialogo.setLocationRelativeTo(this);
+						dialogo.setVisible(true);
+						break;
+					}
 				}
 			}
-			txtDiagnostico.setText(diagnosticosActuales.size() + " agregado(s): " + sb.toString());
 		}
+
+		actualizarTextoDiagnosticos();
+		verificarVigilanciaDiagnosticos();
 	}
 
 	private void verificarVigilanciaDiagnosticos() {
@@ -412,79 +461,59 @@ public class RealizarConsulta extends JDialog {
 
 		if (bajoVigilancia) {
 			chckEsImportante.setSelected(true);
-			chckEsImportante.setEnabled(false);
-		} else {
-			chckEsImportante.setEnabled(true);
 		}
+		chckEsImportante.setEnabled(true);
 	}
 
 	private void realizarConsulta() {
-		if(cbxCita.getSelectedIndex() <= 0) {
+		if (cbxCita.getSelectedIndex() <= 0) {
 			JOptionPane.showMessageDialog(null, "Debe seleccionar una cita.", "Campo Requerido", JOptionPane.WARNING_MESSAGE);
 			return;
 		}
 
-		if(pacienteActual == null) {
-			JOptionPane.showMessageDialog(null, "Debe crear el paciente antes de realizar la consulta.", "Campo Requerido", JOptionPane.WARNING_MESSAGE);
+		if (pacienteActual == null) {
+			JOptionPane.showMessageDialog(null, "El paciente debe estar registrado en el sistema antes de realizar la consulta.", "Atención", JOptionPane.WARNING_MESSAGE);
 			return;
 		}
 
-		if(diagnosticosActuales.isEmpty()) {
+		if (diagnosticosActuales.isEmpty()) {
 			JOptionPane.showMessageDialog(null, "Debe agregar al menos un diagnóstico.", "Campo Requerido", JOptionPane.WARNING_MESSAGE);
 			return;
 		}
 
-		if(txtTratamiento.getText().trim().isEmpty()) {
+		if (txtTratamiento.getText().trim().isEmpty()) {
 			JOptionPane.showMessageDialog(null, "Debe ingresar un tratamiento.", "Campo Requerido", JOptionPane.WARNING_MESSAGE);
 			return;
 		}
-			
-		Consulta consulta = new Consulta(
-				"CONS-" + Clinica.genCodigoConsultas,
-				pacienteActual, 
-				citaElegida.getDoctor(), 
-				citaElegida.getFechaHora());
-		
-		setCamposConsulta(consulta);
-		Clinica.getInstancia().realizarConsulta(consulta, citaElegida);
-		
-		JOptionPane.showMessageDialog(null, "Consulta realizada con éxito.\nCódigo: " + consulta.getId(), "Consulta Exitosa", JOptionPane.INFORMATION_MESSAGE);
-		dispose();
-	}
 
-	private void setCamposConsulta(Consulta consulta) {
-		for (Diagnostico d : diagnosticosActuales) {
-			consulta.addDiagnostico(d);
-			Enfermedad enfermedadDiag = d.getEnfermedadDiagnosticada();
-			if(enfermedadDiag != null) {
-				pacienteActual.agregarEnfermedad(enfermedadDiag);
-			}
-		}
+		citaElegida.setPaciente(pacienteActual);
 
-		consulta.setTratamiento(txtTratamiento.getText());
-		consulta.setObservaciones(txtObservaciones.getText());
-		consulta.setEsImportante(chckEsImportante.isSelected());
+		Consulta consulta = controller.registrarConsulta(
+				citaElegida,
+				diagnosticosActuales,
+				txtTratamiento.getText(),
+				txtObservaciones.getText(),
+				chckEsImportante.isSelected()
+		);
 
-		if(chckEsImportante.isSelected()) {
-			pacienteActual.getResumen().add(consulta);
+		if (consulta != null) {
+			JOptionPane.showMessageDialog(null, "Consulta realizada con éxito.\nCódigo: " + consulta.getId(), "Consulta Exitosa", JOptionPane.INFORMATION_MESSAGE);
+			dispose();
+		} else {
+			JOptionPane.showMessageDialog(null, "Ocurrió un error al procesar la consulta.", "Error", JOptionPane.ERROR_MESSAGE);
 		}
 	}
 
 	private void limpiarCampos() {
-		if(txtPaciente != null) txtPaciente.setText("");
-		if(txtDoctor != null) txtDoctor.setText("");
-		if(txtFechaCita != null) txtFechaCita.setText("");
-		if(txtDiagnostico != null) txtDiagnostico.setText("");
-		if(txtTratamiento != null) txtTratamiento.setText("");
-		if(txtObservaciones != null) txtObservaciones.setText("");
-		if(chckEsImportante != null) chckEsImportante.setSelected(false);
+		if (txtPaciente != null) txtPaciente.setText("");
+		if (txtDoctor != null) txtDoctor.setText("");
+		if (txtFechaCita != null) txtFechaCita.setText("");
+		if (txtDiagnostico != null) txtDiagnostico.setText("");
+		if (txtTratamiento != null) txtTratamiento.setText("");
+		if (txtObservaciones != null) txtObservaciones.setText("");
+		if (chckEsImportante != null) chckEsImportante.setSelected(false);
 
 		diagnosticosActuales.clear();
 		pacienteActual = null;
-
-		if(btnGestionarPaciente != null) {
-			btnGestionarPaciente.setText("Crear Paciente");
-			btnGestionarPaciente.setEnabled(false);
-		}
 	}
 }

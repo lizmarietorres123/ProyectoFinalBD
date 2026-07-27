@@ -4,16 +4,16 @@ import java.io.Serializable;
 import java.util.Date;
 
 public class Cita implements Serializable {
-   
+
 	private static final long serialVersionUID = -4304362059522165583L;
-	
+
 	private String idCita;
 	private Paciente paciente;
 	private Doctor doctor;
 	private Date fechaHora;
 	private EstadoCita estado;
 	private Consulta consultaGenerada;
-    
+
 	public Cita(String idCita, Paciente paciente, Doctor doctor, Date fechaHora) {
 		super();
 		this.idCita = idCita;
@@ -23,7 +23,7 @@ public class Cita implements Serializable {
 		this.estado = EstadoCita.PROGRAMADA;
 		this.consultaGenerada = null;
 	}
-	
+
 	public String getIdCita() {
 		return idCita;
 	}
@@ -40,14 +40,13 @@ public class Cita implements Serializable {
 		this.paciente = paciente;
 	}
 
-	// Métodos auxiliares delegados al paciente
 	public String getIdPersona() {
-		return paciente != null ? paciente.getCedula() : "";
+		return (paciente != null && paciente.getCedula() != null) ? paciente.getCedula() : "";
 	}
 
 	public String getNombrePersona() {
 		if (paciente == null) return "";
-		String nombreComp = paciente.getNombre();
+		String nombreComp = paciente.getNombre() != null ? paciente.getNombre() : "";
 		if (paciente.getApellido() != null && !paciente.getApellido().isEmpty()) {
 			nombreComp += " " + paciente.getApellido();
 		}
@@ -55,7 +54,7 @@ public class Cita implements Serializable {
 	}
 
 	public String getTelefonoPersona() {
-		return paciente != null ? paciente.getTelefono() : "";
+		return (paciente != null && paciente.getTelefono() != null) ? paciente.getTelefono() : "";
 	}
 
 	public Doctor getDoctor() {
@@ -97,19 +96,19 @@ public class Cita implements Serializable {
 	public void setConsultaGenerada(Consulta consultaGenerada) {
 		this.consultaGenerada = consultaGenerada;
 	}
-    
+
 	public void cancelar() {
 		if (estado == EstadoCita.PROGRAMADA) {
 			estado = EstadoCita.CANCELADA;
 		}
 	}
-    
+
 	public void marcarNoAsistio() {
 		if (estado == EstadoCita.PROGRAMADA) {
 			estado = EstadoCita.NO_ASISTIO;
 		}
 	}
-    
+
 	public void completar() {
 		if (consultaGenerada != null) {
 			estado = EstadoCita.COMPLETADA;
