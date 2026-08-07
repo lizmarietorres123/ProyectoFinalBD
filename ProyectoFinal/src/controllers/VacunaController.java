@@ -1,10 +1,10 @@
 package controllers;
 
 import java.util.ArrayList;
-import logico.Clinica;
-import logico.Enfermedad;
-import logico.Paciente;
-import logico.Vacuna;
+import logico.consultorio.Clinica;
+import logico.catalogo.Enfermedad;
+import logico.consultorio.Paciente;
+import logico.enfermeria.Vacuna;
 
 public class VacunaController {
 

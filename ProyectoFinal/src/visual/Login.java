@@ -21,9 +21,10 @@ import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 
-import logico.Clinica;
+import logico.consultorio.Clinica;
 import logico.Doctor;
-import logico.Usuario;
+import logico.catalogo.Usuario;
+import visual.enfermeria.MainEnfermeria;
 
 public class Login extends JFrame {
     private static final long serialVersionUID = 1L;
@@ -126,7 +127,8 @@ public class Login extends JFrame {
                 if(user != null) {
                     Clinica.getInstancia().setUsuarioActual(user);
 
-                    Main menu = new Main();
+                    //Main menu = new Main();
+                    MainEnfermeria menu = new MainEnfermeria();
                     menu.setVisible(true);
                     dispose();
                 } else {

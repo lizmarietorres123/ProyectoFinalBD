@@ -39,17 +39,13 @@ import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-import logico.Clinica;
+import logico.consultorio.Clinica;
 import logico.Doctor;
 import servidor.Servidor;
-import visual.registro.RealizarConsulta;
-import visual.registro.RegEnfermedad;
-import visual.registro.RegistrarCita;
-import visual.registro.RegistrarDoctor;
-import visual.registro.RegistrarEspecialidad;
-import visual.registro.RegistrarPaciente;
-import visual.registro.RegistrarUsuario;
-import visual.registro.RegistrarVacuna;
+import visual.consultorio.*;
+import visual.enfermeria.ListarVacuna;
+import visual.standby.*;
+import visual.enfermeria.RegistrarVacuna;
 
 public class Main extends JFrame {
 

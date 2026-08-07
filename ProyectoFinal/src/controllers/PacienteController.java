@@ -1,8 +1,8 @@
 package controllers;
 
 import java.util.Date;
-import logico.Clinica;
-import logico.Paciente;
+import logico.consultorio.Clinica;
+import logico.consultorio.Paciente;
 import utilidad.Formato;
 
 public class PacienteController {

@@ -5,10 +5,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import logico.Cita;
-import logico.Clinica;
+import logico.consultorio.Cita;
+import logico.consultorio.Clinica;
 import logico.Doctor;
-import logico.Paciente;
+import logico.consultorio.Paciente;
 
 public class CitaController {
 

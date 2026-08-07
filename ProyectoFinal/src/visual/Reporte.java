@@ -17,9 +17,9 @@ import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PiePlot;
 import org.jfree.data.general.DefaultPieDataset;
-import logico.Clinica;
-import logico.Enfermedad;
-import logico.Paciente;
+import logico.consultorio.Clinica;
+import logico.catalogo.Enfermedad;
+import logico.consultorio.Paciente;
 import javax.swing.JLabel;
 import javax.swing.SwingConstants;
 
@@ -47,7 +47,7 @@ public class Reporte extends JDialog {
         getContentPane().add(contentPanel, BorderLayout.CENTER);
         contentPanel.setLayout(new BorderLayout(10, 10));
 
-        JLabel lblTitulo = new JLabel("REPORTES ESTADÍSTICOS");
+        JLabel lblTitulo = new JLabel("REPORTES ESTADï¿½STICOS");
         lblTitulo.setHorizontalAlignment(SwingConstants.CENTER);
         lblTitulo.setFont(new Font("Bahnschrift", Font.BOLD, 24));
         lblTitulo.setForeground(new Color(70, 130, 180));
@@ -70,7 +70,7 @@ public class Reporte extends JDialog {
         panel.setBackground(Color.WHITE);
         panel.setBorder(new TitledBorder(
             new LineBorder(new Color(70, 130, 180), 2),
-            "Distribución de Pacientes por Género",
+            "Distribuciï¿½n de Pacientes por Gï¿½nero",
             TitledBorder.CENTER,
             TitledBorder.TOP,
             new Font("Bahnschrift", Font.BOLD, 14),
@@ -234,7 +234,7 @@ public class Reporte extends JDialog {
         panel.setBackground(Color.WHITE);
         panel.setBorder(new TitledBorder(
             new LineBorder(new Color(70, 130, 180), 2),
-            "Resumen Estadístico",
+            "Resumen Estadï¿½stico",
             TitledBorder.CENTER,
             TitledBorder.TOP,
             new Font("Bahnschrift", Font.BOLD, 14),

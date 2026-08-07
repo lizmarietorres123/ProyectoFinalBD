@@ -1,7 +1,7 @@
 package controlador;
 
 import java.util.ArrayList;
-import logico.Clinica;
+import logico.consultorio.Clinica;
 import logico.Doctor;
 
 public class DoctorController {

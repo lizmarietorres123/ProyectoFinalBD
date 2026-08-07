@@ -1,5 +1,8 @@
 package logico;
 
+import logico.catalogo.Usuario;
+import logico.consultorio.Paciente;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 
@@ -11,7 +14,7 @@ public class Doctor implements Serializable {
     private int cupoDiario;
     private ArrayList<Paciente> pacientes;
     private ArrayList<String> especialidades;
-    private Usuario usuario; 
+    private Usuario usuario;
 
     public Doctor(String idDoctor, String nombre, int cupoDiario, ArrayList<String> especialidades) {
         super();

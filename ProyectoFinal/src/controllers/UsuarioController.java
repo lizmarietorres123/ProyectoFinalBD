@@ -1,8 +1,8 @@
 package controlador;
 
 import java.util.ArrayList;
-import logico.Clinica;
-import logico.Usuario;
+import logico.consultorio.Clinica;
+import logico.catalogo.Usuario;
 
 public class UsuarioController {
 
