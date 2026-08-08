@@ -318,7 +318,7 @@ public class RealizarConsulta extends JDialog {
 
 
 	// --- FUNCIONES CRUD ---
-	private Consulta realizarConsulta() {
+	private void realizarConsulta() {
 		verificarDatos();
 
 		Consulta consulta = new Consulta(

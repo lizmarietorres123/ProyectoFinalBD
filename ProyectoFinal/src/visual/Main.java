@@ -232,7 +232,7 @@ public class Main extends JFrame {
         mntmListarConsultas = crearMenuItem(" Consultas Realizadas", null);
         mntmListarConsultas.addActionListener(e -> {
             Doctor doctorActual = Clinica.getDoctorActual();
-            new ListarConsulta(doctorActual).setVisible(true);
+            //new ListarConsulta(doctorActual).setVisible(true);
         });
         mnListGeneralSub.add(mntmListarConsultas);
 

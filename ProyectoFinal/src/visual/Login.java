@@ -127,8 +127,8 @@ public class Login extends JFrame {
                 if(user != null) {
                     Clinica.getInstancia().setUsuarioActual(user);
 
-                    //Main menu = new Main();
-                    MainEnfermeria menu = new MainEnfermeria();
+                    Main menu = new Main();
+                    //MainEnfermeria menu = new MainEnfermeria();
                     menu.setVisible(true);
                     dispose();
                 } else {

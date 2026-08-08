@@ -29,8 +29,12 @@ public class Cita implements Serializable {
 		return idCita;
 	}
 
-	public void setIdCita(String idCita) {
-		this.idCita = idCita;
+	public int getIdNumber(){
+		return Integer.parseInt(idCita.replace("CONS-", ""));
+	}
+
+	public void setId(int idNumber) {
+		this.idCita = "CONS-" + idNumber;
 	}
 
 	public Paciente getPaciente() {

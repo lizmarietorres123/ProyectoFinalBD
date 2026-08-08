@@ -169,12 +169,6 @@ public class Paciente implements Serializable {
 		this.enfermedades = enfermedades;
 	}
 
-	public void addConsultaToResumen(Consulta consulta) {
-		if (consulta != null && consulta.getEsImportante()) {
-			resumen.add(consulta);
-		}
-	}
-
 	public ArrayList<String> getDoctores() {
 		ArrayList<String> doctores = new ArrayList<>();
 
