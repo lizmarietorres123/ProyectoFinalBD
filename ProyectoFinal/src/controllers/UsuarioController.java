@@ -1,7 +1,7 @@
-package controlador;
+package controllers;
 
 import java.util.ArrayList;
-import logico.consultorio.Clinica;
+import logico.Clinica;
 import logico.catalogo.Usuario;
 
 public class UsuarioController {
@@ -35,7 +35,7 @@ public class UsuarioController {
 		if (usuarioOriginal != null) {
 			usuarioOriginal.setNombre(nuevoNombre);
 			usuarioOriginal.setPassword(nuevaPassword); //[cite: 34]
-			usuarioOriginal.setTipo(nuevoTipo);
+			usuarioOriginal.setRol(nuevoTipo);
 			return true;
 		}
 		return false;

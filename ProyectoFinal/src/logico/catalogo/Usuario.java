@@ -1,20 +1,31 @@
 package logico.catalogo;
 
+import logico.Clinica;
+
 import java.io.Serializable;
 
 public class Usuario implements Serializable{
 
 	private static final long serialVersionUID = -3609313352946430885L;
-	
+	private String id;
 	private String nombre;
 	private String password;
-	private String tipo;
+	private String rol;
 	
-	public Usuario(String nombre, String password, String tipo) {
+	public Usuario(int idNumber, String nombre, String password, String rol) {
 		super();
+		setId(idNumber);
 		this.nombre = nombre;
 		this.password = password;
-		this.tipo = tipo;
+		this.rol = rol;
+	}
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(int idNumber) {
+		this.id = Clinica.getInstancia().genId(idNumber, Sintoma.class);
 	}
 
 	public String getNombre() {
@@ -33,12 +44,12 @@ public class Usuario implements Serializable{
 		this.password = password;
 	}
 	
-	public String getTipo() {
-		return tipo;
+	public String getRol() {
+		return rol;
 	}
 
-	public void setTipo(String tipo) {
-		this.tipo = tipo;
+	public void setRol(String tipo) {
+		this.rol = rol;
 	}
 	
 	public boolean match(String nombre, String password) {

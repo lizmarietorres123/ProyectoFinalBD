@@ -1,33 +1,32 @@
-package logico.enfermeria;
+package logico.catalogo;
 
-import logico.catalogo.Especialidad;
-import logico.catalogo.Usuario;
+import logico.Clinica;
+import java.io.Serializable;
 
 public class Enfermera {
-    private String id_enfermera;
+    private static final long serialVersionUID = 1L;
+    private String id;
     private String nombre;
     private String apellido;
     private String cedula;
     private String telefono;
-    private Especialidad especialidad;
     private Usuario usuario;
 
-    public Enfermera(String id_enfermera, String nombre, String apellido, String cedula, String telefono, Especialidad especialidad, Usuario usuario) {
-        this.id_enfermera = id_enfermera;
+    public Enfermera(int idNumber, String nombre, String apellido, String cedula, String telefono, Usuario usuario) {
+        setId(idNumber);
         this.nombre = nombre;
         this.apellido = apellido;
         this.cedula = cedula;
         this.telefono = telefono;
-        this.especialidad = especialidad;
         this.usuario = usuario;
     }
 
-    public String getId_enfermera() {
-        return id_enfermera;
+    public String getId() {
+        return id;
     }
 
-    public void setId_enfermera(String id_enfermera) {
-        this.id_enfermera = id_enfermera;
+    public void setId(int idNumber) {
+        this.id = Clinica.getInstancia().genId(idNumber, Enfermera.class);
     }
 
     public String getNombre() {
@@ -36,6 +35,10 @@ public class Enfermera {
 
     public void setNombre(String nombre) {
         this.nombre = nombre;
+    }
+
+    public String getNombreApellido() {
+        return nombre + " " + apellido;
     }
 
     public String getApellido() {
@@ -60,14 +63,6 @@ public class Enfermera {
 
     public void setTelefono(String telefono) {
         this.telefono = telefono;
-    }
-
-    public Especialidad getEspecialidad() {
-        return especialidad;
-    }
-
-    public void setEspecialidad(Especialidad especialidad) {
-        this.especialidad = especialidad;
     }
 
     public Usuario getUsuario() {

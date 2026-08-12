@@ -1,40 +1,77 @@
 package logico.consultorio;
 
-import logico.Doctor;
+import logico.catalogo.Doctor;
 import logico.catalogo.EstadoCita;
 
 import java.io.Serializable;
+import java.sql.Time;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 public class Cita implements Serializable {
 
 	private static final long serialVersionUID = -4304362059522165583L;
 
-	private String idCita;
+	private String id;
+	private LocalDateTime fechaRegistro;
+	private Date fechaConsulta;
+	private Time horaConsulta;
+	private EstadoCita estado;
 	private Paciente paciente;
 	private Doctor doctor;
-	private Date fechaHora;
-	private EstadoCita estado;
 
-	public Cita(String idCita, Paciente paciente, Doctor doctor, Date fechaHora) {
-		super();
-		this.idCita = idCita;
+	public Cita(String id, LocalDateTime fechaRegistro, Date fechaConsulta, Time horaConsulta, EstadoCita estado, Paciente paciente, Doctor doctor) {
+		this.id = id;
+		this.fechaRegistro = fechaRegistro;
+		this.fechaConsulta = fechaConsulta;
+		this.horaConsulta = horaConsulta;
+		this.estado = estado;
 		this.paciente = paciente;
 		this.doctor = doctor;
-		this.fechaHora = fechaHora;
-		this.estado = EstadoCita.PROGRAMADA;
 	}
 
-	public String getIdCita() {
-		return idCita;
+	public String getId() {
+		return id;
 	}
 
 	public int getIdNumber(){
-		return Integer.parseInt(idCita.replace("CONS-", ""));
+		return Integer.parseInt(id.replace("CIT-", ""));
 	}
 
 	public void setId(int idNumber) {
-		this.idCita = "CONS-" + idNumber;
+		this.id = "CIT-" + idNumber;
+	}
+
+	public LocalDateTime getFechaRegistro() {
+		return fechaRegistro;
+	}
+
+	public void setFechaRegistro(LocalDateTime fechaRegistro) {
+		this.fechaRegistro = fechaRegistro;
+	}
+
+	public Date getFechaConsulta() {
+		return fechaConsulta;
+	}
+
+	public void setFechaConsulta(Date fechaConsulta) {
+		this.fechaConsulta = fechaConsulta;
+	}
+
+	public Time getHoraConsulta() {
+		return horaConsulta;
+	}
+
+	public void setHoraConsulta(Time horaConsulta) {
+		this.horaConsulta = horaConsulta;
+	}
+
+	public EstadoCita getEstado() {
+		return estado;
+	}
+
+	public void setEstado(EstadoCita estado) {
+		this.estado = estado;
 	}
 
 	public Paciente getPaciente() {
@@ -43,6 +80,14 @@ public class Cita implements Serializable {
 
 	public void setPaciente(Paciente paciente) {
 		this.paciente = paciente;
+	}
+
+	public Doctor getDoctor() {
+		return doctor;
+	}
+
+	public void setDoctor(Doctor doctor) {
+		this.doctor = doctor;
 	}
 
 	public String getIdPersona() {
@@ -56,42 +101,6 @@ public class Cita implements Serializable {
 			nombreComp += " " + paciente.getApellido();
 		}
 		return nombreComp;
-	}
-
-	public String getTelefonoPersona() {
-		return (paciente != null && paciente.getTelefono() != null) ? paciente.getTelefono() : "";
-	}
-
-	public Doctor getDoctor() {
-		return doctor;
-	}
-
-	public void setDoctor(Doctor doctor) {
-		this.doctor = doctor;
-	}
-
-	public Date getFechaHora() {
-		return fechaHora;
-	}
-
-	public void setFechaHora(Date fechaHora) {
-		this.fechaHora = fechaHora;
-	}
-
-	public Date getFecha() {
-		return fechaHora;
-	}
-
-	public void setFecha(Date fecha) {
-		this.fechaHora = fecha;
-	}
-
-	public EstadoCita getEstado() {
-		return estado;
-	}
-
-	public void setEstado(EstadoCita estado) {
-		this.estado = estado;
 	}
 
 	public void cancelar() {

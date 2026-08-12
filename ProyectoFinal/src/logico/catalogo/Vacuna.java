@@ -1,30 +1,30 @@
-package logico.enfermeria;
-import logico.catalogo.Enfermedad;
+package logico.catalogo;
+
+import logico.Clinica;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 
 public class Vacuna implements Serializable {
 	private static final long serialVersionUID = -2869118725192181107L;
 	private String id;
 	private String nombre;
 	private String fabricante;
-	private ArrayList<Enfermedad> enfermedades;
+	private int cantDosis;
 
-	public Vacuna(String id, String nombre, String fabricante, ArrayList<Enfermedad> enfermedades) {
+	public Vacuna(int idNumber, String nombre, String fabricante, int cantDosis) {
 		super();
 		this.id = id;
 		this.nombre = nombre;
 		this.fabricante = fabricante;
-		this.enfermedades = enfermedades != null ? enfermedades : new ArrayList<>();
+		this.cantDosis = cantDosis;
 	}
 
 	public String getId() {
 		return id;
 	}
 
-	public void setId(String id) {
-		this.id = id;
+	public void setId(int idNumber) {
+		this.id = Clinica.getInstancia().genId(idNumber, Vacuna.class);
 	}
 
 	public String getNombre() {
@@ -43,12 +43,12 @@ public class Vacuna implements Serializable {
 		this.fabricante = fabricante;
 	}
 
-	public ArrayList<Enfermedad> getEnfermedades() {
-		return enfermedades;
+	public int getCantDosis() {
+		return cantDosis;
 	}
 
-	public void setEnfermedades(ArrayList<Enfermedad> enfermedades) {
-		this.enfermedades = enfermedades;
+	public void setCantDosis(int cantDosis) {
+		this.cantDosis = cantDosis;
 	}
 
 	@Override

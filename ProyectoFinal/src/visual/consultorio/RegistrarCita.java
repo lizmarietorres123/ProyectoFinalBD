@@ -9,6 +9,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.sql.Time;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -29,10 +32,10 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 
-import controllers.CitaController;
 import logico.consultorio.Cita;
-import logico.consultorio.Clinica;
-import logico.Doctor;
+import logico.Clinica;
+import logico.catalogo.Doctor;
+import logico.catalogo.EstadoCita;
 import logico.consultorio.Paciente;
 import utilidad.Formato;
 
@@ -52,7 +55,6 @@ public class RegistrarCita extends JDialog {
 	private boolean filtrandoDoctor = false;
 	private boolean filtrandoPaciente = false;
 
-	private final CitaController controller;
 	private Paciente auxPaciente;
 	private Doctor auxDoctor;
 	private Cita citaEditar;
@@ -169,22 +171,11 @@ public class RegistrarCita extends JDialog {
 		}
 	}
 
-	public static void main(String[] args) {
-		try {
-			RegistrarCita dialog = new RegistrarCita(null);
-			dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-			dialog.setVisible(true);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
 	public RegistrarCita() {
 		this(null);
 	}
 
 	public RegistrarCita(Cita cita) {
-		this.controller = new CitaController();
 		this.citaEditar = cita;
 		this.auxPaciente = null;
 		this.auxDoctor = null;
@@ -220,7 +211,7 @@ public class RegistrarCita extends JDialog {
 		lblCodigo.setBounds(25, 30, 60, 22);
 		panel.add(lblCodigo);
 
-		txtIdCita = new JTextField(citaEditar == null ? controller.generarNuevoIdCita() : citaEditar.getIdCita());
+		txtIdCita = new JTextField(citaEditar == null ? "CIT-" + Clinica.genCodigoCitas : citaEditar.getId());
 		txtIdCita.setEnabled(false);
 		txtIdCita.setEditable(false);
 		txtIdCita.setFont(new Font("Dialog", Font.BOLD, 12));
@@ -236,7 +227,7 @@ public class RegistrarCita extends JDialog {
 		lblFecha.setBounds(294, 30, 60, 22);
 		panel.add(lblFecha);
 
-		Date fechaInicial = (citaEditar != null && citaEditar.getFechaHora() != null) ? citaEditar.getFechaHora() : new Date();
+		Date fechaInicial = (citaEditar != null && citaEditar.getFechaConsulta() != null) ? citaEditar.getFechaConsulta() : new Date();
 		spnFecha = new JSpinner(new SpinnerDateModel(fechaInicial, null, null, Calendar.DAY_OF_YEAR));
 		spnFecha.setFont(new Font("Dialog", Font.PLAIN, 12));
 		spnFecha.setBorder(new LineBorder(new Color(70, 130, 180)));
@@ -418,7 +409,6 @@ public class RegistrarCita extends JDialog {
 	private void cargarDatosModificacion() {
 		if (citaEditar == null) return;
 
-		// Cargar paciente
 		if (citaEditar.getPaciente() != null) {
 			auxPaciente = citaEditar.getPaciente();
 			for (int i = 0; i < cbxPaciente.getItemCount(); i++) {
@@ -432,12 +422,11 @@ public class RegistrarCita extends JDialog {
 			}
 		}
 
-		// Cargar doctor
 		if (citaEditar.getDoctor() != null) {
 			auxDoctor = citaEditar.getDoctor();
 			for (int i = 0; i < cbxDoctor.getItemCount(); i++) {
 				DoctorItem item = cbxDoctor.getItemAt(i);
-				if (item != null && item.getDoctor() != null && item.getDoctor().getIdDoctor().equalsIgnoreCase(auxDoctor.getIdDoctor())) {
+				if (item != null && item.getDoctor() != null && item.getDoctor().getId().equalsIgnoreCase(auxDoctor.getId())) {
 					cbxDoctor.setSelectedIndex(i);
 					String esp = (auxDoctor.getEspecialidades() != null && !auxDoctor.getEspecialidades().isEmpty())
 							? String.join(", ", auxDoctor.getEspecialidades()) : "General";
@@ -524,12 +513,31 @@ public class RegistrarCita extends JDialog {
 		}
 	}
 
+	private List<Doctor> obtenerDoctoresFiltrados(String filtro) {
+		List<Doctor> doctoresEncontrados = new ArrayList<>();
+		String filtroNorm = (filtro == null) ? "" : filtro.toLowerCase().trim();
+
+		if (Clinica.getInstancia().getDoctores() != null) {
+			for (Doctor d : Clinica.getInstancia().getDoctores()) {
+				boolean matchNombre = d.getNombre() != null && d.getNombre().toLowerCase().contains(filtroNorm);
+				boolean matchId = d.getId() != null && d.getId().toLowerCase().contains(filtroNorm);
+				boolean matchEspecialidad = d.getEspecialidades() != null && d.getEspecialidades().stream()
+						.anyMatch(esp -> esp.toLowerCase().contains(filtroNorm));
+
+				if (filtroNorm.isEmpty() || matchNombre || matchId || matchEspecialidad) {
+					doctoresEncontrados.add(d);
+				}
+			}
+		}
+		return doctoresEncontrados;
+	}
+
 	private void actualizarComboDoctores(String filtro) {
 		filtrandoDoctor = true;
 		cbxDoctor.removeAllItems();
 		cbxDoctor.addItem(new DoctorItem(null));
 
-		List<Doctor> doctores = controller.obtenerDoctoresFiltrados(filtro);
+		List<Doctor> doctores = obtenerDoctoresFiltrados(filtro);
 		if (doctores != null) {
 			for (Doctor d : doctores) {
 				cbxDoctor.addItem(new DoctorItem(d));
@@ -577,32 +585,35 @@ public class RegistrarCita extends JDialog {
 			return;
 		}
 
-		Date fechaCita = (Date) spnFecha.getValue();
+		Date fechaSel = (Date) spnFecha.getValue();
 
 		if (citaEditar == null) {
-			// MODO REGISTRO
-			boolean exito = controller.registrarCita(
+			// REGISTRO
+			LocalDateTime fechaRegistro = LocalDateTime.now();
+			Time horaConsulta = new Time(fechaSel.getTime());
+
+			Cita nuevaCita = new Cita(
 					txtIdCita.getText(),
+					fechaRegistro,
+					fechaSel,
+					horaConsulta,
+					EstadoCita.PROGRAMADA,
 					auxPaciente,
-					auxDoctor,
-					fechaCita
+					auxDoctor
 			);
 
-			if (exito) {
-				JOptionPane.showMessageDialog(this, "Cita registrada exitosamente.", "Información", JOptionPane.INFORMATION_MESSAGE);
-				limpiarCampos();
-			} else {
-				JOptionPane.showMessageDialog(this, "Ocurrió un error al registrar la cita.", "Error", JOptionPane.ERROR_MESSAGE);
-			}
+			Clinica.getInstancia().regCita(nuevaCita);
+			JOptionPane.showMessageDialog(this, "Cita registrada exitosamente.", "Información", JOptionPane.INFORMATION_MESSAGE);
+			limpiarCampos();
 		} else {
-			// MODO MODIFICACIÓN
-			boolean exito = controller.modificarCita(citaEditar, auxPaciente, auxDoctor, fechaCita);
-			if (exito) {
-				JOptionPane.showMessageDialog(this, "Cita modificada exitosamente.", "Información", JOptionPane.INFORMATION_MESSAGE);
-				dispose();
-			} else {
-				JOptionPane.showMessageDialog(this, "Ocurrió un error al modificar la cita.", "Error", JOptionPane.ERROR_MESSAGE);
-			}
+			// MODIFICACIÓN
+			citaEditar.setPaciente(auxPaciente);
+			citaEditar.setDoctor(auxDoctor);
+			citaEditar.setFechaConsulta(fechaSel);
+			citaEditar.setHoraConsulta(new Time(fechaSel.getTime()));
+
+			JOptionPane.showMessageDialog(this, "Cita modificada exitosamente.", "Información", JOptionPane.INFORMATION_MESSAGE);
+			dispose();
 		}
 	}
 
@@ -616,6 +627,6 @@ public class RegistrarCita extends JDialog {
 		actualizarComboDoctores("");
 		lblInfoDoctor.setText("🩺 Escriba o seleccione un doctor...");
 		lblInfoDoctor.setForeground(new Color(120, 130, 140));
-		txtIdCita.setText(controller.generarNuevoIdCita());
+		txtIdCita.setText("CIT-" + Clinica.genCodigoCitas);
 	}
 }

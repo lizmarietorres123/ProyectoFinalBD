@@ -1,8 +1,8 @@
-package controlador;
+package controllers;
 
 import java.util.ArrayList;
-import logico.consultorio.Clinica;
-import logico.Doctor;
+import logico.Clinica;
+import logico.catalogo.Doctor;
 
 public class DoctorController {
 
@@ -16,7 +16,7 @@ public class DoctorController {
 	public Doctor buscarPorId(String id) {
 		if (id == null) return null;
 		for (Doctor d : obtenerTodos()) {
-			if (d.getIdDoctor().equalsIgnoreCase(id)) {
+			if (d.getId().equalsIgnoreCase(id)) {
 				return d;
 			}
 		}
@@ -24,7 +24,7 @@ public class DoctorController {
 	}
 
 	public boolean registrar(Doctor doctor) {
-		if (doctor != null && buscarPorId(doctor.getIdDoctor()) == null) {
+		if (doctor != null && buscarPorId(doctor.getId()) == null) {
 			Clinica.getInstancia().getDoctores().add(doctor);
 			return true;
 		}
@@ -32,7 +32,7 @@ public class DoctorController {
 	}
 
 	public boolean actualizar(Doctor doctorActualizado) {
-		Doctor actual = buscarPorId(doctorActualizado.getIdDoctor());
+		Doctor actual = buscarPorId(doctorActualizado.getId());
 		if (actual != null) {
 			actual.setNombre(doctorActualizado.getNombre());
 			actual.setCupoDiario(doctorActualizado.getCupoDiario());

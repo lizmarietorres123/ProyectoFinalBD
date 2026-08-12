@@ -27,7 +27,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 
-import logico.consultorio.Clinica;
+import logico.Clinica;
 import logico.consultorio.Paciente;
 
 public class ListarPaciente extends JDialog {
@@ -229,13 +229,13 @@ public class ListarPaciente extends JDialog {
 		if (pacientes != null) {
 			for (Paciente p : pacientes) {
 				if (p != null) {
-					String id = p.getIdPaciente() != null ? p.getIdPaciente().toLowerCase() : "";
+					String id = p.getId() != null ? p.getId().toLowerCase() : "";
 					String nombreComp = ((p.getNombre() != null ? p.getNombre() : "") + " " + (p.getApellido() != null ? p.getApellido() : "")).toLowerCase();
 					String cedula = p.getCedula() != null ? p.getCedula().toLowerCase() : "";
 
 					if (f.isEmpty() || id.contains(f) || nombreComp.contains(f) || cedula.contains(f)) {
 						row = new Object[5];
-						row[0] = p.getIdPaciente();
+						row[0] = p.getId();
 						row[1] = p.getNombre() + (p.getApellido() != null ? " " + p.getApellido() : "");
 						row[2] = p.getCedula();
 						row[3] = calcularEdad(p.getFecNacim());

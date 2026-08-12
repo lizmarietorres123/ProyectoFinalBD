@@ -1,7 +1,10 @@
 package logico.catalogo;
 
+import logico.Clinica;
+
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.ArrayList;
 
 public class Enfermedad implements Serializable{
 	
@@ -9,54 +12,36 @@ public class Enfermedad implements Serializable{
 	
 	private String id;
 	private String nombre;
-	private String sintomas;
 	private String descripcion;
     private boolean esContagiosa;
-	private boolean vigilancia;
+	private Especialidad especialidad;
+	private ArrayList<Sintoma> sintomas;
     private int casosReportados;
     private LocalDate fechaUltimoCaso;
-    private LocalDate fechaInicioVigilancia;
     
 	
-	public Enfermedad(String id, String nombre, boolean vigilancia, boolean esContagiosa, String sintomas, String descripcion) {
+	public Enfermedad(int idNumber, String nombre, String descripcion, boolean esContagiosa, Especialidad especialidad, ArrayList<Sintoma> sintomas) {
 		super();
-		
-		this.id = id;
+		setId(idNumber);
         this.nombre = nombre;
         this.esContagiosa = esContagiosa;
-        this.vigilancia = vigilancia;
-        this.casosReportados = 0;
         this.fechaUltimoCaso = null;
-        this.sintomas = sintomas;
         this.descripcion = descripcion;
+		this.especialidad = especialidad;
+		this.sintomas = sintomas;
 	}
 	
 	public String getId() {
 		return id;
 	}
-	public void setId(String id) {
-		this.id = id;
+	public void setId(int idNumber) {
+		this.id = Clinica.getInstancia().genId(idNumber, Enfermedad.class);
 	}
 	public String getNombre() {
 		return nombre;
 	}
 	public void setNombre(String nombre) {
 		this.nombre = nombre;
-	}
-	
-	public String getSintomas() {
-		return sintomas;
-	}
-
-	public void setSintomas(String sintomas) {
-		this.sintomas = sintomas;
-	}
-	
-	public boolean isVigilancia() {
-		return vigilancia;
-	}
-	public void setVigilancia(boolean vigilancia) {
-		this.vigilancia = vigilancia;
 	}
 	
 	public String getDescripcion() {
@@ -75,6 +60,14 @@ public class Enfermedad implements Serializable{
 		this.esContagiosa = esContagiosa;
 	}
 
+	public ArrayList<Sintoma> getSintomas() {
+		return sintomas;
+	}
+
+	public void setSintomas(ArrayList<Sintoma> sintomas) {
+		this.sintomas = sintomas;
+	}
+
 	public int getCasosReportados() {
 		return casosReportados;
 	}
@@ -89,24 +82,6 @@ public class Enfermedad implements Serializable{
 
 	public void setFechaUltimoCaso(LocalDate fechaUltimoCaso) {
 		this.fechaUltimoCaso = fechaUltimoCaso;
-	}
-	
-	public LocalDate getFechaInicioVigilancia() {
-		return fechaInicioVigilancia;
-	}
-
-	public void setFechaInicioVigilancia(LocalDate fechaInicioVigilancia) {
-		this.fechaInicioVigilancia = fechaInicioVigilancia;
-	}
-	
-	public void activarVigilancia() {
-	        vigilancia = true;
-	        fechaInicioVigilancia = LocalDate.now();
-	}
-
-	public void desactivarVigilancia() {
-	        vigilancia = false;
-	        fechaInicioVigilancia = null;
 	}
 
 	public void reportarCaso() {

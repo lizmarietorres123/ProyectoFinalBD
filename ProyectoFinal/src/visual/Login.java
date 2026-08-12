@@ -21,10 +21,11 @@ import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 
-import logico.consultorio.Clinica;
-import logico.Doctor;
+import logico.Clinica;
+import logico.catalogo.Doctor;
 import logico.catalogo.Usuario;
-import visual.enfermeria.MainEnfermeria;
+import visual.consultorio.MainConsultorio;
+import visual.enfermeria.MainEnfermeria; // <-- 1. IMPORTACIÓN AGREGADA
 
 public class Login extends JFrame {
     private static final long serialVersionUID = 1L;
@@ -123,26 +124,37 @@ public class Login extends JFrame {
         btnLogin.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 Usuario user = verificar();
-
-                if(user != null) {
+ 
+                if (user != null) {
                     Clinica.getInstancia().setUsuarioActual(user);
 
-                    Main menu = new Main();
-                    //MainEnfermeria menu = new MainEnfermeria();
-                    menu.setVisible(true);
+                    // --- 2. LÓGICA DE REDIRECCIÓN SEGÚN ROL ---
+                    String tipoUsuario = user.getRol();
+
+                    if (tipoUsuario.equalsIgnoreCase("Doctor")) {
+                        MainConsultorio menuDoctor = new MainConsultorio();
+                        menuDoctor.setVisible(true);
+                    } else if (tipoUsuario.equalsIgnoreCase("Enfermera") || tipoUsuario.equalsIgnoreCase("Enfermero")) {
+                        MainEnfermeria menuEnfermeria = new MainEnfermeria();
+                        menuEnfermeria.setVisible(true);
+                    } else {
+                        // Por defecto abre Consultorio si es Admin u otro rol
+                        MainConsultorio menuGeneral = new MainConsultorio();
+                        menuGeneral.setVisible(true);
+                    }
+
                     dispose();
                 } else {
-                    JOptionPane.showMessageDialog(null, 
-                        "Usuario o contrasenia incorrectos.", 
-                        "Advertencia", 
-                        JOptionPane.WARNING_MESSAGE);
+                    JOptionPane.showMessageDialog(null,
+                            "Usuario o contrasenia incorrectos.",
+                            "Advertencia",
+                            JOptionPane.WARNING_MESSAGE);
                 }
             }
         });
         btnLogin.setBounds(120, 300, 194, 35);
         panelPrincipal.add(btnLogin);
 
-        // Permitir iniciar sesion presionando la tecla Enter
         getRootPane().setDefaultButton(btnLogin);
     }
 
@@ -155,12 +167,10 @@ public class Login extends JFrame {
             Clinica.getInstancia().asignarContadores();
 
         } catch (Exception e) {
-            // Si el archivo no existe o esta corrupto, inicializar datos por defecto y guardar
             Clinica.getInstancia().initInfo();
             guardarDatosClinica();
         }
 
-        // Garantizar que la lista de usuarios no este vacia incluso si existia clinica.dat preexistente
         if (Clinica.getInstancia().getUsuarios() == null || Clinica.getInstancia().getUsuarios().isEmpty()) {
             Clinica.getInstancia().initInfo();
             guardarDatosClinica();
@@ -197,7 +207,7 @@ public class Login extends JFrame {
             }
         }
 
-        if (aux != null && aux.getTipo().equalsIgnoreCase("Doctor")) {
+        if (aux != null && aux.getRol().equalsIgnoreCase("Doctor")) {
             Doctor doctorEncontrado = Clinica.getInstancia().buscarDoctorXUsuario(aux);
             Clinica.loginDoctor = doctorEncontrado;
         } else if (aux != null) {

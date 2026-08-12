@@ -1,7 +1,7 @@
 package logico.consultorio;
 
 import logico.catalogo.Enfermedad;
-import logico.enfermeria.Vacuna;
+import logico.catalogo.Vacuna;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -11,7 +11,7 @@ public class Paciente implements Serializable {
 
 	private static final long serialVersionUID = 2532314229066693215L;
 
-	private String idPaciente;
+	private String id;
 	private String nombre;
 	private String apellido;
 	private String cedula;
@@ -28,10 +28,10 @@ public class Paciente implements Serializable {
 	private ArrayList<Consulta> historialClinico;
 	private ArrayList<Enfermedad> enfermedades;
 
-	public Paciente(String idPaciente, String nombre, String apellido, String cedula, String telefono, Date fecNacim,
+	public Paciente(String id, String nombre, String apellido, String cedula, String telefono, Date fecNacim,
 	                String sexo, float peso, float estatura, String tipoSangre, String direccion) {
 		super();
-		this.idPaciente = idPaciente;
+		this.id = id;
 		this.nombre = nombre;
 		this.apellido = apellido;
 		this.cedula = cedula;
@@ -49,12 +49,12 @@ public class Paciente implements Serializable {
 		this.enfermedades = new ArrayList<>();
 	}
 
-	public String getIdPaciente() {
-		return idPaciente;
+	public String getId() {
+		return id;
 	}
 
-	public void setIdPaciente(String idPaciente) {
-		this.idPaciente = idPaciente;
+	public void setId(String id) {
+		this.id = id;
 	}
 
 	public String getNombre() {
@@ -198,16 +198,6 @@ public class Paciente implements Serializable {
 			}
 		}
 		return null;
-	}
-
-	public ArrayList<Enfermedad> getEnfermedadesBajoVigilancia() {
-		ArrayList<Enfermedad> lista = new ArrayList<>();
-		for (Enfermedad e : enfermedades) {
-			if (e != null && e.isVigilancia()) {
-				lista.add(e);
-			}
-		}
-		return lista;
 	}
 
 	public void agregarVacuna(Vacuna v) {

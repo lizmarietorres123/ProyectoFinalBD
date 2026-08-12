@@ -4,10 +4,9 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.Font;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -17,74 +16,62 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 
-import logico.consultorio.Clinica;
-import logico.consultorio.Consulta;
-import logico.consultorio.Diagnostico;
 import logico.catalogo.Enfermedad;
+import logico.catalogo.Sintoma;
+import logico.Clinica;
+import logico.consultorio.Diagnostico;
 import logico.consultorio.Paciente;
+import logico.consultorio.Tratamiento;
 
 public class CrearDiagnostico extends JDialog {
+
     private static final long serialVersionUID = 1L;
     private final JPanel contentPanel = new JPanel();
-    private JLabel lblPrevios;
-    private JComboBox<String> cbxDiagnosticosPrevios;
-    private JTextField txtCodigoDiagnostico;
-    private JTextArea txtDescripcion;
+
     private JComboBox<String> cbxEnfermedad;
-    private JTextArea txtDetallesEnfermedad;
-    private JButton okButton;
-    private JButton cancelButton;
-    private JButton btnEditar;
-    private Diagnostico diagnosticoCreado;
-    private Diagnostico diagnosticoEdicion;
+    private JComboBox<String> cbxSintoma;
+    private JComboBox<String> cbxIntensidad;
+    private JButton btnAgregarSintoma;
+    private JTextArea txtSintomas;
 
-    private ArrayList<Diagnostico> diagnosticosExistentes;
-    private ArrayList<Diagnostico> listaDiagnosticosPrevios = new ArrayList<>();
-    private Paciente pacienteActual;
-    private boolean enModoEdicion = false;
+    private JTextArea txtTratamientos;
+    private JTextArea txtObservacion;
 
-    public static void main(String[] args) {
-        try {
-            CrearDiagnostico dialog = new CrearDiagnostico();
-            dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-            dialog.setVisible(true);
-        } catch (Exception e) {
-            e.printStackTrace();
+    private JButton btnAgregarTratamiento;
+    private JButton btnVerTratamientos;
+
+    private Map<Sintoma, String> sintomasSeleccionados = new HashMap<>();
+    private ArrayList<Tratamiento> tratamientosActuales = new ArrayList<>();
+    private Diagnostico diagnosticoCreado = null;
+    private Diagnostico diagnosticoEdicion = null;
+    private Paciente pacienteActual = null;
+
+    public CrearDiagnostico(ArrayList<Diagnostico> listaExistentes, Paciente paciente) {
+        this.pacienteActual = paciente;
+        initUI();
+    }
+
+    public CrearDiagnostico(Diagnostico diagnostico, ArrayList<Diagnostico> listaExistentes) {
+        this.diagnosticoEdicion = diagnostico;
+        if (diagnostico != null) {
+            if (diagnostico.getTratamientos() != null) {
+                this.tratamientosActuales = new ArrayList<>(diagnostico.getTratamientos());
+            }
+            if (diagnostico.getSintomas() != null) {
+                this.sintomasSeleccionados = new HashMap<>(diagnostico.getSintomas());
+            }
         }
+        initUI();
+        cargarDatosEdicion();
     }
 
-    public CrearDiagnostico() {
-        this((ArrayList<Diagnostico>) null, (Paciente) null);
-    }
-
-    public CrearDiagnostico(Diagnostico diagnosticoVer) {
-        this(diagnosticoVer, null);
-    }
-
-    public CrearDiagnostico(Diagnostico diagnosticoVer, ArrayList<Diagnostico> diagnosticosExistentes) {
-        this(diagnosticosExistentes, null);
-        if (diagnosticoVer != null) {
-            this.diagnosticoEdicion = diagnosticoVer;
-            configurarModoVisualizacion(diagnosticoVer);
-        }
-    }
-
-    public CrearDiagnostico(ArrayList<Diagnostico> diagnosticosExistentes) {
-        this(diagnosticosExistentes, null);
-    }
-
-    public CrearDiagnostico(ArrayList<Diagnostico> diagnosticosExistentes, Paciente pacienteActual) {
-        this.diagnosticosExistentes = diagnosticosExistentes;
-        this.pacienteActual = pacienteActual;
-
-        setTitle("Crear / Seleccionar Diagnóstico");
-        setModal(true);
-        setBounds(100, 100, 600, 540);
+    private void initUI() {
+        setTitle(diagnosticoEdicion == null ? "Agregar Diagnóstico" : "Ver / Editar Diagnóstico");
+        setBounds(100, 100, 640, 560);
         setLocationRelativeTo(null);
         getContentPane().setLayout(new BorderLayout());
         contentPanel.setBackground(new Color(240, 248, 255));
@@ -92,416 +79,346 @@ public class CrearDiagnostico extends JDialog {
         getContentPane().add(contentPanel, BorderLayout.CENTER);
         contentPanel.setLayout(null);
 
-        JPanel panel = new JPanel();
-        panel.setBackground(new Color(176, 224, 230));
-        panel.setBorder(new TitledBorder(new LineBorder(new Color(135, 206, 235), 2), "Informacion del Diagnostico", TitledBorder.CENTER, TitledBorder.TOP, null, new Color(70, 130, 180)));
-        panel.setBounds(10, 11, 564, 440);
-        contentPanel.add(panel);
-        panel.setLayout(null);
-
-        lblPrevios = new JLabel("Diag. Previos Paciente:");
-        lblPrevios.setForeground(new Color(70, 130, 180));
-        lblPrevios.setFont(new Font("Bahnschrift", Font.BOLD, 13));
-        lblPrevios.setBounds(10, 25, 150, 14);
-        panel.add(lblPrevios);
-
-        cbxDiagnosticosPrevios = new JComboBox<>();
-        cbxDiagnosticosPrevios.setBackground(Color.WHITE);
-        cbxDiagnosticosPrevios.setFont(new Font("Bahnschrift", Font.PLAIN, 12));
-        cbxDiagnosticosPrevios.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                alSeleccionarDiagnosticoPrevio();
-            }
-        });
-        cbxDiagnosticosPrevios.setBounds(170, 22, 374, 22);
-        panel.add(cbxDiagnosticosPrevios);
-
-        JLabel lblCodigo = new JLabel("Codigo Diagnostico:");
-        lblCodigo.setForeground(new Color(70, 130, 180));
-        lblCodigo.setFont(new Font("Bahnschrift", Font.BOLD, 13));
-        lblCodigo.setBounds(10, 60, 150, 14);
-        panel.add(lblCodigo);
-
-        txtCodigoDiagnostico = new JTextField();
-        txtCodigoDiagnostico.setEditable(false);
-        txtCodigoDiagnostico.setBackground(Color.WHITE);
-        txtCodigoDiagnostico.setBounds(170, 57, 374, 20);
-        panel.add(txtCodigoDiagnostico);
-        txtCodigoDiagnostico.setColumns(10);
-        txtCodigoDiagnostico.setText("DIAG-" + Clinica.genCodigoDiagnosticos);
+        JPanel panelDatos = new JPanel();
+        panelDatos.setBackground(Color.WHITE);
+        panelDatos.setBorder(new TitledBorder(
+                new LineBorder(new Color(135, 206, 235), 2),
+                "Información del Diagnóstico",
+                TitledBorder.CENTER,
+                TitledBorder.TOP,
+                new Font("Bahnschrift", Font.BOLD, 14),
+                new Color(70, 130, 180)
+        ));
+        panelDatos.setBounds(15, 15, 594, 445);
+        contentPanel.add(panelDatos);
+        panelDatos.setLayout(null);
 
         JLabel lblEnfermedad = new JLabel("Enfermedad:");
         lblEnfermedad.setForeground(new Color(70, 130, 180));
-        lblEnfermedad.setFont(new Font("Bahnschrift", Font.BOLD, 13));
-        lblEnfermedad.setBounds(10, 95, 150, 14);
-        panel.add(lblEnfermedad);
+        lblEnfermedad.setFont(new Font("Bahnschrift", Font.BOLD, 12));
+        lblEnfermedad.setBounds(15, 25, 90, 20);
+        panelDatos.add(lblEnfermedad);
 
         cbxEnfermedad = new JComboBox<>();
-        cbxEnfermedad.setBackground(Color.WHITE);
-        cbxEnfermedad.setModel(new DefaultComboBoxModel<>(new String[] {"<<Seleccione>>"}));
-        cbxEnfermedad.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                mostrarDetallesEnfermedad();
-            }
-        });
-        cbxEnfermedad.setBounds(170, 92, 374, 20);
-        panel.add(cbxEnfermedad);
+        cbxEnfermedad.setFont(new Font("Bahnschrift", Font.PLAIN, 12));
+        cbxEnfermedad.setBackground(new Color(224, 247, 250));
+        cbxEnfermedad.setBounds(110, 25, 465, 22);
+        cbxEnfermedad.addActionListener(e -> cargarSintomasPorEnfermedad());
+        panelDatos.add(cbxEnfermedad);
 
-        JLabel lblDetalles = new JLabel("Detalles Enfermedad:");
-        lblDetalles.setForeground(new Color(70, 130, 180));
-        lblDetalles.setFont(new Font("Bahnschrift", Font.BOLD, 13));
-        lblDetalles.setBounds(10, 130, 150, 14);
-        panel.add(lblDetalles);
+        JLabel lblSintoma = new JLabel("Síntoma:");
+        lblSintoma.setForeground(new Color(70, 130, 180));
+        lblSintoma.setFont(new Font("Bahnschrift", Font.BOLD, 12));
+        lblSintoma.setBounds(15, 60, 90, 20);
+        panelDatos.add(lblSintoma);
 
-        JScrollPane scrollDetalles = new JScrollPane();
-        scrollDetalles.setBorder(new LineBorder(new Color(173, 216, 230), 1));
-        scrollDetalles.setBounds(170, 130, 374, 65);
-        panel.add(scrollDetalles);
+        cbxSintoma = new JComboBox<>();
+        cbxSintoma.setFont(new Font("Bahnschrift", Font.PLAIN, 12));
+        cbxSintoma.setBackground(new Color(224, 247, 250));
+        cbxSintoma.setBounds(110, 60, 190, 22);
+        panelDatos.add(cbxSintoma);
 
-        txtDetallesEnfermedad = new JTextArea();
-        txtDetallesEnfermedad.setEditable(false);
-        txtDetallesEnfermedad.setLineWrap(true);
-        txtDetallesEnfermedad.setWrapStyleWord(true);
-        txtDetallesEnfermedad.setBackground(new Color(224, 247, 250));
-        txtDetallesEnfermedad.setForeground(new Color(70, 130, 180));
-        txtDetallesEnfermedad.setFont(new Font("Bahnschrift", Font.PLAIN, 12));
-        scrollDetalles.setViewportView(txtDetallesEnfermedad);
+        JLabel lblIntensidad = new JLabel("Intensidad:");
+        lblIntensidad.setForeground(new Color(70, 130, 180));
+        lblIntensidad.setFont(new Font("Bahnschrift", Font.BOLD, 12));
+        lblIntensidad.setBounds(310, 60, 75, 20);
+        panelDatos.add(lblIntensidad);
 
-        JLabel lblDescripcion = new JLabel("Descripcion:");
-        lblDescripcion.setForeground(new Color(70, 130, 180));
-        lblDescripcion.setFont(new Font("Bahnschrift", Font.BOLD, 13));
-        lblDescripcion.setBounds(10, 210, 150, 14);
-        panel.add(lblDescripcion);
+        cbxIntensidad = new JComboBox<>();
+        cbxIntensidad.setModel(new DefaultComboBoxModel<>(new String[] {"Leve", "Moderado", "Grave", "Critico"}));
+        cbxIntensidad.setFont(new Font("Bahnschrift", Font.PLAIN, 12));
+        cbxIntensidad.setBackground(new Color(224, 247, 250));
+        cbxIntensidad.setBounds(385, 60, 105, 22);
+        panelDatos.add(cbxIntensidad);
 
-        JScrollPane scrollDescripcion = new JScrollPane();
-        scrollDescripcion.setBorder(new LineBorder(new Color(173, 216, 230), 1));
-        scrollDescripcion.setBounds(170, 210, 374, 215);
-        panel.add(scrollDescripcion);
+        btnAgregarSintoma = new JButton("Agregar");
+        btnAgregarSintoma.setFont(new Font("Bahnschrift", Font.BOLD, 11));
+        btnAgregarSintoma.setBackground(new Color(176, 224, 230));
+        btnAgregarSintoma.setForeground(new Color(70, 130, 180));
+        btnAgregarSintoma.setBorder(new LineBorder(new Color(135, 206, 235), 2));
+        btnAgregarSintoma.setFocusPainted(false);
+        btnAgregarSintoma.setBounds(500, 60, 75, 22);
+        btnAgregarSintoma.addActionListener(e -> agregarSintoma());
+        panelDatos.add(btnAgregarSintoma);
 
-        txtDescripcion = new JTextArea();
-        txtDescripcion.setLineWrap(true);
-        txtDescripcion.setWrapStyleWord(true);
-        txtDescripcion.setBackground(Color.WHITE);
-        txtDescripcion.setFont(new Font("Bahnschrift", Font.PLAIN, 12));
-        scrollDescripcion.setViewportView(txtDescripcion);
+        JLabel lblListaSintomas = new JLabel("Síntomas:");
+        lblListaSintomas.setForeground(new Color(70, 130, 180));
+        lblListaSintomas.setFont(new Font("Bahnschrift", Font.BOLD, 12));
+        lblListaSintomas.setBounds(15, 95, 90, 20);
+        panelDatos.add(lblListaSintomas);
+
+        JScrollPane scrollSintomas = new JScrollPane();
+        scrollSintomas.setBorder(new LineBorder(new Color(173, 216, 230), 1));
+        scrollSintomas.setBounds(110, 95, 465, 65);
+        panelDatos.add(scrollSintomas);
+
+        txtSintomas = new JTextArea();
+        txtSintomas.setEditable(false);
+        txtSintomas.setLineWrap(true);
+        txtSintomas.setWrapStyleWord(true);
+        txtSintomas.setFont(new Font("Bahnschrift", Font.PLAIN, 11));
+        txtSintomas.setBackground(new Color(224, 247, 250));
+        scrollSintomas.setViewportView(txtSintomas);
+
+        JLabel lblTratamientos = new JLabel("Tratamientos:");
+        lblTratamientos.setForeground(new Color(70, 130, 180));
+        lblTratamientos.setFont(new Font("Bahnschrift", Font.BOLD, 12));
+        lblTratamientos.setBounds(15, 175, 90, 20);
+        panelDatos.add(lblTratamientos);
+
+        JScrollPane scrollTratamientos = new JScrollPane();
+        scrollTratamientos.setBorder(new LineBorder(new Color(173, 216, 230), 1));
+        scrollTratamientos.setBounds(110, 175, 215, 55);
+        panelDatos.add(scrollTratamientos);
+
+        txtTratamientos = new JTextArea();
+        txtTratamientos.setEditable(false);
+        txtTratamientos.setLineWrap(true);
+        txtTratamientos.setWrapStyleWord(true);
+        txtTratamientos.setFont(new Font("Bahnschrift", Font.PLAIN, 11));
+        txtTratamientos.setBackground(new Color(224, 247, 250));
+        scrollTratamientos.setViewportView(txtTratamientos);
+
+        btnAgregarTratamiento = new JButton("Agregar tratamiento");
+        btnAgregarTratamiento.setFont(new Font("Bahnschrift", Font.BOLD, 11));
+        btnAgregarTratamiento.setBackground(new Color(176, 224, 230));
+        btnAgregarTratamiento.setForeground(new Color(70, 130, 180));
+        btnAgregarTratamiento.setBorder(new LineBorder(new Color(135, 206, 235), 2));
+        btnAgregarTratamiento.setFocusPainted(false);
+        btnAgregarTratamiento.setBounds(335, 175, 115, 25);
+        btnAgregarTratamiento.addActionListener(e -> abrirAgregarTratamiento());
+        panelDatos.add(btnAgregarTratamiento);
+
+        btnVerTratamientos = new JButton("Ver Tratamientos");
+        btnVerTratamientos.setFont(new Font("Bahnschrift", Font.BOLD, 11));
+        btnVerTratamientos.setBackground(new Color(176, 224, 230));
+        btnVerTratamientos.setForeground(new Color(70, 130, 180));
+        btnVerTratamientos.setBorder(new LineBorder(new Color(135, 206, 235), 2));
+        btnVerTratamientos.setFocusPainted(false);
+        btnVerTratamientos.setBounds(460, 175, 115, 25);
+        btnVerTratamientos.addActionListener(e -> mostrarTratamientos());
+        panelDatos.add(btnVerTratamientos);
+
+        JLabel lblObservacion = new JLabel("Observación:");
+        lblObservacion.setForeground(new Color(70, 130, 180));
+        lblObservacion.setFont(new Font("Bahnschrift", Font.BOLD, 12));
+        lblObservacion.setBounds(15, 245, 90, 20);
+        panelDatos.add(lblObservacion);
+
+        JScrollPane scrollObservacion = new JScrollPane();
+        scrollObservacion.setBorder(new LineBorder(new Color(173, 216, 230), 1));
+        scrollObservacion.setBounds(110, 245, 465, 180);
+        panelDatos.add(scrollObservacion);
+
+        txtObservacion = new JTextArea();
+        txtObservacion.setLineWrap(true);
+        txtObservacion.setWrapStyleWord(true);
+        txtObservacion.setFont(new Font("Bahnschrift", Font.PLAIN, 12));
+        txtObservacion.setBackground(new Color(224, 247, 250));
+        scrollObservacion.setViewportView(txtObservacion);
 
         JPanel buttonPane = new JPanel();
         buttonPane.setBackground(new Color(240, 248, 255));
         buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
         getContentPane().add(buttonPane, BorderLayout.SOUTH);
 
-        btnEditar = new JButton("Editar");
-        btnEditar.setBackground(new Color(176, 224, 230));
-        btnEditar.setForeground(new Color(70, 130, 180));
-        btnEditar.setFont(new Font("Bahnschrift", Font.BOLD, 13));
-        btnEditar.setBorder(new LineBorder(new Color(135, 206, 235), 2));
-        btnEditar.setVisible(false);
-        btnEditar.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                activarModoEdicion();
-            }
-        });
-        buttonPane.add(btnEditar);
+        JButton btnGuardar = new JButton(diagnosticoEdicion == null ? "Agregar" : "Guardar Cambios");
+        btnGuardar.setFont(new Font("Bahnschrift", Font.BOLD, 12));
+        btnGuardar.setBackground(new Color(176, 224, 230));
+        btnGuardar.setForeground(new Color(70, 130, 180));
+        btnGuardar.setBorder(new LineBorder(new Color(135, 206, 235), 2));
+        btnGuardar.setFocusPainted(false);
+        btnGuardar.addActionListener(e -> guardarDiagnostico());
+        buttonPane.add(btnGuardar);
 
-        okButton = new JButton("Crear / Asignar");
-        okButton.setBackground(new Color(176, 224, 230));
-        okButton.setForeground(new Color(70, 130, 180));
-        okButton.setFont(new Font("Bahnschrift", Font.BOLD, 13));
-        okButton.setBorder(new LineBorder(new Color(135, 206, 235), 2));
-        okButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                if (enModoEdicion) {
-                    guardarEdicionDiagnostico();
-                } else {
-                    crearDiagnostico();
-                }
-            }
-        });
-        okButton.setActionCommand("OK");
-        buttonPane.add(okButton);
-        getRootPane().setDefaultButton(okButton);
-
-        cancelButton = new JButton("Cancelar");
-        cancelButton.setBackground(new Color(176, 224, 230));
-        cancelButton.setForeground(new Color(70, 130, 180));
-        cancelButton.setFont(new Font("Bahnschrift", Font.BOLD, 13));
-        cancelButton.setBorder(new LineBorder(new Color(135, 206, 235), 2));
-        cancelButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                dispose();
-            }
-        });
-        cancelButton.setActionCommand("Cancel");
-        buttonPane.add(cancelButton);
+        JButton btnCancelar = new JButton("Cancelar");
+        btnCancelar.setFont(new Font("Bahnschrift", Font.BOLD, 12));
+        btnCancelar.setBackground(new Color(176, 224, 230));
+        btnCancelar.setForeground(new Color(70, 130, 180));
+        btnCancelar.setBorder(new LineBorder(new Color(135, 206, 235), 2));
+        btnCancelar.setFocusPainted(false);
+        btnCancelar.addActionListener(e -> dispose());
+        buttonPane.add(btnCancelar);
 
         cargarEnfermedades();
-        cargarDiagnosticosPrevios();
-    }
-
-    private void configurarModoVisualizacion(Diagnostico d) {
-        setTitle("Visualizar / Editar Diagnóstico - " + d.getCodigoDiagnostico());
-
-        if (lblPrevios != null) lblPrevios.setVisible(false);
-        if (cbxDiagnosticosPrevios != null) cbxDiagnosticosPrevios.setVisible(false);
-
-        txtCodigoDiagnostico.setText(d.getCodigoDiagnostico());
-        txtCodigoDiagnostico.setEditable(false);
-
-        cargarEnfermedades();
-        if (d.getEnfermedadDiagnosticada() != null) {
-            String idEnf = d.getEnfermedadDiagnosticada().getId();
-            for (int i = 0; i < cbxEnfermedad.getItemCount(); i++) {
-                if (cbxEnfermedad.getItemAt(i).startsWith(idEnf + " - ")) {
-                    cbxEnfermedad.setSelectedIndex(i);
-                    break;
-                }
-            }
-            mostrarDetallesEnfermedad();
-        }
-        cbxEnfermedad.setEnabled(false);
-
-        txtDescripcion.setText(d.getDescripcion());
-        txtDescripcion.setEditable(false);
-
-        btnEditar.setVisible(true);
-
-        okButton.setText("Cerrar");
-        for (ActionListener al : okButton.getActionListeners()) {
-            okButton.removeActionListener(al);
-        }
-        okButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                dispose();
-            }
-        });
-
-        cancelButton.setVisible(false);
-    }
-
-    private void activarModoEdicion() {
-        enModoEdicion = true;
-        setTitle("Editar Diagnóstico - " + diagnosticoEdicion.getCodigoDiagnostico());
-
-        // Recargar las enfermedades filtrando las asignadas a OTROS diagnósticos
-        cargarEnfermedades();
-
-        // Reseleccionar la enfermedad actual del diagnóstico
-        if (diagnosticoEdicion.getEnfermedadDiagnosticada() != null) {
-            String idEnf = diagnosticoEdicion.getEnfermedadDiagnosticada().getId();
-            for (int i = 0; i < cbxEnfermedad.getItemCount(); i++) {
-                if (cbxEnfermedad.getItemAt(i).startsWith(idEnf + " - ")) {
-                    cbxEnfermedad.setSelectedIndex(i);
-                    break;
-                }
-            }
-        }
-
-        cbxEnfermedad.setEnabled(true);
-        txtDescripcion.setEditable(true);
-        btnEditar.setVisible(false);
-        cancelButton.setVisible(true);
-
-        okButton.setText("Guardar Cambios");
-        for (ActionListener al : okButton.getActionListeners()) {
-            okButton.removeActionListener(al);
-        }
-        okButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                guardarEdicionDiagnostico();
-            }
-        });
-    }
-
-    private void guardarEdicionDiagnostico() {
-        if (txtDescripcion.getText().trim().isEmpty()) {
-            JOptionPane.showMessageDialog(null, "Debe ingresar una descripción.", "Campo Requerido", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        if (cbxEnfermedad.getSelectedIndex() <= 0) {
-            JOptionPane.showMessageDialog(null, "Debe seleccionar una enfermedad.", "Campo Requerido", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        String seleccion = cbxEnfermedad.getSelectedItem().toString();
-        String idEnfermedad = seleccion.split(" - ")[0];
-        Enfermedad enfermedadSeleccionada = Clinica.getInstancia().buscarEnfermedadXId(idEnfermedad);
-
-        // Validar que no se seleccione una enfermedad asignada a OTRO diagnóstico en la consulta actual
-        if (diagnosticosExistentes != null) {
-            for (Diagnostico d : diagnosticosExistentes) {
-                if (d != diagnosticoEdicion && d.getEnfermedadDiagnosticada() != null &&
-                        d.getEnfermedadDiagnosticada().getId().equalsIgnoreCase(idEnfermedad)) {
-                    JOptionPane.showMessageDialog(null,
-                            "La enfermedad '" + enfermedadSeleccionada.getNombre() + "' ya fue asignada a otro diagnóstico en esta consulta.",
-                            "Diagnóstico Duplicado",
-                            JOptionPane.WARNING_MESSAGE);
-                    return;
-                }
-            }
-        }
-
-        diagnosticoEdicion.setDescripcion(txtDescripcion.getText().trim());
-        diagnosticoEdicion.setEnfermedadDiagnosticada(enfermedadSeleccionada);
-
-        JOptionPane.showMessageDialog(null, "Diagnóstico actualizado correctamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
-        dispose();
     }
 
     private void cargarEnfermedades() {
         cbxEnfermedad.removeAllItems();
         cbxEnfermedad.addItem("<<Seleccione>>");
+        if (Clinica.getInstancia().getEnfermedades() != null) {
+            for (Enfermedad e : Clinica.getInstancia().getEnfermedades()) {
+                cbxEnfermedad.addItem(e.getNombre());
+            }
+        }
+    }
 
-        for (Enfermedad enfermedad : Clinica.getInstancia().getEnfermedades()) {
-            boolean yaExisteEnConsultaActual = false;
+    private void cargarSintomasPorEnfermedad() {
+        cbxSintoma.removeAllItems();
+        cbxSintoma.addItem("<<Seleccione>>");
 
-            if (diagnosticosExistentes != null) {
-                for (Diagnostico diag : diagnosticosExistentes) {
-                    if (diag != diagnosticoEdicion && diag.getEnfermedadDiagnosticada() != null &&
-                            diag.getEnfermedadDiagnosticada().getId().equalsIgnoreCase(enfermedad.getId())) {
-                        yaExisteEnConsultaActual = true;
+        if (cbxEnfermedad.getSelectedIndex() > 0) {
+            int indexSeleccionado = cbxEnfermedad.getSelectedIndex() - 1;
+            String idEnfermedad = Clinica.getInstancia().getEnfermedades().get(indexSeleccionado).getId();
+            Enfermedad enfermedad = Clinica.getInstancia().buscarEnfermedadXId(idEnfermedad);
+
+            if (enfermedad != null && enfermedad.getSintomas() != null) {
+                for (Sintoma s : enfermedad.getSintomas()) {
+                    cbxSintoma.addItem(s.getNombre());
+                }
+            }
+        }
+    }
+
+    private void agregarSintoma() {
+        if (cbxEnfermedad.getSelectedIndex() <= 0) {
+            JOptionPane.showMessageDialog(this, "Debe seleccionar una enfermedad primero.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        if (cbxSintoma.getSelectedIndex() <= 0) {
+            JOptionPane.showMessageDialog(this, "Debe seleccionar un síntoma.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        int indexEnfermedad = cbxEnfermedad.getSelectedIndex() - 1;
+        String idEnfermedad = Clinica.getInstancia().getEnfermedades().get(indexEnfermedad).getId();
+        Enfermedad enfermedad = Clinica.getInstancia().buscarEnfermedadXId(idEnfermedad);
+
+        int indexSintoma = cbxSintoma.getSelectedIndex() - 1;
+        Sintoma sintomaSeleccionado = enfermedad.getSintomas().get(indexSintoma);
+        String intensidad = (String) cbxIntensidad.getSelectedItem();
+
+        sintomasSeleccionados.put(sintomaSeleccionado, intensidad);
+        actualizarTextoSintomas();
+    }
+
+    private void actualizarTextoSintomas() {
+        if (sintomasSeleccionados.isEmpty()) {
+            txtSintomas.setText("");
+        } else {
+            StringBuilder sb = new StringBuilder();
+            for (Map.Entry<Sintoma, String> entry : sintomasSeleccionados.entrySet()) {
+                sb.append("• ").append(entry.getKey().getNombre())
+                        .append(" - Intensidad: ").append(entry.getValue()).append("\n");
+            }
+            txtSintomas.setText(sb.toString().trim());
+            txtSintomas.setCaretPosition(0);
+        }
+    }
+
+    private void cargarDatosEdicion() {
+        if (diagnosticoEdicion != null) {
+            if (diagnosticoEdicion.getEnfermedad() != null) {
+                cbxEnfermedad.setSelectedItem(diagnosticoEdicion.getEnfermedad().getNombre());
+            }
+            txtObservacion.setText(diagnosticoEdicion.getObservacion());
+            actualizarTextoSintomas();
+            actualizarTextoTratamientos();
+        }
+    }
+
+    private void abrirAgregarTratamiento() {
+        CrearTratamiento dialog = new CrearTratamiento();
+        dialog.setModal(true);
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
+
+        Tratamiento nuevoTratamiento = dialog.getTratamientoCreado();
+        if (nuevoTratamiento != null) {
+            tratamientosActuales.add(nuevoTratamiento);
+            actualizarTextoTratamientos();
+        }
+    }
+
+    private void mostrarTratamientos() {
+        if (tratamientosActuales.isEmpty()) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "No hay tratamientos asignados a este diagnóstico.",
+                    "Tratamientos",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            return;
+        }
+
+        if (tratamientosActuales.size() == 1) {
+            CrearTratamiento dialog = new CrearTratamiento(tratamientosActuales.get(0));
+            dialog.setModal(true);
+            dialog.setLocationRelativeTo(this);
+            dialog.setVisible(true);
+        } else {
+            String[] opciones = new String[tratamientosActuales.size()];
+            for (int i = 0; i < tratamientosActuales.size(); i++) {
+                Tratamiento t = tratamientosActuales.get(i);
+                String nombreMedicamento = (t.getMedicamento() != null) ? t.getMedicamento().getNombre() : "Sin medicamento";
+                opciones[i] = (i + 1) + ". " + nombreMedicamento;
+            }
+
+            String seleccion = (String) JOptionPane.showInputDialog(
+                    this,
+                    "Seleccione el tratamiento que desea ver o modificar:",
+                    "Ver Tratamientos",
+                    JOptionPane.QUESTION_MESSAGE,
+                    null,
+                    opciones,
+                    opciones[0]
+            );
+
+            if (seleccion != null) {
+                for (int i = 0; i < tratamientosActuales.size(); i++) {
+                    if (seleccion.startsWith((i + 1) + ".")) {
+                        CrearTratamiento dialog = new CrearTratamiento(tratamientosActuales.get(i));
+                        dialog.setModal(true);
+                        dialog.setLocationRelativeTo(this);
+                        dialog.setVisible(true);
                         break;
                     }
                 }
             }
+        }
 
-            if (!yaExisteEnConsultaActual) {
-                cbxEnfermedad.addItem(enfermedad.getId() + " - " + enfermedad.getNombre());
+        actualizarTextoTratamientos();
+    }
+
+    private void actualizarTextoTratamientos() {
+        if (tratamientosActuales.isEmpty()) {
+            txtTratamientos.setText("");
+        } else {
+            StringBuilder sb = new StringBuilder();
+            for (Tratamiento t : tratamientosActuales) {
+                String nombreMedicamento = (t.getMedicamento() != null) ? t.getMedicamento().getNombre() : "Sin medicamento";
+                sb.append("• ").append(nombreMedicamento).append("\n");
             }
+            txtTratamientos.setText(sb.toString().trim());
+            txtTratamientos.setCaretPosition(0);
         }
     }
 
-    private void cargarDiagnosticosPrevios() {
-        ActionListener[] listeners = cbxDiagnosticosPrevios.getActionListeners();
-        for (ActionListener l : listeners) {
-            cbxDiagnosticosPrevios.removeActionListener(l);
-        }
-
-        cbxDiagnosticosPrevios.removeAllItems();
-        cbxDiagnosticosPrevios.addItem("<<Nuevo / Seleccione Histórico>>");
-        listaDiagnosticosPrevios.clear();
-
-        if (pacienteActual != null && pacienteActual.getHistorialClinico() != null) {
-            for (Consulta c : pacienteActual.getHistorialClinico()) {
-                if (c.getDiagnosticos() != null) {
-                    for (Diagnostico d : c.getDiagnosticos()) {
-                        if (!listaDiagnosticosPrevios.contains(d)) {
-                            listaDiagnosticosPrevios.add(d);
-                            String enfNombre = (d.getEnfermedadDiagnosticada() != null)
-                                    ? d.getEnfermedadDiagnosticada().getNombre()
-                                    : "Sin Enfermedad";
-                            cbxDiagnosticosPrevios.addItem(d.getCodigoDiagnostico() + " - " + enfNombre);
-                        }
-                    }
-                }
-            }
-        }
-
-        cbxDiagnosticosPrevios.setEnabled(!listaDiagnosticosPrevios.isEmpty());
-
-        for (ActionListener l : listeners) {
-            cbxDiagnosticosPrevios.addActionListener(l);
-        }
-    }
-
-    private void alSeleccionarDiagnosticoPrevio() {
-        int idx = cbxDiagnosticosPrevios.getSelectedIndex();
-        if (idx > 0 && idx <= listaDiagnosticosPrevios.size()) {
-            Diagnostico diagPrevio = listaDiagnosticosPrevios.get(idx - 1);
-            if (diagPrevio != null) {
-                txtDescripcion.setText(diagPrevio.getDescripcion());
-                if (diagPrevio.getEnfermedadDiagnosticada() != null) {
-                    String idEnf = diagPrevio.getEnfermedadDiagnosticada().getId();
-                    boolean encontrada = false;
-                    for (int i = 0; i < cbxEnfermedad.getItemCount(); i++) {
-                        String item = cbxEnfermedad.getItemAt(i);
-                        if (item.startsWith(idEnf + " - ")) {
-                            cbxEnfermedad.setSelectedIndex(i);
-                            encontrada = true;
-                            break;
-                        }
-                    }
-
-                    if (!encontrada) {
-                        JOptionPane.showMessageDialog(this,
-                                "La enfermedad '" + diagPrevio.getEnfermedadDiagnosticada().getNombre() +
-                                        "' ya fue agregada a la consulta actual.",
-                                "Diagnóstico Duplicado",
-                                JOptionPane.WARNING_MESSAGE);
-                        cbxDiagnosticosPrevios.setSelectedIndex(0);
-                        txtDescripcion.setText("");
-                        cbxEnfermedad.setSelectedIndex(0);
-                    }
-                }
-            }
-        }
-    }
-
-    private void mostrarDetallesEnfermedad() {
-        if (cbxEnfermedad.getSelectedIndex() >= 0) {
-            String seleccion = cbxEnfermedad.getSelectedItem().toString();
-            if (seleccion.contains(" - ")) {
-                String idEnfermedad = seleccion.split(" - ")[0];
-                Enfermedad enfermedad = Clinica.getInstancia().buscarEnfermedadXId(idEnfermedad);
-
-                if (enfermedad != null) {
-                    StringBuilder detalles = new StringBuilder();
-                    detalles.append("Nombre: ").append(enfermedad.getNombre()).append("\n");
-                    detalles.append("En Vigilancia: ").append(enfermedad.isVigilancia() ? "Sí" : "No").append("\n");
-                    detalles.append("Síntomas: ").append(enfermedad.getSintomas()).append("\n");
-
-                    txtDetallesEnfermedad.setText(detalles.toString());
-                    return;
-                }
-            }
-        }
-        txtDetallesEnfermedad.setText("");
-    }
-
-    private void crearDiagnostico() {
-        if (txtDescripcion.getText().trim().isEmpty()) {
-            JOptionPane.showMessageDialog(null, "Debe ingresar una descripción.", "Campo Requerido", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
+    private void guardarDiagnostico() {
         if (cbxEnfermedad.getSelectedIndex() <= 0) {
-            JOptionPane.showMessageDialog(null, "Debe seleccionar una enfermedad.", "Campo Requerido", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Debe seleccionar una enfermedad.", "Campo Requerido", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        String seleccion = cbxEnfermedad.getSelectedItem().toString();
-        String idEnfermedad = seleccion.split(" - ")[0];
-        Enfermedad enfermedadSeleccionada = Clinica.getInstancia().buscarEnfermedadXId(idEnfermedad);
+        int indexSeleccionado = cbxEnfermedad.getSelectedIndex() - 1;
+        String idEnfermedad = Clinica.getInstancia().getEnfermedades().get(indexSeleccionado).getId();
+        Enfermedad enfermedadElegida = Clinica.getInstancia().buscarEnfermedadXId(idEnfermedad);
 
-        if (diagnosticosExistentes != null) {
-            for (Diagnostico d : diagnosticosExistentes) {
-                if (d.getEnfermedadDiagnosticada() != null &&
-                        d.getEnfermedadDiagnosticada().getId().equalsIgnoreCase(idEnfermedad)) {
-                    JOptionPane.showMessageDialog(null,
-                            "La enfermedad '" + enfermedadSeleccionada.getNombre() + "' ya fue agregada a esta consulta.",
-                            "Diagnóstico Duplicado",
-                            JOptionPane.WARNING_MESSAGE);
-                    return;
-                }
-            }
+        if (diagnosticoEdicion == null) {
+            diagnosticoCreado = new Diagnostico(
+                    enfermedadElegida,
+                    txtObservacion.getText().trim(),
+                    new ArrayList<>(tratamientosActuales)
+            );
+            diagnosticoCreado.setSintomas(sintomasSeleccionados);
+        } else {
+            diagnosticoEdicion.setEnfermedad(enfermedadElegida);
+            diagnosticoEdicion.setObservacion(txtObservacion.getText().trim());
+            diagnosticoEdicion.setTratamientos(new ArrayList<>(tratamientosActuales));
+            diagnosticoEdicion.setSintomas(sintomasSeleccionados);
+            diagnosticoCreado = diagnosticoEdicion;
         }
-
-        String id = "DIAG-" + Clinica.genCodigoDiagnosticos;
-
-        diagnosticoCreado = new Diagnostico(id, txtDescripcion.getText().trim(), new Date());
-        diagnosticoCreado.setCodigoDiagnostico(txtCodigoDiagnostico.getText().trim());
-
-        if (enfermedadSeleccionada != null) {
-            diagnosticoCreado.setEnfermedadDiagnosticada(enfermedadSeleccionada);
-            Clinica.getInstancia().reportarCasoEnfermedad(idEnfermedad);
-        }
-
-        Clinica.genCodigoDiagnosticos++;
-
-        JOptionPane.showMessageDialog(null,
-                "Diagnóstico registrado exitosamente.\nEnfermedad: " + (enfermedadSeleccionada != null ? enfermedadSeleccionada.getNombre() : ""),
-                "Éxito",
-                JOptionPane.INFORMATION_MESSAGE);
 
         dispose();
     }

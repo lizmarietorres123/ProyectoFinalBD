@@ -1,6 +1,5 @@
-package logico;
+package logico.catalogo;
 
-import logico.catalogo.Usuario;
 import logico.consultorio.Paciente;
 
 import java.io.Serializable;
@@ -9,29 +8,31 @@ import java.util.ArrayList;
 public class Doctor implements Serializable {
     private static final long serialVersionUID = 8080695571362501743L;
     
-    private String idDoctor;
+    private String id;
     private String nombre;
+    private String apellido;
     private int cupoDiario;
     private ArrayList<Paciente> pacientes;
     private ArrayList<String> especialidades;
     private Usuario usuario;
 
-    public Doctor(String idDoctor, String nombre, int cupoDiario, ArrayList<String> especialidades) {
+    public Doctor(String idDoctor, String nombre, String apellido, int cupoDiario, ArrayList<String> especialidades) {
         super();
-        this.idDoctor = idDoctor;
+        this.id = idDoctor;
         this.nombre = nombre;
+        this.apellido = apellido;
         this.cupoDiario = cupoDiario;
         this.especialidades = especialidades;
         pacientes = new ArrayList<>();
         this.usuario = null;
     }
 
-    public String getIdDoctor() {
-        return idDoctor;
+    public String getId() {
+        return id;
     }
 
-    public void setIdDoctor(String idDoctor) {
-        this.idDoctor = idDoctor;
+    public void setId(String idDoctor) {
+        this.id = id;
     }
 
     public String getNombre() {
@@ -40,6 +41,14 @@ public class Doctor implements Serializable {
 
     public void setNombre(String nombre) {
         this.nombre = nombre;
+    }
+
+    public String getApellido() {
+        return apellido;
+    }
+
+    public void setApellido(String apellido) {
+        this.apellido = apellido;
     }
 
     public int getCupoDiario() {

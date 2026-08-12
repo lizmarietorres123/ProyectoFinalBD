@@ -1,6 +1,9 @@
 package logico.consultorio;
 
-import logico.Doctor;
+import logico.Clinica;
+import logico.catalogo.Doctor;
+import logico.enfermeria.DetalleAnalisis;
+import logico.enfermeria.DetalleVacuna;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -11,16 +14,24 @@ public class Consulta implements Serializable {
 	private static final long serialVersionUID = 675187258451876275L;
 	
 	private String id;
-    private LocalDateTime fecha;
-    private String tratamiento;
+    private LocalDateTime fechaHora;
     private String observaciones;
     private Cita cita;
     private ArrayList<Diagnostico> diagnosticos;
+    private ArrayList<DetalleAnalisis> analisis;
+    private ArrayList<DetalleVacuna> vacunas;
 
-    
-    public Consulta(String tratamiento, String observaciones, Cita cita) {
-        this.tratamiento = tratamiento;
+    public Consulta(String observaciones, Cita cita) {
         this.observaciones = observaciones;
+        this.cita = cita;
+        this.diagnosticos = new ArrayList<>();
+    }
+
+    public Consulta(int idNumConsulta, LocalDateTime fechaHora, String tratamiento, String observaciones, int idNumCita) {
+        setId(idNumConsulta);
+        this.fechaHora = fechaHora;
+        this.observaciones = observaciones;
+        setCita(idNumCita);
         this.cita = cita;
         this.diagnosticos = new ArrayList<>();
     }
@@ -30,27 +41,19 @@ public class Consulta implements Serializable {
     }
 
     public int getIdNumber(){
-        return Integer.parseInt(id.replace("CONS-", ""));
+        return Clinica.getInstancia().getIdNumber(this.id, Consulta.class);
     }
     
     public void setId(int idNumber) {
-        this.id = "CONS-" + idNumber;
+        this.id = Clinica.getInstancia().genId(idNumber, Consulta.class);
     }
     
-    public LocalDateTime getFecha() {
-        return fecha;
+    public LocalDateTime getFechaHora() {
+        return fechaHora;
     }
     
-    public void setFecha(LocalDateTime fecha) {
-        this.fecha = fecha;
-    }
-
-    public String getTratamiento() {
-        return tratamiento;
-    }
-
-    public void setTratamiento(String tratamiento) {
-        this.tratamiento = tratamiento;
+    public void setFechaHora(LocalDateTime fechaHora) {
+        this.fechaHora = fechaHora;
     }
 
     public String getObservaciones() {
@@ -69,8 +72,9 @@ public class Consulta implements Serializable {
         return cita;
     }
 
-    public void setCita(Cita cita) {
-        this.cita = cita;
+    public void setCita(int idNumber) {
+        String idCita = Clinica.getInstancia().genId(idNumber, Cita.class);
+        this.cita = Clinica.getInstancia().buscarCitaXId(idCita);
     }
 
     public void addDiagnostico(Diagnostico diagnostico) {
@@ -79,7 +83,37 @@ public class Consulta implements Serializable {
         }
     }
 
-    public Doctor getDoctor(){
-        return cita.getDoctor();
+    public void setDiagnosticos(ArrayList<Diagnostico> diagnosticos) {
+        this.diagnosticos = diagnosticos;
     }
+
+    public ArrayList<DetalleAnalisis> getAnalisis() {
+        return analisis;
+    }
+
+    public void setAnalisis(ArrayList<DetalleAnalisis> analisis) {
+        this.analisis = analisis;
+    }
+
+    public ArrayList<DetalleVacuna> getVacunas() {
+        return vacunas;
+    }
+
+    public void setVacunas(ArrayList<DetalleVacuna> vacunas) {
+        this.vacunas = vacunas;
+    }
+
+//    public Doctor getDoctor(){
+//        return cita.getDoctor();
+//    }
+
+    public Doctor getDoctor() {
+
+        if (this.cita != null) {
+            return this.cita.getDoctor();
+        }
+
+        return Clinica.getDoctorActual();
+    }
+
 }

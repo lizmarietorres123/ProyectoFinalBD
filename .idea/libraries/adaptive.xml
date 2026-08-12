@@ -1,17 +1,9 @@
 <component name="libraryTable">
   <library name="adaptive">
-    <CLASSES />
+    <CLASSES>
+      <root url="jar://$USER_HOME$/Downloads/sqljdbc_13.4.0.0_enu/sqljdbc_13.4/enu/jars/mssql-jdbc-13.4.0.jre11.jar!/" />
+    </CLASSES>
     <JAVADOC />
-    <SOURCES>
-      <root url="file://$USER_HOME$/Downloads/sqljdbc_13.4.0.0_enu/sqljdbc_13.4/enu/samples/adaptive" />
-      <root url="file://$USER_HOME$/Downloads/sqljdbc_13.4.0.0_enu/sqljdbc_13.4/enu/samples/alwaysencrypted" />
-      <root url="file://$USER_HOME$/Downloads/sqljdbc_13.4.0.0_enu/sqljdbc_13.4/enu/samples/azureactivedirectoryauthentication" />
-      <root url="file://$USER_HOME$/Downloads/sqljdbc_13.4.0.0_enu/sqljdbc_13.4/enu/samples/connections" />
-      <root url="file://$USER_HOME$/Downloads/sqljdbc_13.4.0.0_enu/sqljdbc_13.4/enu/samples/constrained" />
-      <root url="file://$USER_HOME$/Downloads/sqljdbc_13.4.0.0_enu/sqljdbc_13.4/enu/samples/dataclassification" />
-      <root url="file://$USER_HOME$/Downloads/sqljdbc_13.4.0.0_enu/sqljdbc_13.4/enu/samples/datatypes" />
-      <root url="file://$USER_HOME$/Downloads/sqljdbc_13.4.0.0_enu/sqljdbc_13.4/enu/samples/resultsets" />
-      <root url="file://$USER_HOME$/Downloads/sqljdbc_13.4.0.0_enu/sqljdbc_13.4/enu/samples/sparse" />
-    </SOURCES>
+    <SOURCES />
   </library>
 </component>

@@ -3,7 +3,7 @@ package controllers;
 import java.util.ArrayList;
 import java.util.List;
 
-import logico.consultorio.Clinica;
+import logico.Clinica;
 import logico.catalogo.Enfermedad;
 import logico.catalogo.Especialidad;
 import utilidad.Formato;

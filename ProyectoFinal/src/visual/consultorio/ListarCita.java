@@ -26,7 +26,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 
-import controllers.CitaController;
+import logico.Clinica;
 import logico.consultorio.Cita;
 
 public class ListarCita extends JDialog {
@@ -36,7 +36,6 @@ public class ListarCita extends JDialog {
     private DefaultTableModel model;
     private Object[] row;
     private Cita auxCita = null;
-    private final CitaController controller;
 
     private JTextField txtBuscar;
     private JTable table;
@@ -47,19 +46,7 @@ public class ListarCita extends JDialog {
     private JButton btnEliminar;
     private JButton btnCancelar;
 
-    public static void main(String[] args) {
-        try {
-            ListarCita dialog = new ListarCita();
-            dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-            dialog.setVisible(true);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     public ListarCita() {
-        this.controller = new CitaController();
-
         setTitle("Listado de Citas");
         setBounds(100, 100, 818, 541);
         setLocationRelativeTo(null);
@@ -139,7 +126,7 @@ public class ListarCita extends JDialog {
                 int index = table.getSelectedRow();
                 if (index > -1) {
                     String id = table.getValueAt(index, 0).toString();
-                    auxCita = controller.buscarCitaPorId(id);
+                    auxCita = Clinica.getInstancia().buscarCitaXId(id);
                     if (auxCita != null) {
                         btnModificar.setEnabled(true);
                         btnEliminar.setEnabled(true);
@@ -165,12 +152,12 @@ public class ListarCita extends JDialog {
                 if (auxCita != null) {
                     int option = JOptionPane.showConfirmDialog(
                             null,
-                            "¿Está seguro que desea eliminar la cita " + auxCita.getIdCita() + " de " + auxCita.getNombrePersona() + "?",
+                            "¿Está seguro que desea eliminar la cita " + auxCita.getId() + " de " + auxCita.getNombrePersona() + "?",
                             "Confirmación",
                             JOptionPane.WARNING_MESSAGE
                     );
                     if (option == JOptionPane.OK_OPTION) {
-                        controller.eliminarCita(auxCita);
+                        Clinica.getInstancia().getCitas().remove(auxCita);
                         auxCita = null;
                         btnEliminar.setEnabled(false);
                         btnModificar.setEnabled(false);
@@ -221,19 +208,39 @@ public class ListarCita extends JDialog {
 
     private void filtrarTabla(String filtro) {
         model.setRowCount(0);
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
-        List<Cita> citas = controller.filtrarCitas(filtro);
+        SimpleDateFormat sdfFecha = new SimpleDateFormat("dd/MM/yyyy");
+        SimpleDateFormat sdfHora = new SimpleDateFormat("hh:mm a");
+        String f = (filtro == null) ? "" : filtro.toLowerCase().trim();
+
+        List<Cita> citas = Clinica.getInstancia().getCitas();
 
         if (citas != null) {
             for (Cita c : citas) {
                 if (c != null) {
-                    row = new Object[5];
-                    row[0] = c.getIdCita();
-                    row[1] = c.getNombrePersona();
-                    row[2] = (c.getDoctor() != null) ? "Dr. " + c.getDoctor().getNombre() : "N/A";
-                    row[3] = (c.getFechaHora() != null) ? sdf.format(c.getFechaHora()) : "N/A";
-                    row[4] = (c.getEstado() != null) ? c.getEstado().toString() : "N/A";
-                    model.addRow(row);
+                    String id = c.getId() != null ? c.getId().toLowerCase() : "";
+                    String paciente = c.getNombrePersona() != null ? c.getNombrePersona().toLowerCase() : "";
+                    String cedula = c.getIdPersona() != null ? c.getIdPersona().toLowerCase() : "";
+                    String doctor = (c.getDoctor() != null && c.getDoctor().getNombre() != null) ? c.getDoctor().getNombre().toLowerCase() : "";
+                    String estado = c.getEstado() != null ? c.getEstado().toString().toLowerCase() : "";
+                    String fecha = (c.getFechaConsulta() != null) ? sdfFecha.format(c.getFechaConsulta()).toLowerCase() : "";
+
+                    if (f.isEmpty() || id.contains(f) || paciente.contains(f) || cedula.contains(f) || doctor.contains(f) || estado.contains(f) || fecha.contains(f)) {
+                        row = new Object[5];
+                        row[0] = c.getId();
+                        row[1] = c.getNombrePersona();
+                        row[2] = (c.getDoctor() != null) ? "Dr. " + c.getDoctor().getNombre() : "N/A";
+
+                        String fechaHoraStr = "N/A";
+                        if (c.getFechaConsulta() != null) {
+                            fechaHoraStr = sdfFecha.format(c.getFechaConsulta());
+                            if (c.getHoraConsulta() != null) {
+                                fechaHoraStr += " " + sdfHora.format(c.getHoraConsulta());
+                            }
+                        }
+                        row[3] = fechaHoraStr;
+                        row[4] = (c.getEstado() != null) ? c.getEstado().toString() : "N/A";
+                        model.addRow(row);
+                    }
                 }
             }
         }

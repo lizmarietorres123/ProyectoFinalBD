@@ -361,7 +361,7 @@ public class RegistrarPaciente extends JDialog {
 		);
 
 		if (exito && pacienteController.getPacienteCreado() != null) {
-			String idPaciente = pacienteController.getPacienteCreado().getIdPaciente();
+			String idPaciente = pacienteController.getPacienteCreado().getId();
 			JOptionPane.showMessageDialog(null, "Paciente registrado con éxito.\nCódigo: " + idPaciente, "Registro Exitoso", JOptionPane.INFORMATION_MESSAGE);
 			dispose();
 		}

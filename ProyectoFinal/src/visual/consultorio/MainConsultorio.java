@@ -1,4 +1,4 @@
-package visual.enfermeria;
+package visual.consultorio;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -14,6 +14,17 @@ import java.awt.RenderingHints;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -21,6 +32,7 @@ import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -28,16 +40,18 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import logico.Clinica;
-import logico.catalogo.Enfermera;
+import logico.catalogo.Doctor;
 import logico.catalogo.Usuario;
+import servidor.Servidor;
 
-public class MainEnfermeria extends JFrame {
+public class MainConsultorio extends JFrame {
 
     private static final long serialVersionUID = 1L;
 
-    // --- Paleta de colores del diseño original ---
+    // Paleta de colores consistente con la interfaz
     private static final Color AZUL_TITULO = new Color(70, 130, 180);
     private static final Color AZUL_SUBTITULO = new Color(100, 149, 237);
     private static final Color AZUL_FONDO_LATERAL = new Color(176, 224, 230);
@@ -49,23 +63,46 @@ public class MainEnfermeria extends JFrame {
     private JPanel panelLateral;
     private JPanel panelContenidoMenu;
 
-    // Componentes para los datos de sesión activa
+    // Labels para datos de sesión
     private JLabel lblValorUsuario;
     private JLabel lblValorNombre;
 
-    /**
-     * Constructor principal que recibe el objeto Usuario en sesión.
-     */
-    public MainEnfermeria(Usuario usuario) {
-        setTitle("Sistema de Gestión Clínica - Panel de Enfermería");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    // Sockets para respaldos
+    private static Socket sfd = null;
+    private static DataInputStream EntradaSocket;
+    private static DataOutputStream SalidaSocket;
 
-        // Ventana con tamaño reducido
-        setSize(850, 550);
+    public MainConsultorio(Usuario usuario) {
+        // Inicialización del Servidor en puerto 7000
+        try {
+            Servidor servidor = new Servidor(7000);
+            servidor.start();
+        } catch (Exception ex) {
+            // Manejo silencioso si el servidor ya fue iniciado previamente
+        }
+
+        Clinica.getInstancia().cargarBD();
+
+        setTitle("Sistema de Gestión Clínica - Panel Consultorio");
+
+        // Permite cerrar la ventana de manera limpia
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+
+        // Configuración de tamaño compacto
+        setSize(850, 580);
         setLocationRelativeTo(null);
         getContentPane().setLayout(new BorderLayout());
 
-        // --- Panel Lateral Principal ---
+        // Guardado de datos y cierre ordenado al presionar la 'X'
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                guardarDatos();
+                dispose();
+            }
+        });
+
+        // --- Panel Lateral ---
         panelLateral = new JPanel();
         panelLateral.setBackground(AZUL_FONDO_LATERAL);
         panelLateral.setPreferredSize(new Dimension(260, getHeight()));
@@ -74,70 +111,73 @@ public class MainEnfermeria extends JFrame {
 
         panelLateral.add(crearPanelSuperior(), BorderLayout.NORTH);
 
-        // Contenedor vertical para los módulos del menú
+        // Contenedor de Módulos
         panelContenidoMenu = new JPanel();
         panelContenidoMenu.setOpaque(false);
         panelContenidoMenu.setLayout(new BoxLayout(panelContenidoMenu, BoxLayout.Y_AXIS));
-        panelContenidoMenu.setBorder(BorderFactory.createEmptyBorder(12, 0, 0, 0));
+        panelContenidoMenu.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
         panelLateral.add(panelContenidoMenu, BorderLayout.CENTER);
 
-        // --- MÓDULO 1: ANÁLISIS ---
+        // --- MÓDULO 1: PACIENTE ---
         crearModulo(
-                "Análisis",
-                "recursos/consulta.png",
+                "Paciente",
+                "recursos/registro.png",
                 new String[]{"Registrar", "Listar"},
                 new ActionListener[]{
-                        e -> abrirRegistrarAnalisis(),
-                        e -> abrirListarAnalisis()
+                        e -> abrirRegistrarPaciente(),
+                        e -> abrirListarPaciente()
                 }
         );
 
-        // --- MÓDULO 2: VACUNA ---
+        // --- MÓDULO 2: CITA ---
         crearModulo(
-                "Vacuna",
-                "recursos/vacuna.png",
+                "Cita",
+                "recursos/consulta.png",
                 new String[]{"Registrar", "Listar"},
                 new ActionListener[]{
-                        e -> abrirRegistrarVacuna(),
-                        e -> abrirListarVacuna()
+                        e -> abrirRegistrarCita(),
+                        e -> abrirListarCita()
+                }
+        );
+
+        // --- MÓDULO 3: CONSULTA ---
+        crearModulo(
+                "Consulta",
+                "recursos/listado.png",
+                new String[]{"Registrar", "Listar"},
+                new ActionListener[]{
+                        e -> abrirRealizarConsulta(),
+                        e -> abrirListarConsulta()
                 }
         );
 
         panelContenidoMenu.add(Box.createVerticalGlue());
         panelLateral.add(crearPiePanelLateral(), BorderLayout.SOUTH);
 
-        // --- Panel Central (Sin texto de bienvenida) ---
+        // --- Panel Central Limpio ---
         JPanel panelCentral = new JPanel(new BorderLayout());
         panelCentral.setBackground(Color.WHITE);
         getContentPane().add(panelCentral, BorderLayout.CENTER);
 
-        // Cargar los datos del usuario especificado o el usuario actual
+        // Cargar datos del usuario
         cargarDatosUsuario(usuario);
     }
 
-    /**
-     * Constructor por defecto: intenta obtener el usuario activo de Clinica.
-     */
-    public MainEnfermeria() {
+    public MainConsultorio() {
         this(Clinica.getInstancia().getUsuarioActual());
     }
 
-    /**
-     * Carga y refleja la información del Usuario y de la Enfermera vinculada.
-     */
     public void cargarDatosUsuario(Usuario usuario) {
         if (usuario != null) {
-            // Obtenemos el nombre del Usuario
             String username = usuario.getNombre();
             if (lblValorUsuario != null) {
                 lblValorUsuario.setText(username != null ? username : "");
             }
 
-            // Buscamos la Enfermera asociada al Usuario
-            Enfermera enfermera = Clinica.getInstancia().buscarEnfermeraXUsuario(usuario);
+            Doctor doctor = Clinica.getInstancia().buscarDoctorXUsuario(usuario);
             if (lblValorNombre != null) {
-                if (enfermera != null) {
-                    lblValorNombre.setText(enfermera.getNombreApellido());
+                if (doctor != null) {
+                    lblValorNombre.setText(doctor.getNombre() + " " + doctor.getApellido());
                 } else {
                     lblValorNombre.setText("Sin Nombre");
                 }
@@ -153,11 +193,10 @@ public class MainEnfermeria extends JFrame {
         contenedor.setOpaque(false);
         contenedor.setLayout(new BoxLayout(contenedor, BoxLayout.Y_AXIS));
 
-        // --- Título y subtítulo corregidos (sin null layout para evitar desbordamientos) ---
         JPanel panelHeader = new JPanel();
         panelHeader.setOpaque(false);
         panelHeader.setLayout(new BoxLayout(panelHeader, BoxLayout.Y_AXIS));
-        panelHeader.setBorder(BorderFactory.createEmptyBorder(12, 10, 10, 10));
+        panelHeader.setBorder(BorderFactory.createEmptyBorder(10, 10, 8, 10));
 
         JLabel lblTitulo = new JLabel("CLÍNICA", SwingConstants.CENTER);
         lblTitulo.setFont(new Font("Bahnschrift", Font.BOLD, 22));
@@ -176,20 +215,19 @@ public class MainEnfermeria extends JFrame {
         contenedor.add(panelHeader);
         contenedor.add(crearDivisor());
 
-        // --- Datos de sesión ---
         JPanel panelDatos = new JPanel();
         panelDatos.setOpaque(false);
         panelDatos.setLayout(new BoxLayout(panelDatos, BoxLayout.Y_AXIS));
-        panelDatos.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        panelDatos.setBorder(BorderFactory.createEmptyBorder(8, 20, 8, 20));
 
         lblValorUsuario = new JLabel(" ");
         lblValorNombre = new JLabel(" ");
 
         panelDatos.add(crearFilaDato("Usuario:", lblValorUsuario));
-        panelDatos.add(Box.createVerticalStrut(6));
+        panelDatos.add(Box.createVerticalStrut(4));
         panelDatos.add(crearFilaDato("Nombre:", lblValorNombre));
-        panelDatos.add(Box.createVerticalStrut(10));
-        panelDatos.add(crearInsigniaRol("Panel Enfermería"));
+        panelDatos.add(Box.createVerticalStrut(8));
+        panelDatos.add(crearInsigniaRol("Panel Consultorio"));
 
         contenedor.add(panelDatos);
         contenedor.add(crearDivisor());
@@ -223,8 +261,8 @@ public class MainEnfermeria extends JFrame {
         lbl.setOpaque(true);
         lbl.setBackground(AZUL_TARJETA);
         lbl.setAlignmentX(Component.LEFT_ALIGNMENT);
-        lbl.setMaximumSize(new Dimension(220, 28));
-        lbl.setPreferredSize(new Dimension(220, 28));
+        lbl.setMaximumSize(new Dimension(220, 26));
+        lbl.setPreferredSize(new Dimension(220, 26));
         lbl.setBorder(BorderFactory.createLineBorder(AZUL_BORDE, 1));
         return lbl;
     }
@@ -240,10 +278,10 @@ public class MainEnfermeria extends JFrame {
     private JPanel crearPiePanelLateral() {
         JPanel panelFooter = new JPanel(new BorderLayout());
         panelFooter.setOpaque(false);
-        panelFooter.setPreferredSize(new Dimension(260, 45));
+        panelFooter.setPreferredSize(new Dimension(260, 40));
         panelFooter.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, AZUL_BORDE));
 
-        JLabel lblPie = new JLabel("\u2695  Enfermería", SwingConstants.CENTER);
+        JLabel lblPie = new JLabel("\u2695  Consultorio Médico", SwingConstants.CENTER);
         lblPie.setFont(new Font("Bahnschrift", Font.BOLD, 13));
         lblPie.setForeground(AZUL_TITULO);
 
@@ -256,22 +294,22 @@ public class MainEnfermeria extends JFrame {
         tarjeta.setOpaque(false);
         tarjeta.setLayout(new BoxLayout(tarjeta, BoxLayout.Y_AXIS));
         tarjeta.setAlignmentX(Component.LEFT_ALIGNMENT);
-        tarjeta.setMaximumSize(new Dimension(260, 200));
+        tarjeta.setMaximumSize(new Dimension(260, 180));
         tarjeta.setBorder(BorderFactory.createCompoundBorder(
                 new SombraInferior(6),
                 BorderFactory.createEmptyBorder(0, 10, 0, 10)
         ));
 
         JLabel lblCategoria = new JLabel(titulo, SwingConstants.CENTER);
-        lblCategoria.setFont(new Font("Bahnschrift", Font.BOLD, 16));
+        lblCategoria.setFont(new Font("Bahnschrift", Font.BOLD, 15));
         lblCategoria.setForeground(AZUL_TITULO);
         lblCategoria.setOpaque(true);
         lblCategoria.setBackground(Color.WHITE);
-        lblCategoria.setIcon(cargarIcono(rutaIcono, 22, 22));
+        lblCategoria.setIcon(cargarIcono(rutaIcono, 20, 20));
         lblCategoria.setIconTextGap(8);
         lblCategoria.setAlignmentX(Component.LEFT_ALIGNMENT);
-        lblCategoria.setMaximumSize(new Dimension(240, 42));
-        lblCategoria.setPreferredSize(new Dimension(240, 42));
+        lblCategoria.setMaximumSize(new Dimension(240, 38));
+        lblCategoria.setPreferredSize(new Dimension(240, 38));
         lblCategoria.setBorder(BorderFactory.createLineBorder(AZUL_TITULO, 2));
 
         tarjeta.add(lblCategoria);
@@ -290,7 +328,7 @@ public class MainEnfermeria extends JFrame {
 
         for (int i = 0; i < subOpciones.length; i++) {
             BotonRedondeado btnSub = new BotonRedondeado(subOpciones[i]);
-            btnSub.setFont(new Font("Bahnschrift", Font.PLAIN, 14));
+            btnSub.setFont(new Font("Bahnschrift", Font.PLAIN, 13));
             btnSub.setForeground(AZUL_TITULO);
             btnSub.setBackground(Color.WHITE);
             btnSub.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -325,52 +363,136 @@ public class MainEnfermeria extends JFrame {
         tarjeta.add(filaContenido);
 
         panelContenidoMenu.add(tarjeta);
-        panelContenidoMenu.add(Box.createVerticalStrut(12));
+        panelContenidoMenu.add(Box.createVerticalStrut(8));
     }
 
-    // --- MÉTODOS DE ACCIÓN FUNCIONALES ---
+    // --- ACCIONES DE NAVEGACIÓN Y VENTANAS ---
 
-    private void abrirRegistrarAnalisis() {
+    private void abrirRegistrarPaciente() {
         try {
-            CrearDetalleAnalisis reg = new CrearDetalleAnalisis(null);
-            reg.setModal(true);
-            reg.setLocationRelativeTo(this);
+            RegistrarPaciente reg = new RegistrarPaciente(null);
             reg.setVisible(true);
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Error al abrir registro de análisis: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error al abrir registro de paciente: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    private void abrirListarAnalisis() {
+    private void abrirListarPaciente() {
         try {
-            ListarDetalleAnalisis list = new ListarDetalleAnalisis();
-            list.setModal(true);
-            list.setLocationRelativeTo(this);
+            ListarPaciente list = new ListarPaciente();
             list.setVisible(true);
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Error al abrir listado de análisis: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error al abrir listado de pacientes: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    private void abrirRegistrarVacuna() {
+    private void abrirRegistrarCita() {
         try {
-            CrearDetalleVacuna reg = new CrearDetalleVacuna(null);
-            reg.setModal(true);
-            reg.setLocationRelativeTo(this);
+            RegistrarCita reg = new RegistrarCita();
             reg.setVisible(true);
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Error al abrir registro de vacuna: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error al abrir registro de cita: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    private void abrirListarVacuna() {
+    private void abrirListarCita() {
         try {
-            ListarDetalleVacuna list = new ListarDetalleVacuna();
-            list.setModal(true);
-            list.setLocationRelativeTo(this);
+            ListarCita list = new ListarCita();
             list.setVisible(true);
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Error al abrir listado de vacunas: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error al abrir listado de citas: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void abrirRealizarConsulta() {
+        try {
+            RealizarConsulta reg = new RealizarConsulta();
+            reg.setVisible(true);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error al abrir registro de consulta: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void abrirListarConsulta() {
+        try {
+            Doctor doctorActual = Clinica.getDoctorActual();
+            ListarConsulta list = new ListarConsulta(doctorActual);
+            list.setVisible(true);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error al abrir listado de consultas: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    // --- PERSISTENCIA Y RESPALDOS ---
+
+    private void guardarDatos() {
+        try (FileOutputStream writeFile = new FileOutputStream("clinica.dat");
+             ObjectOutputStream writeObjeto = new ObjectOutputStream(writeFile)) {
+            Clinica.getInstancia().guardarContadores();
+            writeObjeto.writeObject(Clinica.getInstancia());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void crearRespaldo() {
+        try (FileOutputStream clinicaOut = new FileOutputStream("clinica.dat");
+             ObjectOutputStream clinicaWrite = new ObjectOutputStream(clinicaOut)) {
+            Clinica.getInstancia().guardarContadores();
+            clinicaWrite.writeObject(Clinica.getInstancia());
+
+            enviarArchivo("clinica", "clinica.dat");
+            JOptionPane.showMessageDialog(null, "Respaldo enviado exitosamente al servidor", "Respaldo Completado", JOptionPane.INFORMATION_MESSAGE);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Error al crear respaldo: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    public void cargarRespaldo() {
+        JFileChooser fileChooser = new JFileChooser(new File("."));
+        fileChooser.setDialogTitle("Seleccionar archivo de respaldo de la clínica");
+        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+
+        FileNameExtensionFilter filtroDat = new FileNameExtensionFilter("Archivos de respaldo (.dat)", "dat");
+        fileChooser.setFileFilter(filtroDat);
+
+        int resultado = fileChooser.showOpenDialog(null);
+        if (resultado != JFileChooser.APPROVE_OPTION) return;
+
+        File archivo = fileChooser.getSelectedFile();
+        try (ObjectInputStream clinicaIn = new ObjectInputStream(new FileInputStream(archivo))) {
+            Clinica instancia = (Clinica) clinicaIn.readObject();
+            Clinica.getInstancia().setClinica(instancia);
+            Clinica.getInstancia().asignarContadores();
+
+            JOptionPane.showMessageDialog(null, "Respaldo restaurado exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+        } catch (IOException | ClassNotFoundException ex) {
+            JOptionPane.showMessageDialog(null, "Error al cargar archivo: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void enviarArchivo(String tipo, String nombreArchivo) {
+        try {
+            sfd = new Socket("127.0.0.1", 7000);
+            File archivo = new File(nombreArchivo);
+            if (!archivo.exists()) return;
+
+            EntradaSocket = new DataInputStream(new FileInputStream(archivo));
+            SalidaSocket = new DataOutputStream(sfd.getOutputStream());
+            SalidaSocket.writeUTF(tipo);
+
+            int unByte;
+            while ((unByte = EntradaSocket.read()) != -1) {
+                SalidaSocket.write(unByte);
+            }
+            SalidaSocket.flush();
+
+            EntradaSocket.close();
+            SalidaSocket.close();
+            sfd.close();
+        } catch (IOException ioe) {
+            JOptionPane.showMessageDialog(null, "Error de comunicación: " + ioe.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -384,7 +506,7 @@ public class MainEnfermeria extends JFrame {
         }
     }
 
-    // --- COMPONENTES VISUALES PERSONALIZADOS ---
+    // --- COMPONENTES VISUALES ---
 
     private static class SombraInferior implements Border {
         private final int grosor;
@@ -474,11 +596,9 @@ public class MainEnfermeria extends JFrame {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             try {
-                // Inicialización de datos de prueba en Clínica si es necesario
                 Clinica.getInstancia().initInfo();
-                Usuario userPrueba = Clinica.getInstancia().buscarUsuarioXId("US-2");
-
-                MainEnfermeria frame = new MainEnfermeria(userPrueba);
+                Usuario userPrueba = Clinica.getInstancia().buscarUsuarioXId("US-1");
+                MainConsultorio frame = new MainConsultorio(userPrueba);
                 frame.setVisible(true);
             } catch (Exception e) {
                 e.printStackTrace();

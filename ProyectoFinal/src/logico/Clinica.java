@@ -1,14 +1,14 @@
-package logico.consultorio;
+package logico;
 
-import logico.Doctor;
+import bd.catalogo.*;
+import bd.ConsultaDAO;
 import logico.catalogo.*;
-import logico.enfermeria.Vacuna;
+import logico.consultorio.*;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
+import java.sql.Time;
+import java.time.LocalDateTime;
+import java.util.*;
 
 public class Clinica implements Serializable {
     private static final long serialVersionUID = -2147265011502063886L;
@@ -17,12 +17,14 @@ public class Clinica implements Serializable {
     public static Doctor loginDoctor;
     public static int genCodigoPacientes = 1;
     public static int genCodigoCitas = 1;
-    public static int genCodigoConsultas = 1;
     public static int genCodigoDiagnosticos = 1;
     public static int genCodigoDoctores = 1;
     public static int genCodigoVacuna = 1;
     public static int genCodigoEnfermedad = 1;
     public static int genCodigoUsuarios = 1;
+
+    // --- INICIAL ID ---
+    public static String codConsulta = "CONS-";
 
     // --- ATRIBUTOS DE INSTANCIA ---
     private Usuario usuarioActual;
@@ -30,24 +32,38 @@ public class Clinica implements Serializable {
     private ArrayList<Cita> citas;
     private ArrayList<Paciente> pacientes;
     private ArrayList<Doctor> doctores;
+    private ArrayList<Enfermera> enfermeras;
+
     private ArrayList<Consulta> consultas;
+    private ArrayList<Sintoma> sintomas;
     private ArrayList<Enfermedad> enfermedades;
+    private ArrayList<Medicamento> medicamentos;
+    private ArrayList<Analisis> analisis;
     private ArrayList<Vacuna> vacunas;
     private ArrayList<Integer> contadores;
     private ArrayList<Especialidad> especialidades;
 
+    private Map<Class<?>,String> ids;
+
     private static Clinica instancia = null;
 
     private Clinica() {
-        citas = new ArrayList<Cita>();
-        pacientes = new ArrayList<Paciente>();
-        doctores = new ArrayList<Doctor>();
-        consultas = new ArrayList<Consulta>();
-        enfermedades = new ArrayList<Enfermedad>();
-        vacunas = new ArrayList<Vacuna>();
-        usuarios = new ArrayList<Usuario>();
-        especialidades = new ArrayList<Especialidad>();
+        citas = new ArrayList<>();
+        pacientes = new ArrayList<>();
+        doctores = new ArrayList<>();
+        enfermeras = new ArrayList<>();
+        consultas = new ArrayList<>();
+        sintomas = new ArrayList<>();
+        enfermedades = new ArrayList<>();
+        medicamentos = new ArrayList<>();
+        analisis = new ArrayList<>();
+        vacunas = new ArrayList<>();
+        usuarios = new ArrayList<>();
+        especialidades = new ArrayList<>();
 
+        ids = new HashMap<>();
+
+        asignarIds();
         iniciarContadores();
     }
 
@@ -122,6 +138,14 @@ public class Clinica implements Serializable {
         this.doctores = doctores;
     }
 
+    public ArrayList<Enfermera> getEnfermeras() {
+        return enfermeras;
+    }
+
+    public void setEnfermeras(ArrayList<Enfermera> enfermeras) {
+        this.enfermeras = enfermeras;
+    }
+
     public ArrayList<Consulta> getConsultas() {
         return consultas;
     }
@@ -130,12 +154,36 @@ public class Clinica implements Serializable {
         this.consultas = consultas;
     }
 
+    public ArrayList<Sintoma> getSintomas() {
+        return sintomas;
+    }
+
+    public void setSintomas(ArrayList<Sintoma> sintomas) {
+        this.sintomas = sintomas;
+    }
+
     public ArrayList<Enfermedad> getEnfermedades() {
         return enfermedades;
     }
 
     public void setEnfermedades(ArrayList<Enfermedad> enfermedades) {
         this.enfermedades = enfermedades;
+    }
+
+    public ArrayList<Medicamento> getMedicamentos() {
+        return medicamentos;
+    }
+
+    public void setMedicamentos(ArrayList<Medicamento> medicamentos) {
+        this.medicamentos = medicamentos;
+    }
+
+    public ArrayList<Analisis> getAnalisis() {
+        return analisis;
+    }
+
+    public void setAnalisis(ArrayList<Analisis> analisis) {
+        this.analisis = analisis;
     }
 
     public ArrayList<Vacuna> getVacunas() {
@@ -166,47 +214,76 @@ public class Clinica implements Serializable {
         setInstancia(auxClinica);
     }
 
-    // --- CONTADORES DE PERSISTENCIA ---
+    // --- MANEJO DE CODIGOS ---
+
+    private void asignarIds(){
+        ids.put(Cita.class,"CIT-");
+        ids.put(Doctor.class,"DOC-");
+        ids.put(Enfermera.class,"EFM-");
+        ids.put(Usuario.class,"US-");
+        ids.put(Consulta.class,"CONS-");
+        ids.put(Sintoma.class,"SIN-");
+        ids.put(Enfermedad.class,"ENF-");
+        ids.put(Medicamento.class,"MED-");
+        ids.put(Analisis.class,"AN-");
+        ids.put(Vacuna.class,"VAC-");
+    }
+
+    public <T> String genId(int idNumber, Class<T> clase){
+        return ids.get(clase)+idNumber;
+    }
+
+    public <T> int getIdNumber(String id, Class<T> clase){
+        return Integer.parseInt(id.replace(ids.get(clase), ""));
+    }
+
+    // --- PERSISTENCIA ---
+
+    public void cargarBD(){
+        consultas = ConsultaDAO.getInstance().obtenerConsultas();
+        sintomas = SintomaDAO.getInstance().obtenerSintomas();
+        enfermedades = EnfermedadDAO.getInstance().obtenerEnfermedades();
+        medicamentos = MedicamentoDAO.getInstance().obtenerMedicamentos();
+        analisis = AnalisisDAO.getInstance().obtenerAnalisis();
+        vacunas = VacunaDAO.getInstance().obtenerVacunas();
+    }
 
     private void iniciarContadores() {
         contadores = new ArrayList<Integer>();
-        contadores.add(genCodigoPacientes);
-        contadores.add(genCodigoDoctores);
-        contadores.add(genCodigoCitas);
-        contadores.add(genCodigoConsultas);
-        contadores.add(genCodigoDiagnosticos);
-        contadores.add(genCodigoEnfermedad);
-        contadores.add(genCodigoVacuna);
-        contadores.add(genCodigoUsuarios);
+        contadores.add(genCodigoPacientes); // 0
+        contadores.add(genCodigoDoctores);  // 1
+        contadores.add(genCodigoCitas);     // 2
+        contadores.add(genCodigoDiagnosticos); // 3
+        contadores.add(genCodigoEnfermedad);   // 4
+        contadores.add(genCodigoVacuna);       // 5
+        contadores.add(genCodigoUsuarios);     // 6
     }
 
     public void asignarContadores() {
-        if (contadores != null && contadores.size() >= 8) {
+        if (contadores != null && contadores.size() >= 7) {
             genCodigoPacientes = contadores.get(0);
             genCodigoDoctores = contadores.get(1);
             genCodigoCitas = contadores.get(2);
-            genCodigoConsultas = contadores.get(3);
-            genCodigoDiagnosticos = contadores.get(4);
-            genCodigoEnfermedad = contadores.get(5);
-            genCodigoVacuna = contadores.get(6);
-            genCodigoUsuarios = contadores.get(7);
+            genCodigoDiagnosticos = contadores.get(3);
+            genCodigoEnfermedad = contadores.get(4);
+            genCodigoVacuna = contadores.get(5);
+            genCodigoUsuarios = contadores.get(6);
         }
     }
 
     public void guardarContadores() {
-        if (contadores == null) {
+        if (contadores == null || contadores.size() < 7) {
             iniciarContadores();
+        } else {
+            contadores.set(0, genCodigoPacientes);
+            contadores.set(1, genCodigoDoctores);
+            contadores.set(2, genCodigoCitas);
+            contadores.set(3, genCodigoDiagnosticos);
+            contadores.set(4, genCodigoEnfermedad);
+            contadores.set(5, genCodigoVacuna);
+            contadores.set(6, genCodigoUsuarios);
         }
-        contadores.set(0, genCodigoPacientes);
-        contadores.set(1, genCodigoDoctores);
-        contadores.set(2, genCodigoCitas);
-        contadores.set(3, genCodigoConsultas);
-        contadores.set(4, genCodigoDiagnosticos);
-        contadores.set(5, genCodigoEnfermedad);
-        contadores.set(6, genCodigoVacuna);
-        contadores.set(7, genCodigoUsuarios);
     }
-
     // --- REGISTRO DE ENTIDADES ---
 
     public void regPaciente(Paciente paciente) {
@@ -251,19 +328,12 @@ public class Clinica implements Serializable {
         }
     }
 
-    public void registrarEnfermedadBajoVigilancia(Enfermedad enfermedad) {
-        if (enfermedad != null) {
-            enfermedad.activarVigilancia();
-            registrarEnfermedad(enfermedad);
-        }
-    }
-
     // --- BÚSQUEDAS POR ID / ATRIBUTO ---
 
     public Paciente buscarPacienteXId(String id) {
         if (id == null) return null;
         for (Paciente p : pacientes) {
-            if (p != null && p.getIdPaciente() != null && p.getIdPaciente().equalsIgnoreCase(id)) return p;
+            if (p != null && p.getId() != null && p.getId().equalsIgnoreCase(id)) return p;
         }
         return null;
     }
@@ -279,7 +349,33 @@ public class Clinica implements Serializable {
     public Cita buscarCitaXId(String id) {
         if (id == null) return null;
         for (Cita c : citas) {
-            if (c != null && c.getIdCita() != null && c.getIdCita().equalsIgnoreCase(id)) return c;
+            if (c != null && c.getId() != null && c.getId().equalsIgnoreCase(id)) return c;
+        }
+        return null;
+    }
+
+    public Enfermera buscarEnfermeraXId(String id) {
+        if (id == null) return null;
+        for (Enfermera e : enfermeras) {
+            if (e != null && e.getId() != null && e.getId().equalsIgnoreCase(id)) return e;
+        }
+        return null;
+    }
+
+    public Enfermera buscarEnfermeraXUsuario(Usuario usuario) {
+        if (usuario == null) return null;
+        for (Enfermera efm : enfermeras) {
+            if (efm != null && efm.getUsuario() != null && efm.getUsuario().getNombre().equals(usuario.getNombre())) {
+                return efm;
+            }
+        }
+        return null;
+    }
+
+    public Usuario buscarUsuarioXId(String id) {
+        if (id == null) return null;
+        for (Usuario u : usuarios) {
+            if (u != null && u.getId() != null && u.getId().equalsIgnoreCase(id)) return u;
         }
         return null;
     }
@@ -287,7 +383,7 @@ public class Clinica implements Serializable {
     public Doctor buscarDoctorXId(String id) {
         if (id == null) return null;
         for (Doctor d : doctores) {
-            if (d != null && d.getIdDoctor() != null && d.getIdDoctor().equalsIgnoreCase(id)) return d;
+            if (d != null && d.getId() != null && d.getId().equalsIgnoreCase(id)) return d;
         }
         return null;
     }
@@ -326,6 +422,22 @@ public class Clinica implements Serializable {
         return null;
     }
 
+    public Sintoma buscarSintomaXId(String id) {
+        if (id == null) return null;
+        for (Sintoma s : sintomas) {
+            if (s != null && s.getId() != null && s.getId().equalsIgnoreCase(id)) return s;
+        }
+        return null;
+    }
+
+    public Medicamento buscarMedicamentoXId(String id) {
+        if (id == null) return null;
+        for (Medicamento m : medicamentos) {
+            if (m != null && m.getId() != null && m.getId().equalsIgnoreCase(id)) return m;
+        }
+        return null;
+    }
+
     // --- LÓGICA DE NEGOCIO ---
     public int contarCitasXDia(Doctor doctor, Date fecha) {
         if (doctor == null || fecha == null) return 0;
@@ -336,12 +448,12 @@ public class Clinica implements Serializable {
 
         for (Cita cita : citas) {
             if (cita != null && cita.getDoctor() != null &&
-                    cita.getDoctor().getIdDoctor().equals(doctor.getIdDoctor()) &&
+                    cita.getDoctor().getId().equals(doctor.getId()) &&
                     cita.getEstado() == EstadoCita.PROGRAMADA &&
-                    cita.getFechaHora() != null) {
+                    cita.getFechaConsulta() != null) {
 
                 Calendar calendCita = Calendar.getInstance();
-                calendCita.setTime(cita.getFechaHora());
+                calendCita.setTime(cita.getFechaConsulta());
 
                 if (calendFecha.get(Calendar.YEAR) == calendCita.get(Calendar.YEAR) &&
                         calendFecha.get(Calendar.DAY_OF_YEAR) == calendCita.get(Calendar.DAY_OF_YEAR)) {
@@ -353,42 +465,14 @@ public class Clinica implements Serializable {
     }
 
     public ArrayList<Consulta> getConsultasXDoctor(Doctor doctor) {
-        ArrayList<Consulta> consultasDoctor = new ArrayList<>();
-        if (doctor == null) return consultasDoctor;
-
-        for (Consulta consulta : consultas) {
-            if (consulta != null && consulta.getDoctor() != null &&
-                    consulta.getDoctor().getIdDoctor().equals(doctor.getIdDoctor())) {
-                consultasDoctor.add(consulta);
-            }
+        if (this.consultas != null) {
+            return this.consultas;
         }
-        return consultasDoctor;
+        return new ArrayList<>();
     }
 
     public ArrayList<Consulta> getConsultasVisiblesXDoctor(Doctor doctor) {
-        if (doctor == null) return new ArrayList<>();
-
-        ArrayList<Consulta> consultasVisibles = getConsultasXDoctor(doctor);
-
-        for (Paciente paciente : pacientes) {
-            if (paciente != null && paciente.getResumen() != null) {
-                for (Consulta consultaImportante : paciente.getResumen()) {
-                    boolean yaExiste = false;
-                    int i = 0;
-                    while (i < consultasVisibles.size() && !yaExiste) {
-                        if (consultasVisibles.get(i).getId().equals(consultaImportante.getId())) {
-                            yaExiste = true;
-                        }
-                        i++;
-                    }
-                    if (!yaExiste) {
-                        consultasVisibles.add(consultaImportante);
-                    }
-                }
-            }
-        }
-
-        return consultasVisibles;
+        return getConsultasXDoctor(doctor);
     }
 
     public void reportarCasoEnfermedad(String id) {
@@ -401,43 +485,21 @@ public class Clinica implements Serializable {
     // --- DATOS DE PRUEBA / INICIALIZACIÓN ---
 
     public void initInfo() {
-        Usuario admin = new Usuario("admin", "admin", "Admin");
-        regUsuario(admin);
+        Usuario doc = new Usuario(1,"doc", "doc", "Doctor");
+        regUsuario(doc);
 
-        Usuario usuarioDoctor1 = new Usuario("doc", "doc", "Doctor");
-        regUsuario(usuarioDoctor1);
+        Usuario efm = new Usuario(2,"efm", "efm", "Enfermera");
+        regUsuario(efm);
 
-        Usuario usuarioDoctor2 = new Usuario("Doctor2", "Doctor2", "Doctor");
-        regUsuario(usuarioDoctor2);
-
-        Usuario staff = new Usuario("Staff", "Staff", "Staff");
-        regUsuario(staff);
+        Enfermera enfermera1 = new Enfermera(1, "Ana", "Rodríguez", "001-0000000-0", "809-555-0000", efm);
+        enfermeras.add(enfermera1);
 
         ArrayList<String> especialidades1 = new ArrayList<>(Arrays.asList("Pediatría", "Dermatología"));
-        Doctor doctor1 = new Doctor("DOC-" + genCodigoDoctores, "Dr. Juan Pérez", 20, especialidades1);
-        doctor1.setUsuario(usuarioDoctor1);
+        Doctor doctor1 = new Doctor("DOC-" + genCodigoDoctores, "Dr. Juan", "Pérez",20, especialidades1);
+        doctor1.setUsuario(doc);
         regDoctor(doctor1);
 
-        ArrayList<String> especialidades2 = new ArrayList<>(Arrays.asList("Cardiología", "Medicina General"));
-        Doctor doctor2 = new Doctor("DOC-" + genCodigoDoctores, "Dra. María González", 20, especialidades2);
-        doctor2.setUsuario(usuarioDoctor2);
-        regDoctor(doctor2);
-
         doctor1.setPacientes(getPacientes());
-
-        registrarEnfermedad(new Enfermedad("ENF-1", "Gripe A", false, true, "Fiebre, tos, dolor muscular", "Infección viral respiratoria"));
-        registrarEnfermedad(new Enfermedad("ENF-2", "Dengue", true, false, "Fiebre alta, dolor retroocular, artralgias", "Enfermedad transmitida por mosquito Aedes"));
-        registrarEnfermedad(new Enfermedad("ENF-3", "COVID-19", true, true, "Fiebre, tos, fatiga, pérdida de olfato", "Infección respiratoria por coronavirus"));
-        registrarEnfermedad(new Enfermedad("ENF-4", "Diabetes Tipo 2", false, false, "Sed excesiva, fatiga, visión borrosa", "Trastorno metabólico de glucosa alta"));
-        registrarEnfermedad(new Enfermedad("ENF-5", "Hipertensión", false, false, "Cefalea, mareos, palpitaciones", "Presión arterial crónicamente elevada"));
-        registrarEnfermedad(new Enfermedad("ENF-6", "Hepatitis B", true, true, "Ictericia, fatiga, dolor abdominal", "Infección viral del hígado"));
-
-        regVacuna(new Vacuna("VAC-1", "Flublok", "Sanofi", new ArrayList<>(Arrays.asList(enfermedades.get(0), enfermedades.get(2)))));
-        regVacuna(new Vacuna("VAC-2", "Qdenga", "Takeda", new ArrayList<>(Arrays.asList(enfermedades.get(1), enfermedades.get(0)))));
-        regVacuna(new Vacuna("VAC-3", "Comirnaty", "Pfizer", new ArrayList<>(Arrays.asList(enfermedades.get(2), enfermedades.get(0), enfermedades.get(1)))));
-        regVacuna(new Vacuna("VAC-4", "Spikevax", "Moderna", new ArrayList<>(Arrays.asList(enfermedades.get(2), enfermedades.get(0)))));
-        regVacuna(new Vacuna("VAC-5", "Engerix-B", "GSK", new ArrayList<>(Arrays.asList(enfermedades.get(5), enfermedades.get(1)))));
-        regVacuna(new Vacuna("VAC-6", "Recombivax HB", "Merck", new ArrayList<>(Arrays.asList(enfermedades.get(5), enfermedades.get(0), enfermedades.get(2)))));
 
         regPaciente(new Paciente("PAC-1", "Carlos", "Martínez", "001-0000001-1", "809-555-0101", new Date(92, 2, 10), "Masculino", 75.0f, 1.75f, "O+", "Calle Principal #12"));
         regPaciente(new Paciente("PAC-2", "Ana", "Gómez", "001-0000002-2", "809-555-0202", new Date(95, 6, 20), "Femenino", 60.0f, 1.65f, "A+", "Av. Central #45"));
@@ -448,24 +510,40 @@ public class Clinica implements Serializable {
         long now = System.currentTimeMillis();
         long day = 24 * 60 * 60 * 1000L;
 
-        regCita(new Cita("CIT-1", pacientes.get(0), doctores.get(0), new Date(now + day)));
-        regCita(new Cita("CIT-2", pacientes.get(1), doctores.get(1), new Date(now + 2 * day)));
+        Date f1 = new Date(now + day);
+        regCita(new Cita("CIT-1", LocalDateTime.now(), f1, new Time(f1.getTime()), EstadoCita.PROGRAMADA, pacientes.get(0), doctores.get(0)));
 
-        regCita(new Cita("CIT-3", pacientes.get(2), doctores.get(0), new Date(now - day)));
-        citas.get(citas.size() - 1).marcarNoAsistio();
+        Date f2 = new Date(now + 2 * day);
+        regCita(new Cita("CIT-2", LocalDateTime.now(), f2, new Time(f2.getTime()), EstadoCita.PROGRAMADA, pacientes.get(0), doctores.get(0)));
 
-        regCita(new Cita("CIT-4", pacientes.get(3), doctores.get(1), new Date(now + 3 * day)));
+        Date f3 = new Date(now - day);
+        Cita c3 = new Cita("CIT-3", LocalDateTime.now(), f3, new Time(f3.getTime()), EstadoCita.PROGRAMADA, pacientes.get(2), doctores.get(0));
+        c3.marcarNoAsistio();
+        regCita(c3);
 
-        regCita(new Cita("CIT-5", pacientes.get(4), doctores.get(0), new Date(now - 2 * day)));
-        citas.get(citas.size() - 1).cancelar();
+        Date f4 = new Date(now + 3 * day);
+        regCita(new Cita("CIT-4", LocalDateTime.now(), f4, new Time(f4.getTime()), EstadoCita.PROGRAMADA, pacientes.get(3), doctores.get(0)));
 
-        regCita(new Cita("CIT-6", pacientes.get(0), doctores.get(1), new Date(now + 4 * day)));
-        regCita(new Cita("CIT-7", pacientes.get(1), doctores.get(0), new Date(now + 5 * day)));
-        regCita(new Cita("CIT-8", pacientes.get(2), doctores.get(1), new Date(now + 6 * day)));
+        Date f5 = new Date(now - 2 * day);
+        Cita c5 = new Cita("CIT-5", LocalDateTime.now(), f5, new Time(f5.getTime()), EstadoCita.PROGRAMADA, pacientes.get(4), doctores.get(0));
+        c5.cancelar();
+        regCita(c5);
 
-        regCita(new Cita("CIT-9", pacientes.get(3), doctores.get(0), new Date(now - 3 * day)));
-        citas.get(citas.size() - 1).marcarNoAsistio();
+        Date f6 = new Date(now + 4 * day);
+        regCita(new Cita("CIT-6", LocalDateTime.now(), f6, new Time(f6.getTime()), EstadoCita.PROGRAMADA, pacientes.get(0), doctores.get(0)));
 
-        regCita(new Cita("CIT-10", pacientes.get(4), doctores.get(1), new Date(now + 7 * day)));
+        Date f7 = new Date(now + 5 * day);
+        regCita(new Cita("CIT-7", LocalDateTime.now(), f7, new Time(f7.getTime()), EstadoCita.PROGRAMADA, pacientes.get(1), doctores.get(0)));
+
+        Date f8 = new Date(now + 6 * day);
+        regCita(new Cita("CIT-8", LocalDateTime.now(), f8, new Time(f8.getTime()), EstadoCita.PROGRAMADA, pacientes.get(2), doctores.get(0)));
+
+        Date f9 = new Date(now - 3 * day);
+        Cita c9 = new Cita("CIT-9", LocalDateTime.now(), f9, new Time(f9.getTime()), EstadoCita.PROGRAMADA, pacientes.get(3), doctores.get(0));
+        c9.marcarNoAsistio();
+        regCita(c9);
+
+        Date f10 = new Date(now + 7 * day);
+        regCita(new Cita("CIT-10", LocalDateTime.now(), f10, new Time(f10.getTime()), EstadoCita.PROGRAMADA, pacientes.get(4), doctores.get(0)));
     }
 }

@@ -1,7 +1,7 @@
 package controllers;
 
 import java.util.Date;
-import logico.consultorio.Clinica;
+import logico.Clinica;
 import logico.consultorio.Paciente;
 import utilidad.Formato;
 
