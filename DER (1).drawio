@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net">
   <diagram name="Página-1" id="3pjAaseKwQC_soDrADDe">
-    <mxGraphModel dx="-412" dy="3803" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="-242" dy="3151" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -234,9 +234,6 @@
         <mxCell id="hIrwGAqv6LGoYOdPFWRr-260" parent="1" style="ellipse;whiteSpace=wrap;html=1;fontStyle=0;fontSize=12;" value="fecha_hora" vertex="1">
           <mxGeometry height="30" width="80" x="2809" y="-460.5" as="geometry" />
         </mxCell>
-        <mxCell id="hIrwGAqv6LGoYOdPFWRr-261" parent="1" style="ellipse;whiteSpace=wrap;html=1;fontStyle=0;fontSize=12;" value="tratamiento" vertex="1">
-          <mxGeometry height="30" width="70" x="2985" y="-460.5" as="geometry" />
-        </mxCell>
         <mxCell id="hIrwGAqv6LGoYOdPFWRr-262" parent="1" style="ellipse;whiteSpace=wrap;html=1;fontStyle=0;fontSize=12;" value="observaciones" vertex="1">
           <mxGeometry height="30" width="80" x="3020" y="-509" as="geometry" />
         </mxCell>
@@ -250,12 +247,6 @@
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="2830" y="-504" as="sourcePoint" />
             <mxPoint x="2880" y="-530" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="hIrwGAqv6LGoYOdPFWRr-268" edge="1" parent="1" source="hIrwGAqv6LGoYOdPFWRr-261" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.75;entryY=1;entryDx=0;entryDy=0;endArrow=none;endFill=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" target="hIrwGAqv6LGoYOdPFWRr-148">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="2870" y="-412" as="sourcePoint" />
-            <mxPoint x="2895" y="-480" as="targetPoint" />
           </mxGeometry>
         </mxCell>
         <mxCell id="hIrwGAqv6LGoYOdPFWRr-269" edge="1" parent="1" source="hIrwGAqv6LGoYOdPFWRr-262" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=1;entryDx=0;entryDy=0;endArrow=none;endFill=0;exitX=0;exitY=0;exitDx=0;exitDy=0;" target="hIrwGAqv6LGoYOdPFWRr-148">
