@@ -22,7 +22,9 @@ public class Analisis {
         this.valorMin = valorMin;
     }
 
-
+    public int getIdNumber(){
+        return Clinica.getInstancia().getIdNumber(this.id, Analisis.class);
+    }
     public String getId() {
         return id;
     }

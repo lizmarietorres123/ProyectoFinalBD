@@ -3,6 +3,7 @@ package bd.catalogo;
 import bd.ConexionBD;
 import logico.catalogo.Analisis;
 
+import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -20,6 +21,26 @@ public class AnalisisDAO {
             instance = new AnalisisDAO();
         }
         return instance;
+    }
+
+    public void guardarAnalisis(Analisis analisis) {
+        final String sql = "{call str_insert_analisis(?, ?, ?, ?, ?, ?)}";
+
+        try (Connection connection = ConexionBD.getConnection();
+             CallableStatement callableStatement = connection.prepareCall(sql)) {
+
+            callableStatement.setString(1, analisis.getNombre());
+            callableStatement.setString(2, analisis.getTipo());
+            callableStatement.setString(3, analisis.getUnidadMedida());
+            callableStatement.setDouble(4, analisis.getValorProm());
+            callableStatement.setDouble(5, analisis.getValorMax());
+            callableStatement.setDouble(6, analisis.getValorMin());
+
+            callableStatement.execute();
+
+        } catch (SQLException e) {
+            System.err.println("Error al guardar el análisis: " + e.getMessage());
+        }
     }
 
     public ArrayList<Analisis> obtenerAnalisis(){
@@ -42,10 +63,31 @@ public class AnalisisDAO {
                 ));
             }
 
-        }catch(SQLException e) {
-            System.err.println("Error al guardar el analisis: " + e.getMessage());
+        } catch(SQLException e) {
+            System.err.println("Error al obtener los análisis: " + e.getMessage());
         }
 
         return analisis;
+    }
+
+    public void actualizarAnalisis(Analisis analisis) {
+        final String sql = "{call str_update_analisis(?, ?, ?, ?, ?, ?, ?)}";
+
+        try (Connection connection = ConexionBD.getConnection();
+             CallableStatement callableStatement = connection.prepareCall(sql)) {
+
+            callableStatement.setInt(1, analisis.getIdNumber());
+            callableStatement.setString(2, analisis.getNombre());
+            callableStatement.setString(3, analisis.getTipo());
+            callableStatement.setString(4, analisis.getUnidadMedida());
+            callableStatement.setDouble(5, analisis.getValorProm());
+            callableStatement.setDouble(6, analisis.getValorMax());
+            callableStatement.setDouble(7, analisis.getValorMin());
+
+            callableStatement.execute();
+
+        } catch (SQLException e) {
+            System.err.println("Error al actualizar el análisis: " + e.getMessage());
+        }
     }
 }
