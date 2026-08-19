@@ -1,11 +1,11 @@
 package logico.consultorio;
 
+import logico.Clinica;
 import logico.catalogo.Enfermedad;
 import logico.catalogo.Sintoma;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Map;
 
 public class Diagnostico implements Serializable {
@@ -25,6 +25,7 @@ public class Diagnostico implements Serializable {
     public Diagnostico() {
     }
 
+    // Constructor para cuando se crea desde la interfaz
     public Diagnostico(Enfermedad enfermedad, String observacion, ArrayList<Tratamiento> tratamientos) {
         this.enfermedad = enfermedad;
         this.observacion = observacion;
@@ -32,8 +33,28 @@ public class Diagnostico implements Serializable {
         this.tratamientos = (tratamientos != null) ? tratamientos : new ArrayList<>();
     }
 
+    // Constructor completo para mapear desde la Base de Datos
+    public Diagnostico(int idNumber, String descripcion, String tipo, String estado, Consulta consulta, Enfermedad enfermedad) {
+        setId(idNumber);
+        this.descripcion = descripcion;
+        this.observacion = descripcion; // Mantiene la consistencia de tu lógica
+        this.tipo = tipo;
+        this.estado = estado;
+        this.consulta = consulta;
+        this.enfermedad = enfermedad;
+        this.tratamientos = new ArrayList<>();
+    }
+
     public String getId() {
         return id;
+    }
+
+    public int getIdNumber() {
+        return Clinica.getInstancia().getIdNumber(this.id, Diagnostico.class);
+    }
+
+    public void setId(int idNumber) {
+        this.id = Clinica.getInstancia().genId(idNumber, Diagnostico.class);
     }
 
     public void setId(String id) {
@@ -104,4 +125,5 @@ public class Diagnostico implements Serializable {
     public void setTratamientos(ArrayList<Tratamiento> tratamientos) {
         this.tratamientos = tratamientos;
     }
+
 }

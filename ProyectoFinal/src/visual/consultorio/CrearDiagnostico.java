@@ -50,13 +50,18 @@ public class CrearDiagnostico extends JDialog {
     private Diagnostico diagnosticoEdicion = null;
     private Paciente pacienteActual = null;
 
+    // Objeto temporal para amarrar los tratamientos antes de guardar
+    private Diagnostico diagnosticoTrabajo;
+
     public CrearDiagnostico(ArrayList<Diagnostico> listaExistentes, Paciente paciente) {
         this.pacienteActual = paciente;
+        this.diagnosticoTrabajo = new Diagnostico(); // Se instancia vacío para los tratamientos nuevos
         initUI();
     }
 
     public CrearDiagnostico(Diagnostico diagnostico, ArrayList<Diagnostico> listaExistentes) {
         this.diagnosticoEdicion = diagnostico;
+        this.diagnosticoTrabajo = diagnostico; // Se usa el existente
         if (diagnostico != null) {
             if (diagnostico.getTratamientos() != null) {
                 this.tratamientosActuales = new ArrayList<>(diagnostico.getTratamientos());
@@ -248,7 +253,7 @@ public class CrearDiagnostico extends JDialog {
         cbxEnfermedad.addItem("<<Seleccione>>");
         if (Clinica.getInstancia().getEnfermedades() != null) {
             for (Enfermedad e : Clinica.getInstancia().getEnfermedades()) {
-                cbxEnfermedad.addItem(e.getNombre());
+                cbxEnfermedad.addItem(e.getDescripcion()); // CORREGIDO: getNombre() ya no existe
             }
         }
     }
@@ -310,7 +315,7 @@ public class CrearDiagnostico extends JDialog {
     private void cargarDatosEdicion() {
         if (diagnosticoEdicion != null) {
             if (diagnosticoEdicion.getEnfermedad() != null) {
-                cbxEnfermedad.setSelectedItem(diagnosticoEdicion.getEnfermedad().getNombre());
+                cbxEnfermedad.setSelectedItem(diagnosticoEdicion.getEnfermedad().getDescripcion()); // CORREGIDO
             }
             txtObservacion.setText(diagnosticoEdicion.getObservacion());
             actualizarTextoSintomas();
@@ -319,7 +324,8 @@ public class CrearDiagnostico extends JDialog {
     }
 
     private void abrirAgregarTratamiento() {
-        CrearTratamiento dialog = new CrearTratamiento();
+        // CORREGIDO: Se envía el diagnosticoTrabajo para satisfacer el constructor
+        CrearTratamiento dialog = new CrearTratamiento(diagnosticoTrabajo);
         dialog.setModal(true);
         dialog.setLocationRelativeTo(this);
         dialog.setVisible(true);
@@ -343,7 +349,8 @@ public class CrearDiagnostico extends JDialog {
         }
 
         if (tratamientosActuales.size() == 1) {
-            CrearTratamiento dialog = new CrearTratamiento(tratamientosActuales.get(0));
+            // CORREGIDO: Se envía el diagnosticoTrabajo
+            CrearTratamiento dialog = new CrearTratamiento(diagnosticoTrabajo, tratamientosActuales.get(0));
             dialog.setModal(true);
             dialog.setLocationRelativeTo(this);
             dialog.setVisible(true);
@@ -368,7 +375,8 @@ public class CrearDiagnostico extends JDialog {
             if (seleccion != null) {
                 for (int i = 0; i < tratamientosActuales.size(); i++) {
                     if (seleccion.startsWith((i + 1) + ".")) {
-                        CrearTratamiento dialog = new CrearTratamiento(tratamientosActuales.get(i));
+                        // CORREGIDO: Se envía el diagnosticoTrabajo
+                        CrearTratamiento dialog = new CrearTratamiento(diagnosticoTrabajo, tratamientosActuales.get(i));
                         dialog.setModal(true);
                         dialog.setLocationRelativeTo(this);
                         dialog.setVisible(true);
@@ -406,12 +414,11 @@ public class CrearDiagnostico extends JDialog {
         Enfermedad enfermedadElegida = Clinica.getInstancia().buscarEnfermedadXId(idEnfermedad);
 
         if (diagnosticoEdicion == null) {
-            diagnosticoCreado = new Diagnostico(
-                    enfermedadElegida,
-                    txtObservacion.getText().trim(),
-                    new ArrayList<>(tratamientosActuales)
-            );
-            diagnosticoCreado.setSintomas(sintomasSeleccionados);
+            diagnosticoTrabajo.setEnfermedad(enfermedadElegida);
+            diagnosticoTrabajo.setObservacion(txtObservacion.getText().trim());
+            diagnosticoTrabajo.setTratamientos(new ArrayList<>(tratamientosActuales));
+            diagnosticoTrabajo.setSintomas(sintomasSeleccionados);
+            diagnosticoCreado = diagnosticoTrabajo; // Asignamos el temporal al definitivo
         } else {
             diagnosticoEdicion.setEnfermedad(enfermedadElegida);
             diagnosticoEdicion.setObservacion(txtObservacion.getText().trim());

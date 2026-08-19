@@ -1,5 +1,6 @@
 package logico.catalogo;
 
+import logico.Clinica;
 import logico.consultorio.Paciente;
 
 import java.io.Serializable;
@@ -7,7 +8,7 @@ import java.util.ArrayList;
 
 public class Doctor implements Serializable {
     private static final long serialVersionUID = 8080695571362501743L;
-    
+
     private String id;
     private String nombre;
     private String apellido;
@@ -16,14 +17,24 @@ public class Doctor implements Serializable {
     private ArrayList<String> especialidades;
     private Usuario usuario;
 
-    public Doctor(String idDoctor, String nombre, String apellido, int cupoDiario, ArrayList<String> especialidades) {
-        super();
-        this.id = idDoctor;
+    // Constructor completo para mapear desde la Base de Datos
+    public Doctor(int idNumber, String nombre, String apellido, int cupoDiario) {
+        setId(idNumber);
         this.nombre = nombre;
         this.apellido = apellido;
         this.cupoDiario = cupoDiario;
-        this.especialidades = especialidades;
-        pacientes = new ArrayList<>();
+        this.especialidades = new ArrayList<>();
+        this.pacientes = new ArrayList<>();
+        this.usuario = null;
+    }
+
+    // Constructor para cuando se crea desde la interfaz gráfica
+    public Doctor(String nombre, String apellido, int cupoDiario, ArrayList<String> especialidades) {
+        this.nombre = nombre;
+        this.apellido = apellido;
+        this.cupoDiario = cupoDiario;
+        this.especialidades = (especialidades != null) ? especialidades : new ArrayList<>();
+        this.pacientes = new ArrayList<>();
         this.usuario = null;
     }
 
@@ -31,8 +42,16 @@ public class Doctor implements Serializable {
         return id;
     }
 
+    public int getIdNumber() {
+        return Clinica.getInstancia().getIdNumber(this.id, Doctor.class);
+    }
+
+    public void setId(int idNumber) {
+        this.id = Clinica.getInstancia().genId(idNumber, Doctor.class);
+    }
+
     public void setId(String idDoctor) {
-        this.id = id;
+        this.id = idDoctor; // Corrección: Antes decía this.id = id;
     }
 
     public String getNombre() {

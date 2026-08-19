@@ -1,5 +1,6 @@
 package logico.consultorio;
 
+import logico.Clinica;
 import logico.catalogo.Doctor;
 import logico.catalogo.EstadoCita;
 
@@ -20,9 +21,19 @@ public class Cita implements Serializable {
 	private Paciente paciente;
 	private Doctor doctor;
 
-	public Cita(String id, LocalDateTime fechaRegistro, Date fechaConsulta, Time horaConsulta, EstadoCita estado, Paciente paciente, Doctor doctor) {
-		this.id = id;
+	// Constructor para mapeo desde la Base de Datos
+	public Cita(int idNumber, LocalDateTime fechaRegistro, Date fechaConsulta, Time horaConsulta, EstadoCita estado, Paciente paciente, Doctor doctor) {
+		setId(idNumber);
 		this.fechaRegistro = fechaRegistro;
+		this.fechaConsulta = fechaConsulta;
+		this.horaConsulta = horaConsulta;
+		this.estado = estado;
+		this.paciente = paciente;
+		this.doctor = doctor;
+	}
+
+	// Constructor para la interfaz gráfica (sin ID ni fecha de registro, ya que BD lo genera)
+	public Cita(Date fechaConsulta, Time horaConsulta, EstadoCita estado, Paciente paciente, Doctor doctor) {
 		this.fechaConsulta = fechaConsulta;
 		this.horaConsulta = horaConsulta;
 		this.estado = estado;
@@ -34,12 +45,12 @@ public class Cita implements Serializable {
 		return id;
 	}
 
-	public int getIdNumber(){
-		return Integer.parseInt(id.replace("CIT-", ""));
+	public int getIdNumber() {
+		return Clinica.getInstancia().getIdNumber(this.id, Cita.class);
 	}
 
 	public void setId(int idNumber) {
-		this.id = "CIT-" + idNumber;
+		this.id = Clinica.getInstancia().genId(idNumber, Cita.class);
 	}
 
 	public LocalDateTime getFechaRegistro() {

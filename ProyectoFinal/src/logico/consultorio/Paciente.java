@@ -1,5 +1,6 @@
 package logico.consultorio;
 
+import logico.Clinica;
 import logico.catalogo.Enfermedad;
 import logico.catalogo.Vacuna;
 
@@ -28,10 +29,10 @@ public class Paciente implements Serializable {
 	private ArrayList<Consulta> historialClinico;
 	private ArrayList<Enfermedad> enfermedades;
 
-	public Paciente(String id, String nombre, String apellido, String cedula, String telefono, Date fecNacim,
-	                String sexo, float peso, float estatura, String tipoSangre, String direccion) {
+	public Paciente(int idNumber, String nombre, String apellido, String cedula, String telefono, Date fecNacim,
+					String sexo, float peso, float estatura, String tipoSangre, String direccion) {
 		super();
-		this.id = id;
+		setId(idNumber);
 		this.nombre = nombre;
 		this.apellido = apellido;
 		this.cedula = cedula;
@@ -53,8 +54,12 @@ public class Paciente implements Serializable {
 		return id;
 	}
 
-	public void setId(String id) {
-		this.id = id;
+	public int getIdNumber() {
+		return Clinica.getInstancia().getIdNumber(this.id, Paciente.class);
+	}
+
+	public void setId(int idNumber) {
+		this.id = Clinica.getInstancia().genId(idNumber, Paciente.class);
 	}
 
 	public String getNombre() {

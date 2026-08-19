@@ -1,6 +1,8 @@
 package logico.consultorio;
 
+import logico.Clinica;
 import logico.catalogo.Medicamento;
+
 import java.util.Date;
 
 public class Tratamiento {
@@ -15,13 +17,12 @@ public class Tratamiento {
     private Diagnostico diagnostico;
     private Medicamento medicamento;
 
-    // Constructor vacío por defecto
     public Tratamiento() {
     }
 
-    // Constructor parametrizado para instanciación completa
-    public Tratamiento(String id, Medicamento medicamento, int dosis, String frecuencia, Date fechaInicio, Date fechaFin, String descripcion, String estado) {
-        this.id = id;
+    public Tratamiento(int idNumber, Diagnostico diagnostico, Medicamento medicamento, int dosis, String frecuencia, Date fechaInicio, Date fechaFin, String descripcion, String estado) {
+        setId(idNumber);
+        this.diagnostico = diagnostico;
         this.medicamento = medicamento;
         this.dosis = dosis;
         this.frecuencia = frecuencia;
@@ -35,8 +36,12 @@ public class Tratamiento {
         return id;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public int getIdNumber() {
+        return Clinica.getInstancia().getIdNumber(this.id, Tratamiento.class);
+    }
+
+    public void setId(int idNumber) {
+        this.id = Clinica.getInstancia().genId(idNumber, Tratamiento.class);
     }
 
     public String getDescripcion() {

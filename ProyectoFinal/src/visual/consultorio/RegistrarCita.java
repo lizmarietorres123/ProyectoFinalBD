@@ -588,19 +588,21 @@ public class RegistrarCita extends JDialog {
 		Date fechaSel = (Date) spnFecha.getValue();
 
 		if (citaEditar == null) {
-			// REGISTRO
-			LocalDateTime fechaRegistro = LocalDateTime.now();
+			// MODIFICACIÓN PRINCIPAL AQUÍ:
 			Time horaConsulta = new Time(fechaSel.getTime());
 
+			// Se utiliza el constructor de interfaz gráfica que no exige ID en parámetros.
 			Cita nuevaCita = new Cita(
-					txtIdCita.getText(),
-					fechaRegistro,
 					fechaSel,
 					horaConsulta,
 					EstadoCita.PROGRAMADA,
 					auxPaciente,
 					auxDoctor
 			);
+
+			// Se asignan manualmente para la gestión en memoria de Clinica
+			nuevaCita.setId(Clinica.genCodigoCitas);
+			nuevaCita.setFechaRegistro(LocalDateTime.now());
 
 			Clinica.getInstancia().regCita(nuevaCita);
 			JOptionPane.showMessageDialog(this, "Cita registrada exitosamente.", "Información", JOptionPane.INFORMATION_MESSAGE);

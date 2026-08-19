@@ -25,6 +25,7 @@ import javax.swing.border.TitledBorder;
 
 import logico.catalogo.Medicamento;
 import logico.Clinica;
+import logico.consultorio.Diagnostico;
 import logico.consultorio.Tratamiento;
 
 public class CrearTratamiento extends JDialog {
@@ -43,12 +44,17 @@ public class CrearTratamiento extends JDialog {
 
     private Tratamiento tratamientoCreado = null;
     private Tratamiento tratamientoEdicion = null;
+    private Diagnostico diagnosticoActual; // Variable agregada
 
-    public CrearTratamiento() {
+    // Constructor para tratamiento nuevo
+    public CrearTratamiento(Diagnostico diagnostico) {
+        this.diagnosticoActual = diagnostico;
         initUI();
     }
 
-    public CrearTratamiento(Tratamiento tratamiento) {
+    // Constructor para editar tratamiento
+    public CrearTratamiento(Diagnostico diagnostico, Tratamiento tratamiento) {
+        this.diagnosticoActual = diagnostico;
         this.tratamientoEdicion = tratamiento;
         initUI();
         cargarDatosEdicion();
@@ -277,8 +283,10 @@ public class CrearTratamiento extends JDialog {
         String indicaciones = txtDescripcion.getText().trim();
 
         if (tratamientoEdicion == null) {
+            // El 0 es un placeholder. La base de datos asignará el ID real al hacer el INSERT.
             tratamientoCreado = new Tratamiento(
-                    "TRAT-" + System.currentTimeMillis() % 10000,
+                    0,
+                    diagnosticoActual,
                     medicamentoElegido,
                     dosis,
                     frecuencia,
