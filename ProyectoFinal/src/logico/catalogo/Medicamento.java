@@ -20,9 +20,12 @@ public class Medicamento {
         this.fabricante = fabricante;
     }
 
-
     public String getId() {
         return id;
+    }
+
+    public int getIdNumber() {
+        return Clinica.getInstancia().getIdNumber(this.id, Medicamento.class);
     }
 
     public void setId(int idNumber) {

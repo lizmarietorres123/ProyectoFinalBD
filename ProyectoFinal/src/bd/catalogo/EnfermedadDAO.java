@@ -5,6 +5,7 @@ import logico.catalogo.Enfermedad;
 import logico.catalogo.Sintoma;
 import logico.Clinica;
 
+import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -24,6 +25,52 @@ public class EnfermedadDAO {
         return instance;
     }
 
+    public void guardarEnfermedad(Enfermedad enfermedad) {
+        final String sql = "{call str_insert_enfermedad(?, ?, ?)}";
+
+        try (Connection connection = ConexionBD.getConnection();
+             CallableStatement callableStatement = connection.prepareCall(sql)) {
+
+            callableStatement.setString(1, enfermedad.getDescripcion());
+            callableStatement.setBoolean(2, enfermedad.isEsContagiosa());
+
+            if (enfermedad.getEspecialidad() != null) {
+                // Se asume que Especialidad tiene el método getIdNumber()
+                callableStatement.setInt(3, enfermedad.getEspecialidad().getIdNumber());
+            } else {
+                callableStatement.setNull(3, java.sql.Types.INTEGER);
+            }
+
+            callableStatement.execute();
+
+        } catch (SQLException e) {
+            System.err.println("Error al guardar la enfermedad: " + e.getMessage());
+        }
+    }
+
+    public void actualizarEnfermedad(Enfermedad enfermedad) {
+        final String sql = "{call str_update_enfermedad(?, ?, ?, ?)}";
+
+        try (Connection connection = ConexionBD.getConnection();
+             CallableStatement callableStatement = connection.prepareCall(sql)) {
+
+            callableStatement.setInt(1, enfermedad.getIdNumber());
+            callableStatement.setString(2, enfermedad.getDescripcion());
+            callableStatement.setBoolean(3, enfermedad.isEsContagiosa());
+
+            if (enfermedad.getEspecialidad() != null) {
+                callableStatement.setInt(4, enfermedad.getEspecialidad().getIdNumber());
+            } else {
+                callableStatement.setNull(4, java.sql.Types.INTEGER);
+            }
+
+            callableStatement.execute();
+
+        } catch (SQLException e) {
+            System.err.println("Error al actualizar la enfermedad: " + e.getMessage());
+        }
+    }
+
     public ArrayList<Enfermedad> obtenerEnfermedades(){
         ArrayList<Enfermedad> enfermedades = new ArrayList<>();
         final String sql = "SELECT * FROM enfermedad";
@@ -35,16 +82,15 @@ public class EnfermedadDAO {
             while(rs.next()){
                 enfermedades.add(new Enfermedad(
                         rs.getInt("id_enfermedad"),
-                        rs.getString("nombre"),
+                        // rs.getString("nombre") <- Eliminado. Ya no existe en la BD.
                         rs.getString("descripcion"),
                         rs.getBoolean("es_contagiosa"),
-                        null,
-                        //rs.getInt("id_especialidad"),
+                        null, // Aquí deberías cargar el objeto Especialidad si es necesario
                         obtenerSintomas(rs.getInt("id_enfermedad"))
                 ));
             }
 
-        }catch(SQLException e) {
+        } catch(SQLException e) {
             System.err.println("Error al obtener las enfermedades: " + e.getMessage());
         }
 
@@ -75,7 +121,7 @@ public class EnfermedadDAO {
                 }
             }
 
-        }catch(SQLException e) {
+        } catch(SQLException e) {
             System.err.println("Error al obtener los síntomas de la enfermedad: " + e.getMessage());
         }
 
