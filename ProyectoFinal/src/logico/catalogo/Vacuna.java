@@ -13,7 +13,7 @@ public class Vacuna implements Serializable {
 
 	public Vacuna(int idNumber, String nombre, String fabricante, int cantDosis) {
 		super();
-		this.id = id;
+		setId(idNumber); // CORREGIDO: Antes decía this.id = id;
 		this.nombre = nombre;
 		this.fabricante = fabricante;
 		this.cantDosis = cantDosis;
@@ -21,6 +21,10 @@ public class Vacuna implements Serializable {
 
 	public String getId() {
 		return id;
+	}
+
+	public int getIdNumber() {
+		return Clinica.getInstancia().getIdNumber(this.id, Vacuna.class);
 	}
 
 	public void setId(int idNumber) {

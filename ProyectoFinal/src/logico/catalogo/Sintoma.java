@@ -17,6 +17,10 @@ public class Sintoma {
         return id;
     }
 
+    public int getIdNumber() {
+        return Clinica.getInstancia().getIdNumber(this.id, Sintoma.class);
+    }
+
     public void setId(int idNumber) {
         this.id = Clinica.getInstancia().genId(idNumber, Sintoma.class);
     }

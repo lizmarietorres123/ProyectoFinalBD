@@ -1,5 +1,6 @@
 package logico.enfermeria;
 
+import logico.Clinica;
 import logico.catalogo.Enfermera;
 import logico.catalogo.Vacuna;
 import logico.consultorio.Consulta;
@@ -8,19 +9,19 @@ import java.time.LocalDateTime;
 
 public class DetalleVacuna {
 
-    String id;
-    int dosis;
-    String lote;
-    String estado;
-    LocalDateTime fecha_aplicacion;
-    String observaciones;
-    Consulta consulta;
-    Vacuna vacuna;
-    Enfermera enfermera;
+    private String id;
+    private int dosis;
+    private String lote;
+    private String estado;
+    private LocalDateTime fecha_aplicacion;
+    private String observaciones;
+    private Consulta consulta;
+    private Vacuna vacuna;
+    private Enfermera enfermera;
 
-    // Constructor completo actualizado
-    public DetalleVacuna(String id, int dosis, String lote, String estado, LocalDateTime fecha_aplicacion, String observaciones, Consulta consulta, Vacuna vacuna, Enfermera enfermera) {
-        this.id = id;
+    // Constructor completo mapeado para la Base de Datos
+    public DetalleVacuna(int idNumber, int dosis, String lote, String estado, LocalDateTime fecha_aplicacion, String observaciones, Consulta consulta, Vacuna vacuna, Enfermera enfermera) {
+        setId(idNumber);
         this.dosis = dosis;
         this.lote = lote;
         this.estado = estado;
@@ -31,7 +32,7 @@ public class DetalleVacuna {
         this.enfermera = enfermera;
     }
 
-    // Constructor simplificado
+    // Constructor simplificado para cuando el médico la indica (aún no se ha aplicado)
     public DetalleVacuna(Consulta consulta, Vacuna vacuna) {
         this.dosis = 0;
         this.lote = null;
@@ -39,10 +40,19 @@ public class DetalleVacuna {
         this.consulta = consulta;
         this.vacuna = vacuna;
         this.enfermera = null;
+        this.fecha_aplicacion = null;
     }
 
     public String getId() {
         return id;
+    }
+
+    public int getIdNumber() {
+        return Clinica.getInstancia().getIdNumber(this.id, DetalleVacuna.class);
+    }
+
+    public void setId(int idNumber) {
+        this.id = Clinica.getInstancia().genId(idNumber, DetalleVacuna.class);
     }
 
     public void setId(String id) {
@@ -105,7 +115,6 @@ public class DetalleVacuna {
         this.vacuna = vacuna;
     }
 
-    // Getters y Setters agregados para Enfermera
     public Enfermera getEnfermera() {
         return enfermera;
     }

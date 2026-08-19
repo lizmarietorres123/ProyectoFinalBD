@@ -29,6 +29,10 @@ public class Enfermera {
         this.id = Clinica.getInstancia().genId(idNumber, Enfermera.class);
     }
 
+    public int getIdNumber() {
+        return Clinica.getInstancia().getIdNumber(this.id, Enfermera.class);
+    }
+
     public String getNombre() {
         return nombre;
     }
