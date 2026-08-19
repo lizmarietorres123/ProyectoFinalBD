@@ -19,27 +19,23 @@ public class ConsultaDAO {
     }
 
     public void guardarConsulta(Consulta consulta) {
-        final String sql =
-                "INSERT INTO consulta (observaciones, id_cita) " +
-                "OUTPUT INSERTED.id_consulta, INSERTED.fecha_hora " +
-                "VALUES (?, ?)";
+        // Se utiliza la sintaxis de llamada a procedimiento almacenado
+        final String sql = "{call str_insert_consulta(?, ?)}";
 
-        //Se utiliza try para garantizar que la conexion se cierre automaticamente, evitando memory leaks
         try (Connection connection = ConexionBD.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+             CallableStatement callableStatement = connection.prepareCall(sql)) {
 
-            preparedStatement.setString(1, consulta.getObservaciones());
-            //preparedStatement.setInt(3, consulta.getCita().getIdNumber());
-            preparedStatement.setNull(2, java.sql.Types.INTEGER);
+            callableStatement.setString(1, consulta.getObservaciones());
 
-            //Asignar el id y fecha generada en bd al objeto local;
-            try(ResultSet rs = preparedStatement.executeQuery()) {
-
-                if (rs.next()) {
-                    consulta.setId(rs.getInt("id_consulta"));
-                    consulta.setFechaHora(rs.getTimestamp("fecha_hora").toLocalDateTime());
-                }
+            // Manejo correcto de nulos asumiendo que tienes un objeto Cita
+            if (consulta.getCita() != null) {
+                callableStatement.setInt(2, consulta.getCita().getIdNumber());
+            } else {
+                callableStatement.setNull(2, java.sql.Types.INTEGER);
             }
+
+            callableStatement.execute();
+
 
         } catch (SQLException e) {
             System.err.println("Error al guardar la consulta: " + e.getMessage());
@@ -58,34 +54,38 @@ public class ConsultaDAO {
                 consultas.add(new Consulta(
                         rs.getInt("id_consulta"),
                         rs.getTimestamp("fecha_hora").toLocalDateTime(),
-                        rs.getString("tratamiento"),
                         rs.getString("observaciones"),
                         rs.getInt("id_cita")
                 ));
             }
 
-        }catch(SQLException e) {
-            System.err.println("Error al guardar la consulta: " + e.getMessage());
+        } catch(SQLException e) {
+            System.err.println("Error al obtener las consultas: " + e.getMessage());
         }
 
         return consultas;
     }
 
     public void actualizarConsulta(Consulta consulta) {
-        final String sql =
-                "UPDATE INTO consulta (observaciones, id_cita) " + "VALUES (?, ?)";
 
-        //Se utiliza try para garantizar que la conexion se cierre automaticamente, evitando memory leaks
+        final String sql = "{call str_update_consulta(?, ?, ?)}";
+
         try (Connection connection = ConexionBD.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+             CallableStatement callableStatement = connection.prepareCall(sql)) {
 
-            preparedStatement.setString(1, consulta.getObservaciones());
-            //preparedStatement.setInt(2, consulta.getCita().getIdNumber());
-            preparedStatement.setNull(3, java.sql.Types.INTEGER);
+            callableStatement.setInt(1, consulta.getIdNumber());
+            callableStatement.setString(2, consulta.getObservaciones());
 
+            if (consulta.getCita() != null) {
+                callableStatement.setInt(3, consulta.getCita().getIdNumber());
+            } else {
+                callableStatement.setNull(3, Types.INTEGER);
+            }
+
+            callableStatement.execute();
 
         } catch (SQLException e) {
-            System.err.println("Error al guardar la consulta: " + e.getMessage());
+            System.err.println("Error al actualizar la consulta: " + e.getMessage());
         }
     }
 }

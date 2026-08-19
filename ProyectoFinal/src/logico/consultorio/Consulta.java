@@ -27,12 +27,11 @@ public class Consulta implements Serializable {
         this.diagnosticos = new ArrayList<>();
     }
 
-    public Consulta(int idNumConsulta, LocalDateTime fechaHora, String tratamiento, String observaciones, int idNumCita) {
+    public Consulta(int idNumConsulta, LocalDateTime fechaHora, String observaciones, int idNumCita) {
         setId(idNumConsulta);
         this.fechaHora = fechaHora;
         this.observaciones = observaciones;
         setCita(idNumCita);
-        this.cita = cita;
         this.diagnosticos = new ArrayList<>();
     }
     
