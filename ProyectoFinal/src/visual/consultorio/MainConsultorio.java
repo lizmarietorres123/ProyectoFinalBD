@@ -45,7 +45,6 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import logico.Clinica;
 import logico.catalogo.Doctor;
 import logico.catalogo.Usuario;
-import servidor.Servidor;
 
 public class MainConsultorio extends JFrame {
 
@@ -73,13 +72,6 @@ public class MainConsultorio extends JFrame {
     private static DataOutputStream SalidaSocket;
 
     public MainConsultorio(Usuario usuario) {
-        // Inicialización del Servidor en puerto 7000
-        try {
-            Servidor servidor = new Servidor(7000);
-            servidor.start();
-        } catch (Exception ex) {
-            // Manejo silencioso si el servidor ya fue iniciado previamente
-        }
 
         Clinica.getInstancia().cargarBD();
 

@@ -497,18 +497,16 @@ public class Clinica implements Serializable {
         enfermeras.add(enfermera1);
 
         // Doctor corregido usando el constructor completo mapeado a base de datos
-        Doctor doctor1 = new Doctor(1, "Dr. Juan", "Pérez", 20);
+        Doctor doctor1 = new Doctor("Dr. Juan", "Pérez", 20,"Internista");
         doctor1.setUsuario(doc);
         regDoctor(doctor1);
 
-        doctor1.setPacientes(getPacientes());
-
         // Pacientes corregidos usando el constructor de ID numérico
-        regPaciente(new Paciente(1, "Carlos", "Martínez", "001-0000001-1", "809-555-0101", new Date(92, 2, 10), "Masculino", 75.0f, 1.75f, "O+", "Calle Principal #12"));
-        regPaciente(new Paciente(2, "Ana", "Gómez", "001-0000002-2", "809-555-0202", new Date(95, 6, 20), "Femenino", 60.0f, 1.65f, "A+", "Av. Central #45"));
-        regPaciente(new Paciente(3, "Luis", "Hernández", "001-0000003-3", "809-555-0303", new Date(88, 11, 5), "Masculino", 82.0f, 1.80f, "B+", "Calle Sol #8"));
-        regPaciente(new Paciente(4, "Laura", "Díaz", "001-0000004-4", "809-555-0404", new Date(99, 1, 14), "Femenino", 55.0f, 1.60f, "AB+", "Calle Luna #23"));
-        regPaciente(new Paciente(5, "Pedro", "Sánchez", "001-0000005-5", "809-555-0505", new Date(91, 8, 30), "Masculino", 90.0f, 1.78f, "O-", "Av. Las Flores #10"));
+        regPaciente(new Paciente(1, "Carlos", "Martínez", "001-0000001-1", "809-555-0101", new Date(92, 2, 10), "Masculino", 75.0f, 1.75f, "O+", "Calle Principal #12","activo"));
+        regPaciente(new Paciente(2, "Ana", "Gómez", "001-0000002-2", "809-555-0202", new Date(95, 6, 20), "Femenino", 60.0f, 1.65f, "A+", "Av. Central #45","activo"));
+        regPaciente(new Paciente(3, "Luis", "Hernández", "001-0000003-3", "809-555-0303", new Date(88, 11, 5), "Masculino", 82.0f, 1.80f, "B+", "Calle Sol #8","activo"));
+        regPaciente(new Paciente(4, "Laura", "Díaz", "001-0000004-4", "809-555-0404", new Date(99, 1, 14), "Femenino", 55.0f, 1.60f, "AB+", "Calle Luna #23","activo"));
+        regPaciente(new Paciente(5, "Pedro", "Sánchez", "001-0000005-5", "809-555-0505", new Date(91, 8, 30), "Masculino", 90.0f, 1.78f, "O-", "Av. Las Flores #10","activo"));
 
         long now = System.currentTimeMillis();
         long day = 24 * 60 * 60 * 1000L;

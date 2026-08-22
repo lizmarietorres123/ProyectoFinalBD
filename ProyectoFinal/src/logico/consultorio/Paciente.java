@@ -23,14 +23,14 @@ public class Paciente implements Serializable {
 	private float estatura;
 	private String tipoSangre;
 	private String direccion;
+	private String estado;
 
 	private ArrayList<Vacuna> vacunas;
-	private ArrayList<Consulta> resumen;
 	private ArrayList<Consulta> historialClinico;
 	private ArrayList<Enfermedad> enfermedades;
 
 	public Paciente(int idNumber, String nombre, String apellido, String cedula, String telefono, Date fecNacim,
-					String sexo, float peso, float estatura, String tipoSangre, String direccion) {
+	                String sexo, float peso, float estatura, String tipoSangre, String direccion, String estado) {
 		super();
 		setId(idNumber);
 		this.nombre = nombre;
@@ -43,9 +43,9 @@ public class Paciente implements Serializable {
 		this.estatura = estatura;
 		this.tipoSangre = tipoSangre;
 		this.direccion = direccion;
+		this.estado = estado;
 
 		this.vacunas = new ArrayList<>();
-		this.resumen = new ArrayList<>();
 		this.historialClinico = new ArrayList<>();
 		this.enfermedades = new ArrayList<>();
 	}
@@ -142,20 +142,20 @@ public class Paciente implements Serializable {
 		this.direccion = direccion;
 	}
 
+	public String getEstado() {
+		return estado;
+	}
+
+	public void setEstado(String estado) {
+		this.estado = estado;
+	}
+
 	public ArrayList<Vacuna> getVacunas() {
 		return vacunas;
 	}
 
 	public void setVacunas(ArrayList<Vacuna> vacunas) {
 		this.vacunas = vacunas;
-	}
-
-	public ArrayList<Consulta> getResumen() {
-		return resumen;
-	}
-
-	public void setResumen(ArrayList<Consulta> resumen) {
-		this.resumen = resumen;
 	}
 
 	public ArrayList<Consulta> getHistorialClinico() {

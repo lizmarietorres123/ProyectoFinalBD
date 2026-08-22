@@ -130,8 +130,8 @@ public class RegistrarCita extends JDialog {
 				return "";
 			}
 			String especialidad = "";
-			if (doctor.getEspecialidades() != null && !doctor.getEspecialidades().isEmpty()) {
-				especialidad = " (" + doctor.getEspecialidades().get(0) + ")";
+			if (doctor.getEspecialidad() != null && !doctor.getEspecialidad().isEmpty()) {
+				especialidad = " (" + doctor.getEspecialidad() + ")";
 			}
 			return "Dr. " + doctor.getNombre() + especialidad;
 		}
@@ -153,9 +153,9 @@ public class RegistrarCita extends JDialog {
 					label.setFont(new Font("Dialog", Font.ITALIC, 12));
 				} else {
 					Doctor d = item.getDoctor();
-					String especialidades = (d.getEspecialidades() != null && !d.getEspecialidades().isEmpty())
-							? "  •  " + String.join(", ", d.getEspecialidades()) : "";
-					label.setText("👨‍⚕️ Dr. " + d.getNombre() + especialidades);
+					String especialidad = (d.getEspecialidad() != null && !d.getEspecialidad().isEmpty())
+							? " (" + d.getEspecialidad() + ")" : "";
+					label.setText("👨‍⚕️ Dr. " + d.getNombre() + especialidad);
 					label.setFont(new Font("Dialog", Font.PLAIN, 12));
 
 					if (isSelected) {
@@ -428,8 +428,8 @@ public class RegistrarCita extends JDialog {
 				DoctorItem item = cbxDoctor.getItemAt(i);
 				if (item != null && item.getDoctor() != null && item.getDoctor().getId().equalsIgnoreCase(auxDoctor.getId())) {
 					cbxDoctor.setSelectedIndex(i);
-					String esp = (auxDoctor.getEspecialidades() != null && !auxDoctor.getEspecialidades().isEmpty())
-							? String.join(", ", auxDoctor.getEspecialidades()) : "General";
+					String esp = (auxDoctor.getEspecialidad() != null && !auxDoctor.getEspecialidad().isEmpty())
+							? auxDoctor.getEspecialidad() : "General";
 					lblInfoDoctor.setText("✓ " + auxDoctor.getNombre() + " (" + esp + ")");
 					lblInfoDoctor.setForeground(new Color(0, 128, 0));
 					break;
@@ -521,8 +521,7 @@ public class RegistrarCita extends JDialog {
 			for (Doctor d : Clinica.getInstancia().getDoctores()) {
 				boolean matchNombre = d.getNombre() != null && d.getNombre().toLowerCase().contains(filtroNorm);
 				boolean matchId = d.getId() != null && d.getId().toLowerCase().contains(filtroNorm);
-				boolean matchEspecialidad = d.getEspecialidades() != null && d.getEspecialidades().stream()
-						.anyMatch(esp -> esp.toLowerCase().contains(filtroNorm));
+				boolean matchEspecialidad = d.getEspecialidad() != null && d.getEspecialidad().toLowerCase().contains(filtroNorm);
 
 				if (filtroNorm.isEmpty() || matchNombre || matchId || matchEspecialidad) {
 					doctoresEncontrados.add(d);
@@ -557,8 +556,8 @@ public class RegistrarCita extends JDialog {
 				Doctor doc = item.getDoctor();
 				auxDoctor = doc;
 
-				String esp = (doc.getEspecialidades() != null && !doc.getEspecialidades().isEmpty())
-						? String.join(", ", doc.getEspecialidades()) : "General";
+				String esp = (doc.getEspecialidad() != null && !doc.getEspecialidad().isEmpty())
+						? doc.getEspecialidad() : "General";
 				lblInfoDoctor.setText("✓ " + doc.getNombre() + " (" + esp + ")");
 				lblInfoDoctor.setForeground(new Color(0, 128, 0));
 				return;
@@ -588,10 +587,8 @@ public class RegistrarCita extends JDialog {
 		Date fechaSel = (Date) spnFecha.getValue();
 
 		if (citaEditar == null) {
-			// MODIFICACIÓN PRINCIPAL AQUÍ:
 			Time horaConsulta = new Time(fechaSel.getTime());
 
-			// Se utiliza el constructor de interfaz gráfica que no exige ID en parámetros.
 			Cita nuevaCita = new Cita(
 					fechaSel,
 					horaConsulta,
@@ -600,7 +597,6 @@ public class RegistrarCita extends JDialog {
 					auxDoctor
 			);
 
-			// Se asignan manualmente para la gestión en memoria de Clinica
 			nuevaCita.setId(Clinica.genCodigoCitas);
 			nuevaCita.setFechaRegistro(LocalDateTime.now());
 
@@ -608,7 +604,6 @@ public class RegistrarCita extends JDialog {
 			JOptionPane.showMessageDialog(this, "Cita registrada exitosamente.", "Información", JOptionPane.INFORMATION_MESSAGE);
 			limpiarCampos();
 		} else {
-			// MODIFICACIÓN
 			citaEditar.setPaciente(auxPaciente);
 			citaEditar.setDoctor(auxDoctor);
 			citaEditar.setFechaConsulta(fechaSel);

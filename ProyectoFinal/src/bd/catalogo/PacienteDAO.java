@@ -24,7 +24,7 @@ public class PacienteDAO {
     }
 
     public void guardarPaciente(Paciente paciente) {
-        final String sql = "{call str_insert_paciente(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+        final String sql = "{call str_insert_paciente(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
 
         try (Connection connection = ConexionBD.getConnection();
              CallableStatement callableStatement = connection.prepareCall(sql)) {
@@ -32,10 +32,7 @@ public class PacienteDAO {
             callableStatement.setString(1, paciente.getCedula());
             callableStatement.setString(2, paciente.getNombre());
             callableStatement.setString(3, paciente.getApellido());
-
-            // Conversión de java.util.Date a java.sql.Date
             callableStatement.setDate(4, new java.sql.Date(paciente.getFecNacim().getTime()));
-
             callableStatement.setString(5, paciente.getSexo());
             callableStatement.setString(6, paciente.getTelefono());
 
@@ -54,6 +51,12 @@ public class PacienteDAO {
                 callableStatement.setNull(10, java.sql.Types.VARCHAR);
             }
 
+            if (paciente.getEstado() != null && !paciente.getEstado().isEmpty()) {
+                callableStatement.setString(11, paciente.getEstado());
+            } else {
+                callableStatement.setNull(11, java.sql.Types.VARCHAR);
+            }
+
             callableStatement.execute();
 
         } catch (SQLException e) {
@@ -62,7 +65,7 @@ public class PacienteDAO {
     }
 
     public void actualizarPaciente(Paciente paciente) {
-        final String sql = "{call str_update_paciente(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+        final String sql = "{call str_update_paciente(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
 
         try (Connection connection = ConexionBD.getConnection();
              CallableStatement callableStatement = connection.prepareCall(sql)) {
@@ -90,6 +93,12 @@ public class PacienteDAO {
                 callableStatement.setNull(11, java.sql.Types.VARCHAR);
             }
 
+            if (paciente.getEstado() != null && !paciente.getEstado().isEmpty()) {
+                callableStatement.setString(12, paciente.getEstado());
+            } else {
+                callableStatement.setNull(12, java.sql.Types.VARCHAR);
+            }
+
             callableStatement.execute();
 
         } catch (SQLException e) {
@@ -112,12 +121,13 @@ public class PacienteDAO {
                         rs.getString("apellido"),
                         rs.getString("cedula"),
                         rs.getString("telefono"),
-                        rs.getDate("fec_nacim"), // getDate devuelve java.sql.Date (compatible con java.util.Date)
+                        rs.getDate("fec_nacim"),
                         rs.getString("sexo"),
                         rs.getFloat("peso"),
                         rs.getFloat("estatura"),
                         rs.getString("tipo_sangre"),
-                        rs.getString("direccion")
+                        rs.getString("direccion"),
+                        rs.getString("estado")
                 ));
             }
 

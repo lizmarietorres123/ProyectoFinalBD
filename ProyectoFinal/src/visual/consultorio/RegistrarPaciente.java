@@ -17,7 +17,7 @@ import java.awt.Color;
 import javax.swing.border.TitledBorder;
 import javax.swing.border.LineBorder;
 
-import controllers.PacienteController;
+import logico.Clinica;
 import logico.consultorio.Paciente;
 import utilidad.Formato;
 
@@ -42,10 +42,11 @@ public class RegistrarPaciente extends JDialog {
 	private JSpinner spnFechaNacim;
 	private JComboBox<String> cbxSexo;
 	private JComboBox<String> cbxTipoSangre;
+	private JComboBox<String> cbxEstado;
 	private JTextArea txtDireccion;
 
 	private Paciente miPaciente = null;
-	private final PacienteController pacienteController;
+	private Paciente pacienteCreado = null;
 
 	public static void main(String[] args) {
 		try {
@@ -59,7 +60,6 @@ public class RegistrarPaciente extends JDialog {
 
 	public RegistrarPaciente(Paciente pac) {
 		this.miPaciente = pac;
-		this.pacienteController = new PacienteController();
 
 		if (miPaciente == null) {
 			setTitle("Registrar Paciente");
@@ -67,7 +67,7 @@ public class RegistrarPaciente extends JDialog {
 			setTitle("Modificar Paciente");
 		}
 
-		setBounds(100, 100, 631, 450);
+		setBounds(100, 100, 631, 480);
 		setLocationRelativeTo(null);
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBackground(new Color(240, 248, 255));
@@ -191,7 +191,7 @@ public class RegistrarPaciente extends JDialog {
 
 		JPanel panelCondicion = new JPanel();
 		panelCondicion.setBorder(new TitledBorder(new LineBorder(new Color(135, 206, 235), 2), "Condición", TitledBorder.CENTER, TitledBorder.TOP, new Font("Bahnschrift", Font.BOLD, 14), new Color(70, 130, 180)));
-		panelCondicion.setBounds(15, 264, 580, 76);
+		panelCondicion.setBounds(15, 258, 580, 110);
 		panelCondicion.setBackground(Color.WHITE);
 		contentPanel.add(panelCondicion);
 		panelCondicion.setLayout(null);
@@ -249,6 +249,19 @@ public class RegistrarPaciente extends JDialog {
 		cbxTipoSangre.setBounds(494, 27, 71, 26);
 		panelCondicion.add(cbxTipoSangre);
 
+		JLabel lblEstado = new JLabel("Estado:");
+		lblEstado.setForeground(new Color(70, 130, 180));
+		lblEstado.setFont(new Font("Verdana", Font.BOLD, 12));
+		lblEstado.setBounds(15, 70, 60, 20);
+		panelCondicion.add(lblEstado);
+
+		cbxEstado = new JComboBox<>();
+		cbxEstado.setFont(new Font("Bahnschrift", Font.PLAIN, 12));
+		cbxEstado.setBackground(new Color(224, 247, 250));
+		cbxEstado.setModel(new DefaultComboBoxModel<>(new String[] {"Activo", "Inactivo"}));
+		cbxEstado.setBounds(77, 68, 120, 26);
+		panelCondicion.add(cbxEstado);
+
 		JPanel buttonPane = new JPanel();
 		buttonPane.setBackground(new Color(240, 248, 255));
 		buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
@@ -290,8 +303,116 @@ public class RegistrarPaciente extends JDialog {
 		cargarDatos();
 	}
 
+	private boolean existeCedula(String cedula) {
+		if (cedula == null || Clinica.getInstancia().getPacientes() == null) {
+			return false;
+		}
+		String cedulaLimpia = cedula.replace("-", "").replaceAll("\\s+", "");
+
+		for (Paciente p : Clinica.getInstancia().getPacientes()) {
+			if (p.getCedula() != null) {
+				String cedulaP = p.getCedula().replace("-", "").replaceAll("\\s+", "");
+				if (cedulaP.equalsIgnoreCase(cedulaLimpia)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	private void registrarPaciente() {
+		String nombre = txtNombre.getText();
+		String apellido = txtApellido.getText();
+		String cedula = txtCedula.getText();
+		String telefono = txtTelefono.getText();
+		Date fecNacim = (Date) spnFechaNacim.getValue();
+		String sexo = (String) cbxSexo.getSelectedItem();
+		String pesoStr = txtPeso.getText();
+		String estaturaStr = txtEstatura.getText();
+		String tipoSangre = (String) cbxTipoSangre.getSelectedItem();
+		String direccion = txtDireccion.getText();
+		String estado = (String) cbxEstado.getSelectedItem();
+
+		if (Formato.entradaVacia(nombre, "Debe ingresar el nombre del paciente.")) return;
+		if (Formato.entradaVacia(apellido, "Debe ingresar el apellido del paciente.")) return;
+		if (Formato.entradaVacia(cedula, "Debe ingresar la cédula del paciente.")) return;
+
+		if (existeCedula(cedula.trim())) {
+			Formato.entradaVacia("", "Ya existe un paciente registrado con esta cédula.");
+			return;
+		}
+
+		if (Formato.entradaVacia(telefono, "Debe ingresar el teléfono del paciente.")) return;
+		if (Formato.verificarEntradaRegex(telefono.trim(), "^[0-9-]+$", "El teléfono solo puede contener números y guiones.")) return;
+		if (Formato.entradaVacia(direccion, "Debe ingresar la dirección del paciente.")) return;
+		if (Formato.entradaVacia(pesoStr, "Debe ingresar el peso del paciente.")) return;
+		if (Formato.verificarEntradaRegex(pesoStr.trim(), "^[0-9]+(\\.[0-9]+)?$", "El peso debe ser un número válido.")) return;
+		if (Formato.entradaVacia(estaturaStr, "Debe ingresar la estatura del paciente.")) return;
+		if (Formato.verificarEntradaRegex(estaturaStr.trim(), "^[0-9]+(\\.[0-9]+)?$", "La estatura debe ser un número válido.")) return;
+
+		Paciente paciente = new Paciente(
+				Clinica.genCodigoPacientes,
+				nombre.trim(),
+				apellido.trim(),
+				cedula.trim(),
+				telefono.trim(),
+				fecNacim,
+				sexo,
+				Float.parseFloat(pesoStr.trim()),
+				Float.parseFloat(estaturaStr.trim()),
+				tipoSangre,
+				direccion.trim(),
+				estado
+		);
+
+		Clinica.getInstancia().regPaciente(paciente);
+		this.pacienteCreado = paciente;
+
+		JOptionPane.showMessageDialog(null, "Paciente registrado con éxito.\nCódigo: " + paciente.getId(), "Registro Exitoso", JOptionPane.INFORMATION_MESSAGE);
+		dispose();
+	}
+
+	private void modificarPaciente() {
+		if (miPaciente == null) return;
+
+		String nombre = txtNombre.getText();
+		String apellido = txtApellido.getText();
+		String telefono = txtTelefono.getText();
+		Date fecNacim = (Date) spnFechaNacim.getValue();
+		String sexo = (String) cbxSexo.getSelectedItem();
+		String pesoStr = txtPeso.getText();
+		String estaturaStr = txtEstatura.getText();
+		String tipoSangre = (String) cbxTipoSangre.getSelectedItem();
+		String direccion = txtDireccion.getText();
+		String estado = (String) cbxEstado.getSelectedItem();
+
+		if (Formato.entradaVacia(nombre, "Debe ingresar el nombre del paciente.")) return;
+		if (Formato.entradaVacia(apellido, "Debe ingresar el apellido del paciente.")) return;
+		if (Formato.entradaVacia(telefono, "Debe ingresar el teléfono del paciente.")) return;
+		if (Formato.verificarEntradaRegex(telefono.trim(), "^[0-9-]+$", "El teléfono solo puede contener números y guiones.")) return;
+		if (Formato.entradaVacia(direccion, "Debe ingresar la dirección del paciente.")) return;
+		if (Formato.entradaVacia(pesoStr, "Debe ingresar el peso del paciente.")) return;
+		if (Formato.verificarEntradaRegex(pesoStr.trim(), "^[0-9]+(\\.[0-9]+)?$", "El peso debe ser un número válido.")) return;
+		if (Formato.entradaVacia(estaturaStr, "Debe ingresar la estatura del paciente.")) return;
+		if (Formato.verificarEntradaRegex(estaturaStr.trim(), "^[0-9]+(\\.[0-9]+)?$", "La estatura debe ser un número válido.")) return;
+
+		miPaciente.setNombre(nombre.trim());
+		miPaciente.setApellido(apellido.trim());
+		miPaciente.setTelefono(telefono.trim());
+		miPaciente.setFecNacim(fecNacim);
+		miPaciente.setSexo(sexo);
+		miPaciente.setPeso(Float.parseFloat(pesoStr.trim()));
+		miPaciente.setEstatura(Float.parseFloat(estaturaStr.trim()));
+		miPaciente.setTipoSangre(tipoSangre);
+		miPaciente.setDireccion(direccion.trim());
+		miPaciente.setEstado(estado);
+
+		JOptionPane.showMessageDialog(null, "Paciente modificado con éxito.", "Modificación Exitosa", JOptionPane.INFORMATION_MESSAGE);
+		dispose();
+	}
+
 	public Paciente getPacienteCreado() {
-		return pacienteController.getPacienteCreado();
+		return pacienteCreado;
 	}
 
 	public void setDatosIniciales(String cedula, String nombre, String apellido) {
@@ -320,50 +441,12 @@ public class RegistrarPaciente extends JDialog {
 			txtEstatura.setText(String.valueOf(miPaciente.getEstatura()));
 			cbxSexo.setSelectedItem(miPaciente.getSexo());
 			cbxTipoSangre.setSelectedItem(miPaciente.getTipoSangre());
+			if (miPaciente.getEstado() != null) {
+				cbxEstado.setSelectedItem(miPaciente.getEstado());
+			}
 			if (miPaciente.getFecNacim() != null) {
 				spnFechaNacim.setValue(miPaciente.getFecNacim());
 			}
-		}
-	}
-
-	private void modificarPaciente() {
-		boolean exito = pacienteController.modificarPaciente(
-				miPaciente,
-				txtNombre.getText(),
-				txtApellido.getText(),
-				txtTelefono.getText(),
-				(Date) spnFechaNacim.getValue(),
-				(String) cbxSexo.getSelectedItem(),
-				txtPeso.getText(),
-				txtEstatura.getText(),
-				(String) cbxTipoSangre.getSelectedItem(),
-				txtDireccion.getText()
-		);
-
-		if (exito) {
-			JOptionPane.showMessageDialog(null, "Paciente modificado con éxito.", "Modificación Exitosa", JOptionPane.INFORMATION_MESSAGE);
-			dispose();
-		}
-	}
-
-	private void registrarPaciente() {
-		boolean exito = pacienteController.registrarPaciente(
-				txtNombre.getText(),
-				txtApellido.getText(),
-				txtCedula.getText(),
-				txtTelefono.getText(),
-				(Date) spnFechaNacim.getValue(),
-				(String) cbxSexo.getSelectedItem(),
-				txtPeso.getText(),
-				txtEstatura.getText(),
-				(String) cbxTipoSangre.getSelectedItem(),
-				txtDireccion.getText()
-		);
-
-		if (exito && pacienteController.getPacienteCreado() != null) {
-			String idPaciente = pacienteController.getPacienteCreado().getId();
-			JOptionPane.showMessageDialog(null, "Paciente registrado con éxito.\nCódigo: " + idPaciente, "Registro Exitoso", JOptionPane.INFORMATION_MESSAGE);
-			dispose();
 		}
 	}
 }
