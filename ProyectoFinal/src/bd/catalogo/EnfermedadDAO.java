@@ -71,6 +71,21 @@ public class EnfermedadDAO {
         }
     }
 
+    // --- NUEVO MÉTODO DE ELIMINACIÓN ---
+    public void eliminarEnfermedad(int idEnfermedad) {
+        final String sql = "{call str_delete_enfermedad(?)}";
+
+        try (Connection connection = ConexionBD.getConnection();
+             CallableStatement callableStatement = connection.prepareCall(sql)) {
+
+            callableStatement.setInt(1, idEnfermedad);
+            callableStatement.execute();
+
+        } catch (SQLException e) {
+            System.err.println("Error al eliminar la enfermedad: " + e.getMessage());
+        }
+    }
+
     public ArrayList<Enfermedad> obtenerEnfermedades(){
         ArrayList<Enfermedad> enfermedades = new ArrayList<>();
         final String sql = "SELECT * FROM enfermedad";

@@ -23,6 +23,7 @@ public class EnfermeraDAO {
     }
 
     public void guardarEnfermera(Enfermera enfermera) {
+        // Asumiendo que el SP fija el estado en 'Activo' por defecto.
         final String sql = "{call str_insert_enfermera(?, ?, ?, ?, ?)}";
 
         try (Connection connection = ConexionBD.getConnection();
@@ -47,7 +48,8 @@ public class EnfermeraDAO {
     }
 
     public void actualizarEnfermera(Enfermera enfermera) {
-        final String sql = "{call str_update_enfermera(?, ?, ?, ?, ?, ?)}";
+        // Se añade el estado como parámetro adicional al SP
+        final String sql = "{call str_update_enfermera(?, ?, ?, ?, ?, ?, ?)}";
 
         try (Connection connection = ConexionBD.getConnection();
              CallableStatement callableStatement = connection.prepareCall(sql)) {
@@ -64,10 +66,26 @@ public class EnfermeraDAO {
                 callableStatement.setNull(6, java.sql.Types.INTEGER);
             }
 
+            callableStatement.setString(7, enfermera.getEstado());
+
             callableStatement.execute();
 
         } catch (SQLException e) {
             System.err.println("Error al actualizar la enfermera: " + e.getMessage());
+        }
+    }
+
+    public void eliminarEnfermera(int idEnfermera) {
+        final String sql = "{call str_delete_enfermera(?)}";
+
+        try (Connection connection = ConexionBD.getConnection();
+             CallableStatement callableStatement = connection.prepareCall(sql)) {
+
+            callableStatement.setInt(1, idEnfermera);
+            callableStatement.execute();
+
+        } catch (SQLException e) {
+            System.err.println("Error al eliminar la enfermera: " + e.getMessage());
         }
     }
 
@@ -86,7 +104,8 @@ public class EnfermeraDAO {
                         rs.getString("apellido"),
                         rs.getString("cedula"),
                         rs.getString("telefono"),
-                        null // Reemplazar con la lógica de búsqueda de Usuario
+                        null, // Reemplazar con la lógica de búsqueda de Usuario
+                        rs.getString("estado") // Mapeo del estado
                 ));
             }
 

@@ -3,7 +3,7 @@ package logico.catalogo;
 import logico.Clinica;
 import java.io.Serializable;
 
-public class Enfermera {
+public class Enfermera implements Serializable {
     private static final long serialVersionUID = 1L;
     private String id;
     private String nombre;
@@ -11,14 +11,16 @@ public class Enfermera {
     private String cedula;
     private String telefono;
     private Usuario usuario;
+    private String estado;
 
-    public Enfermera(int idNumber, String nombre, String apellido, String cedula, String telefono, Usuario usuario) {
+    public Enfermera(int idNumber, String nombre, String apellido, String cedula, String telefono, Usuario usuario, String estado) {
         setId(idNumber);
         this.nombre = nombre;
         this.apellido = apellido;
         this.cedula = cedula;
         this.telefono = telefono;
         this.usuario = usuario;
+        this.estado = estado;
     }
 
     public String getId() {
@@ -75,5 +77,13 @@ public class Enfermera {
 
     public void setUsuario(Usuario usuario) {
         this.usuario = usuario;
+    }
+
+    public String getEstado() {
+        return estado;
+    }
+
+    public void setEstado(String estado) {
+        this.estado = estado;
     }
 }

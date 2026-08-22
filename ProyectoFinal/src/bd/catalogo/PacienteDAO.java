@@ -24,7 +24,8 @@ public class PacienteDAO {
     }
 
     public void guardarPaciente(Paciente paciente) {
-        final String sql = "{call str_insert_paciente(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+        // El SP str_insert_paciente no recibe estado, lo fija como 'Activo' en la BD
+        final String sql = "{call str_insert_paciente(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
 
         try (Connection connection = ConexionBD.getConnection();
              CallableStatement callableStatement = connection.prepareCall(sql)) {
@@ -32,30 +33,20 @@ public class PacienteDAO {
             callableStatement.setString(1, paciente.getCedula());
             callableStatement.setString(2, paciente.getNombre());
             callableStatement.setString(3, paciente.getApellido());
-            callableStatement.setDate(4, new java.sql.Date(paciente.getFecNacim().getTime()));
+
+            // Conversión de java.util.Date a java.sql.Date para SQL Server
+            if (paciente.getFecNacim() != null) {
+                callableStatement.setDate(4, new java.sql.Date(paciente.getFecNacim().getTime()));
+            } else {
+                callableStatement.setNull(4, java.sql.Types.DATE);
+            }
+
             callableStatement.setString(5, paciente.getSexo());
             callableStatement.setString(6, paciente.getTelefono());
-
-            if (paciente.getDireccion() != null && !paciente.getDireccion().isEmpty()) {
-                callableStatement.setString(7, paciente.getDireccion());
-            } else {
-                callableStatement.setNull(7, java.sql.Types.VARCHAR);
-            }
-
+            callableStatement.setString(7, paciente.getDireccion());
             callableStatement.setFloat(8, paciente.getPeso());
             callableStatement.setFloat(9, paciente.getEstatura());
-
-            if (paciente.getTipoSangre() != null && !paciente.getTipoSangre().isEmpty()) {
-                callableStatement.setString(10, paciente.getTipoSangre());
-            } else {
-                callableStatement.setNull(10, java.sql.Types.VARCHAR);
-            }
-
-            if (paciente.getEstado() != null && !paciente.getEstado().isEmpty()) {
-                callableStatement.setString(11, paciente.getEstado());
-            } else {
-                callableStatement.setNull(11, java.sql.Types.VARCHAR);
-            }
+            callableStatement.setString(10, paciente.getTipoSangre());
 
             callableStatement.execute();
 
@@ -65,6 +56,7 @@ public class PacienteDAO {
     }
 
     public void actualizarPaciente(Paciente paciente) {
+        // El SP str_update_paciente recibe 12 parámetros, incluyendo el estado para el borrado lógico
         final String sql = "{call str_update_paciente(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
 
         try (Connection connection = ConexionBD.getConnection();
@@ -74,35 +66,40 @@ public class PacienteDAO {
             callableStatement.setString(2, paciente.getCedula());
             callableStatement.setString(3, paciente.getNombre());
             callableStatement.setString(4, paciente.getApellido());
-            callableStatement.setDate(5, new java.sql.Date(paciente.getFecNacim().getTime()));
+
+            if (paciente.getFecNacim() != null) {
+                callableStatement.setDate(5, new java.sql.Date(paciente.getFecNacim().getTime()));
+            } else {
+                callableStatement.setNull(5, java.sql.Types.DATE);
+            }
+
             callableStatement.setString(6, paciente.getSexo());
             callableStatement.setString(7, paciente.getTelefono());
-
-            if (paciente.getDireccion() != null && !paciente.getDireccion().isEmpty()) {
-                callableStatement.setString(8, paciente.getDireccion());
-            } else {
-                callableStatement.setNull(8, java.sql.Types.VARCHAR);
-            }
-
+            callableStatement.setString(8, paciente.getDireccion());
             callableStatement.setFloat(9, paciente.getPeso());
             callableStatement.setFloat(10, paciente.getEstatura());
-
-            if (paciente.getTipoSangre() != null && !paciente.getTipoSangre().isEmpty()) {
-                callableStatement.setString(11, paciente.getTipoSangre());
-            } else {
-                callableStatement.setNull(11, java.sql.Types.VARCHAR);
-            }
-
-            if (paciente.getEstado() != null && !paciente.getEstado().isEmpty()) {
-                callableStatement.setString(12, paciente.getEstado());
-            } else {
-                callableStatement.setNull(12, java.sql.Types.VARCHAR);
-            }
+            callableStatement.setString(11, paciente.getTipoSangre());
+            callableStatement.setString(12, paciente.getEstado()); // Aquí pasamos el estado
 
             callableStatement.execute();
 
         } catch (SQLException e) {
             System.err.println("Error al actualizar el paciente: " + e.getMessage());
+        }
+    }
+
+    public void eliminarPaciente(int idPaciente) {
+        // Llamada al SP de eliminación de tu compañera
+        final String sql = "{call str_delete_paciente(?)}";
+
+        try (Connection connection = ConexionBD.getConnection();
+             CallableStatement callableStatement = connection.prepareCall(sql)) {
+
+            callableStatement.setInt(1, idPaciente);
+            callableStatement.execute();
+
+        } catch (SQLException e) {
+            System.err.println("Error al eliminar el paciente: " + e.getMessage());
         }
     }
 
@@ -121,7 +118,7 @@ public class PacienteDAO {
                         rs.getString("apellido"),
                         rs.getString("cedula"),
                         rs.getString("telefono"),
-                        rs.getDate("fec_nacim"),
+                        rs.getDate("fec_nacim"), // Extrae directamente como java.sql.Date
                         rs.getString("sexo"),
                         rs.getFloat("peso"),
                         rs.getFloat("estatura"),

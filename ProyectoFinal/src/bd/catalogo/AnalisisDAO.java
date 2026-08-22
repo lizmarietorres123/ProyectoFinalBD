@@ -90,4 +90,19 @@ public class AnalisisDAO {
             System.err.println("Error al actualizar el análisis: " + e.getMessage());
         }
     }
+
+
+    public void eliminarAnalisis(int idAnalisis) {
+        final String sql = "{call str_delete_analisis(?)}";
+
+        try (Connection connection = ConexionBD.getConnection();
+             CallableStatement callableStatement = connection.prepareCall(sql)) {
+
+            callableStatement.setInt(1, idAnalisis);
+            callableStatement.execute();
+
+        } catch (SQLException e) {
+            System.err.println("Error al eliminar el análisis: " + e.getMessage());
+        }
+    }
 }

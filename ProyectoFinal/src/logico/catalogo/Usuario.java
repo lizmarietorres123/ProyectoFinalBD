@@ -12,13 +12,15 @@ public class Usuario implements Serializable {
 	private String nombre;
 	private String password;
 	private String rol;
+	private String estado; // Nuevo campo para borrado lógico
 
-	public Usuario(int idNumber, String nombre, String password, String rol) {
+	public Usuario(int idNumber, String nombre, String password, String rol, String estado) {
 		super();
 		setId(idNumber);
 		this.nombre = nombre;
 		this.password = password;
 		this.rol = rol;
+		this.estado = estado;
 	}
 
 	public String getId() {
@@ -30,7 +32,6 @@ public class Usuario implements Serializable {
 	}
 
 	public void setId(int idNumber) {
-		// CORRECCIÓN: Se cambió Sintoma.class por Usuario.class
 		this.id = Clinica.getInstancia().genId(idNumber, Usuario.class);
 	}
 
@@ -58,7 +59,16 @@ public class Usuario implements Serializable {
 		this.rol = tipo;
 	}
 
+	public String getEstado() {
+		return estado;
+	}
+
+	public void setEstado(String estado) {
+		this.estado = estado;
+	}
+
 	public boolean match(String nombre, String password) {
-		return (this.nombre.equals(nombre) && this.password.equals(password));
+		 return (this.nombre.equals(nombre) && this.password.equals(password) && this.estado.equalsIgnoreCase("Activo"));
+
 	}
 }
