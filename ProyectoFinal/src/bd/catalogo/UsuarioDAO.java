@@ -24,7 +24,7 @@ public class UsuarioDAO {
     }
 
     public void guardarUsuario(Usuario usuario) {
-        final String sql = "{call str_insert_usuario(?, ?, ?)}";
+        final String sql = "{call str_insert_user(?, ?, ?)}";
 
         try (Connection connection = ConexionBD.getConnection();
              CallableStatement callableStatement = connection.prepareCall(sql)) {

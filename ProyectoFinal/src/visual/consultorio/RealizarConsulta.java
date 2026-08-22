@@ -717,7 +717,7 @@ public class RealizarConsulta extends JDialog {
 		} else {
 			StringBuilder sb = new StringBuilder();
 			for (Diagnostico d : diagnosticosActuales) {
-				String enf = (d.getEnfermedad() != null) ? d.getEnfermedad().getNombre() : "Sin Enfermedad";
+				String enf = (d.getEnfermedad() != null) ? d.getEnfermedad().getDescripcion() : "Sin Enfermedad";
 				sb.append("• ").append(enf).append("\n");
 			}
 			txtDiagnostico.setText(sb.toString().trim());
@@ -740,7 +740,7 @@ public class RealizarConsulta extends JDialog {
 			String[] opciones = new String[diagnosticosActuales.size()];
 			for (int i = 0; i < diagnosticosActuales.size(); i++) {
 				Diagnostico d = diagnosticosActuales.get(i);
-				String enf = (d.getEnfermedad() != null) ? d.getEnfermedad().getNombre() : "Sin Enfermedad";
+				String enf = (d.getEnfermedad() != null) ? d.getEnfermedad().getDescripcion() : "Sin Enfermedad";
 				opciones[i] = (i + 1) + ". " + enf;
 			}
 

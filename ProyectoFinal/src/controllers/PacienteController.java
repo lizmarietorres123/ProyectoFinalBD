@@ -35,16 +35,18 @@ public class PacienteController {
 	}
 
 	public boolean registrarPaciente(String nombre, String apellido, String cedula, String telefono, Date fecNacim,
-	                                 String sexo, String pesoStr, String estaturaStr,
-	                                 String tipoSangre, String direccion) {
+									 String sexo, String pesoStr, String estaturaStr,
+									 String tipoSangre, String direccion) {
 
 		if (Formato.entradaVacia(nombre, "Debe ingresar el nombre del paciente.")) return false;
 		if (Formato.entradaVacia(apellido, "Debe ingresar el apellido del paciente.")) return false;
 		if (Formato.entradaVacia(cedula, "Debe ingresar la cédula del paciente.")) return false;
+
 		if (existeCedula(cedula.trim())) {
 			Formato.entradaVacia("", "Ya existe un paciente registrado con esta cédula.");
 			return false;
 		}
+
 		if (Formato.entradaVacia(telefono, "Debe ingresar el teléfono del paciente.")) return false;
 		if (Formato.verificarEntradaRegex(telefono.trim(), "^[0-9-]+$", "El teléfono solo puede contener números y guiones.")) return false;
 		if (Formato.entradaVacia(direccion, "Debe ingresar la dirección del paciente.")) return false;
@@ -53,9 +55,9 @@ public class PacienteController {
 		if (Formato.entradaVacia(estaturaStr, "Debe ingresar la estatura del paciente.")) return false;
 		if (Formato.verificarEntradaRegex(estaturaStr.trim(), "^[0-9]+(\\.[0-9]+)?$", "La estatura debe ser un número válido.")) return false;
 
-		String idPaciente = "PAC-" + Clinica.genCodigoPacientes;
+
 		Paciente paciente = new Paciente(
-				idPaciente,
+				Clinica.genCodigoPacientes,
 				nombre.trim(),
 				apellido.trim(),
 				cedula.trim(),
@@ -74,8 +76,8 @@ public class PacienteController {
 	}
 
 	public boolean modificarPaciente(Paciente paciente, String nombre, String apellido, String telefono, Date fecNacim,
-	                                 String sexo, String pesoStr, String estaturaStr,
-	                                 String tipoSangre, String direccion) {
+									 String sexo, String pesoStr, String estaturaStr,
+									 String tipoSangre, String direccion) {
 
 		if (paciente == null) return false;
 

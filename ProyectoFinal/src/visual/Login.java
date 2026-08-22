@@ -128,7 +128,7 @@ public class Login extends JFrame {
                 if (user != null) {
                     Clinica.getInstancia().setUsuarioActual(user);
 
-                    // --- 2. LÓGICA DE REDIRECCIÓN SEGÚN ROL ---
+
                     String tipoUsuario = user.getRol();
 
                     if (tipoUsuario.equalsIgnoreCase("Doctor")) {
