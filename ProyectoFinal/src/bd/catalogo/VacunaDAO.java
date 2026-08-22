@@ -12,14 +12,12 @@ import java.util.ArrayList;
 
 public class VacunaDAO {
 
-    private static VacunaDAO instance = null;
+
+    private static final VacunaDAO instance = new VacunaDAO();
 
     private VacunaDAO() {}
 
     public static VacunaDAO getInstance() {
-        if (instance == null) {
-            instance = new VacunaDAO();
-        }
         return instance;
     }
 
@@ -58,6 +56,21 @@ public class VacunaDAO {
         }
     }
 
+    // --- NUEVO MÉTODO DE ELIMINACIÓN ---
+    public void eliminarVacuna(int idVacuna) {
+        final String sql = "{call str_delete_vacuna(?)}";
+
+        try (Connection connection = ConexionBD.getConnection();
+             CallableStatement callableStatement = connection.prepareCall(sql)) {
+
+            callableStatement.setInt(1, idVacuna);
+            callableStatement.execute();
+
+        } catch (SQLException e) {
+            System.err.println("Error al eliminar la vacuna: " + e.getMessage());
+        }
+    }
+
     public ArrayList<Vacuna> obtenerVacunas() {
         ArrayList<Vacuna> vacunas = new ArrayList<>();
         final String sql = "SELECT * FROM vacuna";
@@ -82,5 +95,3 @@ public class VacunaDAO {
         return vacunas;
     }
 }
-
-

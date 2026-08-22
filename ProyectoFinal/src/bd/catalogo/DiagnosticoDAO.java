@@ -85,6 +85,21 @@ public class DiagnosticoDAO {
         }
     }
 
+    // --- NUEVO MÉTODO DE ELIMINACIÓN ---
+    public void eliminarDiagnostico(int idDiagnostico) {
+        final String sql = "{call str_delete_diagnostico(?)}";
+
+        try (Connection connection = ConexionBD.getConnection();
+             CallableStatement callableStatement = connection.prepareCall(sql)) {
+
+            callableStatement.setInt(1, idDiagnostico);
+            callableStatement.execute();
+
+        } catch (SQLException e) {
+            System.err.println("Error al eliminar el diagnóstico: " + e.getMessage());
+        }
+    }
+
     public ArrayList<Diagnostico> obtenerDiagnosticos() {
         ArrayList<Diagnostico> diagnosticos = new ArrayList<>();
         final String sql = "SELECT * FROM diagnostico";

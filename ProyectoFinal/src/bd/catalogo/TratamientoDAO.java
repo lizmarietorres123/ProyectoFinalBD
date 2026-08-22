@@ -114,6 +114,21 @@ public class TratamientoDAO {
         }
     }
 
+    // --- NUEVO MÉTODO DE ELIMINACIÓN ---
+    public void eliminarTratamiento(int idTratamiento) {
+        final String sql = "{call str_delete_tratamiento(?)}";
+
+        try (Connection connection = ConexionBD.getConnection();
+             CallableStatement callableStatement = connection.prepareCall(sql)) {
+
+            callableStatement.setInt(1, idTratamiento);
+            callableStatement.execute();
+
+        } catch (SQLException e) {
+            System.err.println("Error al eliminar el tratamiento: " + e.getMessage());
+        }
+    }
+
     public ArrayList<Tratamiento> obtenerTratamientos() {
         ArrayList<Tratamiento> tratamientos = new ArrayList<>();
         final String sql = "SELECT * FROM tratamiento";
