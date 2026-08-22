@@ -122,6 +122,21 @@ public class DetalleVacunaDAO {
         }
     }
 
+    // --- NUEVO MÉTODO DE ELIMINACIÓN ---
+    public void eliminarDetalleVacuna(int idDetalleVacuna) {
+        final String sql = "{call str_delete_detalle_vacuna(?)}";
+
+        try (Connection connection = ConexionBD.getConnection();
+             CallableStatement callableStatement = connection.prepareCall(sql)) {
+
+            callableStatement.setInt(1, idDetalleVacuna);
+            callableStatement.execute();
+
+        } catch (SQLException e) {
+            System.err.println("Error al eliminar el detalle de vacuna: " + e.getMessage());
+        }
+    }
+
     public ArrayList<DetalleVacuna> obtenerDetallesVacuna() {
         ArrayList<DetalleVacuna> detalles = new ArrayList<>();
         final String sql = "SELECT * FROM detalle_vacuna";

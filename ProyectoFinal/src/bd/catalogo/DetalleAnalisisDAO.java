@@ -115,6 +115,21 @@ public class DetalleAnalisisDAO {
         }
     }
 
+    // --- NUEVO MÉTODO DE ELIMINACIÓN ---
+    public void eliminarDetalleAnalisis(int idDetalleAnalisis) {
+        final String sql = "{call str_delete_detalle_analisis(?)}";
+
+        try (Connection connection = ConexionBD.getConnection();
+             CallableStatement callableStatement = connection.prepareCall(sql)) {
+
+            callableStatement.setInt(1, idDetalleAnalisis);
+            callableStatement.execute();
+
+        } catch (SQLException e) {
+            System.err.println("Error al eliminar el detalle del análisis: " + e.getMessage());
+        }
+    }
+
     public ArrayList<DetalleAnalisis> obtenerDetallesAnalisis() {
         ArrayList<DetalleAnalisis> detalles = new ArrayList<>();
         final String sql = "SELECT * FROM detalle_analisis";

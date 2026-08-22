@@ -74,6 +74,21 @@ public class MedicamentoDAO {
         }
     }
 
+
+    public void eliminarMedicamento(int idMedicamento) {
+        final String sql = "{call str_delete_medicamento(?)}";
+
+        try (Connection connection = ConexionBD.getConnection();
+             CallableStatement callableStatement = connection.prepareCall(sql)) {
+
+            callableStatement.setInt(1, idMedicamento);
+            callableStatement.execute();
+
+        } catch (SQLException e) {
+            System.err.println("Error al eliminar el medicamento: " + e.getMessage());
+        }
+    }
+
     public ArrayList<Medicamento> obtenerMedicamentos(){
         ArrayList<Medicamento> medicamentos = new ArrayList<>();
         final String sql = "SELECT * FROM medicamento";
@@ -86,7 +101,7 @@ public class MedicamentoDAO {
                 medicamentos.add(new Medicamento(
                         rs.getInt("id_medicamento"),
                         rs.getString("nombre"),
-                        rs.getDouble("concentracion"), // Si es NULL en BD, getDouble() devuelve 0.0
+                        rs.getDouble("concentracion"),
                         rs.getString("presentacion"),
                         rs.getString("via_administracion"),
                         rs.getString("fabricante")

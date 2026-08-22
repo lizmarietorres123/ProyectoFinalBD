@@ -12,18 +12,17 @@ import java.util.ArrayList;
 
 public class SintomaDAO {
 
-    private static SintomaDAO instance = null;
+    // Inicialización temprana: garantiza que sea thread-safe sin usar bloques 'synchronized'
+    private static final SintomaDAO instance = new SintomaDAO();
 
     private SintomaDAO() {}
 
     public static SintomaDAO getInstance() {
-        if (instance == null) {
-            instance = new SintomaDAO();
-        }
         return instance;
     }
 
-    public void guardarSintoma(Sintoma sintoma) {
+    // Se propaga la excepción para que la interfaz gráfica (ej. JavaFX) pueda mostrar un mensaje de error
+    public void guardarSintoma(Sintoma sintoma) throws SQLException {
         final String sql = "{call str_insert_sintoma(?, ?)}";
 
         try (Connection connection = ConexionBD.getConnection();
@@ -38,13 +37,10 @@ public class SintomaDAO {
             }
 
             callableStatement.execute();
-
-        } catch (SQLException e) {
-            System.err.println("Error al guardar el síntoma: " + e.getMessage());
         }
     }
 
-    public void actualizarSintoma(Sintoma sintoma) {
+    public void actualizarSintoma(Sintoma sintoma) throws SQLException {
         final String sql = "{call str_update_sintoma(?, ?, ?)}";
 
         try (Connection connection = ConexionBD.getConnection();
@@ -60,15 +56,13 @@ public class SintomaDAO {
             }
 
             callableStatement.execute();
-
-        } catch (SQLException e) {
-            System.err.println("Error al actualizar el síntoma: " + e.getMessage());
         }
     }
 
-    public ArrayList<Sintoma> obtenerSintomas() {
+    public ArrayList<Sintoma> obtenerSintomas() throws SQLException {
         ArrayList<Sintoma> sintomas = new ArrayList<>();
-        final String sql = "SELECT * FROM sintoma";
+        // Definición explícita de las columnas para mayor robustez
+        final String sql = "SELECT id_sintoma, nombre, descripcion FROM sintoma";
 
         try (Connection connection = ConexionBD.getConnection();
              Statement statement = connection.createStatement();
@@ -81,9 +75,6 @@ public class SintomaDAO {
                         rs.getString("descripcion")
                 ));
             }
-
-        } catch (SQLException e) {
-            System.err.println("Error al obtener los síntomas: " + e.getMessage());
         }
 
         return sintomas;

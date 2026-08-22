@@ -58,6 +58,21 @@ public class EspecialidadDAO {
         }
     }
 
+
+    public void eliminarEspecialidad(int idEspecialidad) {
+        final String sql = "{call str_delete_especialidad(?)}";
+
+        try (Connection connection = ConexionBD.getConnection();
+             CallableStatement callableStatement = connection.prepareCall(sql)) {
+
+            callableStatement.setInt(1, idEspecialidad);
+            callableStatement.execute();
+
+        } catch (SQLException e) {
+            System.err.println("Error al eliminar la especialidad: " + e.getMessage());
+        }
+    }
+
     public ArrayList<Especialidad> obtenerEspecialidades() {
         ArrayList<Especialidad> especialidades = new ArrayList<>();
         final String sql = "SELECT * FROM especialidad";
