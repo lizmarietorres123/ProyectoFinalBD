@@ -2,6 +2,23 @@
   <library name="adaptive">
     <CLASSES>
       <root url="jar://$USER_HOME$/Downloads/sqljdbc_13.4.0.0_enu/sqljdbc_13.4/enu/jars/mssql-jdbc-13.4.0.jre11.jar!/" />
+      <root url="jar://$PROJECT_DIR$/ProyectoFinal/lib/commons-codec-1.15.jar!/" />
+      <root url="jar://$PROJECT_DIR$/ProyectoFinal/lib/commons-collections4-4.4.jar!/" />
+      <root url="jar://$PROJECT_DIR$/ProyectoFinal/lib/commons-compress-1.21.jar!/" />
+      <root url="jar://$PROJECT_DIR$/ProyectoFinal/lib/commons-io-2.11.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/ProyectoFinal/lib/commons-logging-1.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/ProyectoFinal/lib/commons-math3-3.6.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/ProyectoFinal/lib/curvesapi-1.07.jar!/" />
+      <root url="jar://$PROJECT_DIR$/ProyectoFinal/lib/jakarta.activation-2.0.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/ProyectoFinal/lib/jakarta.xml.bind-api-3.0.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/ProyectoFinal/lib/jcommon-1.0.23.jar!/" />
+      <root url="jar://$PROJECT_DIR$/ProyectoFinal/lib/jfreechart-1.0.19.jar!/" />
+      <root url="jar://$PROJECT_DIR$/ProyectoFinal/lib/log4j-api-2.18.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/ProyectoFinal/lib/poi-5.2.3.jar!/" />
+      <root url="jar://$PROJECT_DIR$/ProyectoFinal/lib/poi-ooxml-5.2.3.jar!/" />
+      <root url="jar://$PROJECT_DIR$/ProyectoFinal/lib/slf4j-api-1.7.36.jar!/" />
+      <root url="jar://$PROJECT_DIR$/ProyectoFinal/lib/SparseBitSet-1.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/ProyectoFinal/lib/xmlbeans-5.1.1.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />
