@@ -44,8 +44,9 @@ public class PacienteDAO {
             callableStatement.setString(5, paciente.getSexo());
             callableStatement.setString(6, paciente.getTelefono());
             callableStatement.setString(7, paciente.getDireccion());
-            callableStatement.setFloat(8, paciente.getPeso());
-            callableStatement.setFloat(9, paciente.getEstatura());
+              callableStatement.setBigDecimal(8, new java.math.BigDecimal(String.valueOf(paciente.getPeso())));
+            callableStatement.setBigDecimal(9, new java.math.BigDecimal(String.valueOf(paciente.getEstatura())));
+
             callableStatement.setString(10, paciente.getTipoSangre());
 
             callableStatement.execute();
@@ -76,8 +77,8 @@ public class PacienteDAO {
             callableStatement.setString(6, paciente.getSexo());
             callableStatement.setString(7, paciente.getTelefono());
             callableStatement.setString(8, paciente.getDireccion());
-            callableStatement.setFloat(9, paciente.getPeso());
-            callableStatement.setFloat(10, paciente.getEstatura());
+            callableStatement.setBigDecimal(9, new java.math.BigDecimal(String.valueOf(paciente.getPeso())));
+            callableStatement.setBigDecimal(10, new java.math.BigDecimal(String.valueOf(paciente.getEstatura())));
             callableStatement.setString(11, paciente.getTipoSangre());
             callableStatement.setString(12, paciente.getEstado()); // Aquí pasamos el estado
 

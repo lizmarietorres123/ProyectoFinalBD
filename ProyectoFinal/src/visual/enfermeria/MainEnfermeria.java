@@ -57,6 +57,10 @@ public class MainEnfermeria extends JFrame {
      * Constructor principal que recibe el objeto Usuario en sesión.
      */
     public MainEnfermeria(Usuario usuario) {
+
+        // Cargar datos de la BD al iniciar
+        Clinica.getInstancia().cargarBD();
+
         setTitle("Sistema de Gestión Clínica - Panel de Enfermería");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -474,9 +478,8 @@ public class MainEnfermeria extends JFrame {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             try {
-                // Inicialización de datos de prueba en Clínica si es necesario
-                Clinica.getInstancia().initInfo();
-                Usuario userPrueba = Clinica.getInstancia().buscarUsuarioXId("US-2");
+                // Creamos un usuario de prueba directamente en memoria para que levante la interfaz
+                Usuario userPrueba = new Usuario(2, "enfermera", "1234", "Enfermera", "activo");
 
                 MainEnfermeria frame = new MainEnfermeria(userPrueba);
                 frame.setVisible(true);

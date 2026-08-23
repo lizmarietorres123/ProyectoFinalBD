@@ -235,19 +235,22 @@ public class Clinica implements Serializable {
         return Integer.parseInt(id.replace(ids.get(clase), ""));
     }
 
-    // --- PERSISTENCIA ---
 
-    public void cargarBD(){
-        /*
-        NOTA: Para que no arroje errores, debes asegurarte de que ConsultaDAO,
-        SintomaDAO y VacunaDAO ya estén creados con sus métodos obtener().
-        */
-        // consultas = ConsultaDAO.getInstance().obtenerConsultas();
-        // sintomas = SintomaDAO.getInstance().obtenerSintomas();
-        enfermedades = EnfermedadDAO.getInstance().obtenerEnfermedades();
-        medicamentos = MedicamentoDAO.getInstance().obtenerMedicamentos();
-        analisis = AnalisisDAO.getInstance().obtenerAnalisis();
-        // vacunas = VacunaDAO.getInstance().obtenerVacunas();
+
+    public void cargarBD() {
+        try {
+            usuarios = UsuarioDAO.getInstance().obtenerUsuarios();
+            especialidades = EspecialidadDAO.getInstance().obtenerEspecialidades();
+            sintomas = SintomaDAO.getInstance().obtenerSintomas();
+            vacunas = VacunaDAO.getInstance().obtenerVacunas();
+            medicamentos = MedicamentoDAO.getInstance().obtenerMedicamentos();
+            analisis = AnalisisDAO.getInstance().obtenerAnalisis();
+            enfermedades = EnfermedadDAO.getInstance().obtenerEnfermedades();
+
+
+        } catch (Exception e) {
+            System.err.println("Error crítico al cargar datos desde la base de datos: " + e.getMessage());
+        }
     }
 
     private void iniciarContadores() {
@@ -330,7 +333,7 @@ public class Clinica implements Serializable {
         }
     }
 
-    // --- BÚSQUEDAS POR ID / ATRIBUTO ---
+
 
     public Paciente buscarPacienteXId(String id) {
         if (id == null) return null;
@@ -382,12 +385,21 @@ public class Clinica implements Serializable {
         return null;
     }
 
+    // Sobrecarga para buscar por ID numérico directamente (Útil para mapear los DAOs)
+    public Usuario buscarUsuarioXIdNumber(int idNumber) {
+        return buscarUsuarioXId(genId(idNumber, Usuario.class));
+    }
+
     public Doctor buscarDoctorXId(String id) {
         if (id == null) return null;
         for (Doctor d : doctores) {
             if (d != null && d.getId() != null && d.getId().equalsIgnoreCase(id)) return d;
         }
         return null;
+    }
+
+    public Doctor buscarDoctorXIdNumber(int idNumber) {
+        return buscarDoctorXId(genId(idNumber, Doctor.class));
     }
 
     public Doctor buscarDoctorXUsuario(Usuario usuario) {
@@ -408,6 +420,10 @@ public class Clinica implements Serializable {
         return null;
     }
 
+    public Consulta buscarConsultaXIdNumber(int idNumber) {
+        return buscarConsultaXId(genId(idNumber, Consulta.class));
+    }
+
     public Vacuna buscarVacunaXId(String id) {
         if (id == null) return null;
         for (Vacuna v : vacunas) {
@@ -416,12 +432,20 @@ public class Clinica implements Serializable {
         return null;
     }
 
+    public Vacuna buscarVacunaXIdNumber(int idNumber) {
+        return buscarVacunaXId(genId(idNumber, Vacuna.class));
+    }
+
     public Enfermedad buscarEnfermedadXId(String id) {
         if (id == null) return null;
         for (Enfermedad e : enfermedades) {
             if (e != null && e.getId() != null && e.getId().equalsIgnoreCase(id)) return e;
         }
         return null;
+    }
+
+    public Enfermedad buscarEnfermedadXIdNumber(int idNumber) {
+        return buscarEnfermedadXId(genId(idNumber, Enfermedad.class));
     }
 
     public Sintoma buscarSintomaXId(String id) {
@@ -437,6 +461,22 @@ public class Clinica implements Serializable {
         for (Medicamento m : medicamentos) {
             if (m != null && m.getId() != null && m.getId().equalsIgnoreCase(id)) return m;
         }
+        return null;
+    }
+
+    public Medicamento buscarMedicamentoXIdNumber(int idNumber) {
+        return buscarMedicamentoXId(genId(idNumber, Medicamento.class));
+    }
+
+    public Analisis buscarAnalisisXIdNumber(int idNumber) {
+        for (Analisis a : analisis) {
+            if (a != null && a.getIdNumber() == idNumber) return a;
+        }
+        return null;
+    }
+
+    public Diagnostico buscarDiagnosticoXIdNumber(int idNumber) {
+        // Asumiendo que crearás una lista de diagnósticos en Clinica si es necesario
         return null;
     }
 
@@ -482,70 +522,5 @@ public class Clinica implements Serializable {
         if (enf != null) {
             enf.reportarCaso();
         }
-    }
-
-    // --- DATOS DE PRUEBA / INICIALIZACIÓN ---
-
-    public void initInfo() {
-        Usuario doc = new Usuario(1, "doc", "doc", "Doctor");
-        regUsuario(doc);
-
-        Usuario efm = new Usuario(2, "efm", "efm", "Enfermera");
-        regUsuario(efm);
-
-        Enfermera enfermera1 = new Enfermera(1, "Ana", "Rodríguez", "001-0000000-0", "809-555-0000", efm);
-        enfermeras.add(enfermera1);
-
-        // Doctor corregido usando el constructor completo mapeado a base de datos
-        Doctor doctor1 = new Doctor("Dr. Juan", "Pérez", 20,"Internista");
-        doctor1.setUsuario(doc);
-        regDoctor(doctor1);
-
-        // Pacientes corregidos usando el constructor de ID numérico
-        regPaciente(new Paciente(1, "Carlos", "Martínez", "001-0000001-1", "809-555-0101", new Date(92, 2, 10), "Masculino", 75.0f, 1.75f, "O+", "Calle Principal #12","activo"));
-        regPaciente(new Paciente(2, "Ana", "Gómez", "001-0000002-2", "809-555-0202", new Date(95, 6, 20), "Femenino", 60.0f, 1.65f, "A+", "Av. Central #45","activo"));
-        regPaciente(new Paciente(3, "Luis", "Hernández", "001-0000003-3", "809-555-0303", new Date(88, 11, 5), "Masculino", 82.0f, 1.80f, "B+", "Calle Sol #8","activo"));
-        regPaciente(new Paciente(4, "Laura", "Díaz", "001-0000004-4", "809-555-0404", new Date(99, 1, 14), "Femenino", 55.0f, 1.60f, "AB+", "Calle Luna #23","activo"));
-        regPaciente(new Paciente(5, "Pedro", "Sánchez", "001-0000005-5", "809-555-0505", new Date(91, 8, 30), "Masculino", 90.0f, 1.78f, "O-", "Av. Las Flores #10","activo"));
-
-        long now = System.currentTimeMillis();
-        long day = 24 * 60 * 60 * 1000L;
-
-        // Citas corregidas usando el constructor de ID numérico
-        Date f1 = new Date(now + day);
-        regCita(new Cita(1, LocalDateTime.now(), f1, new Time(f1.getTime()), EstadoCita.PROGRAMADA, pacientes.get(0), doctores.get(0)));
-
-        Date f2 = new Date(now + 2 * day);
-        regCita(new Cita(2, LocalDateTime.now(), f2, new Time(f2.getTime()), EstadoCita.PROGRAMADA, pacientes.get(0), doctores.get(0)));
-
-        Date f3 = new Date(now - day);
-        Cita c3 = new Cita(3, LocalDateTime.now(), f3, new Time(f3.getTime()), EstadoCita.PROGRAMADA, pacientes.get(2), doctores.get(0));
-        c3.marcarNoAsistio();
-        regCita(c3);
-
-        Date f4 = new Date(now + 3 * day);
-        regCita(new Cita(4, LocalDateTime.now(), f4, new Time(f4.getTime()), EstadoCita.PROGRAMADA, pacientes.get(3), doctores.get(0)));
-
-        Date f5 = new Date(now - 2 * day);
-        Cita c5 = new Cita(5, LocalDateTime.now(), f5, new Time(f5.getTime()), EstadoCita.PROGRAMADA, pacientes.get(4), doctores.get(0));
-        c5.cancelar();
-        regCita(c5);
-
-        Date f6 = new Date(now + 4 * day);
-        regCita(new Cita(6, LocalDateTime.now(), f6, new Time(f6.getTime()), EstadoCita.PROGRAMADA, pacientes.get(0), doctores.get(0)));
-
-        Date f7 = new Date(now + 5 * day);
-        regCita(new Cita(7, LocalDateTime.now(), f7, new Time(f7.getTime()), EstadoCita.PROGRAMADA, pacientes.get(1), doctores.get(0)));
-
-        Date f8 = new Date(now + 6 * day);
-        regCita(new Cita(8, LocalDateTime.now(), f8, new Time(f8.getTime()), EstadoCita.PROGRAMADA, pacientes.get(2), doctores.get(0)));
-
-        Date f9 = new Date(now - 3 * day);
-        Cita c9 = new Cita(9, LocalDateTime.now(), f9, new Time(f9.getTime()), EstadoCita.PROGRAMADA, pacientes.get(3), doctores.get(0));
-        c9.marcarNoAsistio();
-        regCita(c9);
-
-        Date f10 = new Date(now + 7 * day);
-        regCita(new Cita(10, LocalDateTime.now(), f10, new Time(f10.getTime()), EstadoCita.PROGRAMADA, pacientes.get(4), doctores.get(0)));
     }
 }

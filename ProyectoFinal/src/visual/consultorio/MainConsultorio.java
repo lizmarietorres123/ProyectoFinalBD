@@ -77,10 +77,8 @@ public class MainConsultorio extends JFrame {
 
         setTitle("Sistema de Gestión Clínica - Panel Consultorio");
 
-        // Permite cerrar la ventana de manera limpia
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
-        // Configuración de tamaño compacto
         setSize(850, 580);
         setLocationRelativeTo(null);
         getContentPane().setLayout(new BorderLayout());
@@ -94,7 +92,6 @@ public class MainConsultorio extends JFrame {
             }
         });
 
-        // --- Panel Lateral ---
         panelLateral = new JPanel();
         panelLateral.setBackground(AZUL_FONDO_LATERAL);
         panelLateral.setPreferredSize(new Dimension(260, getHeight()));
@@ -102,15 +99,12 @@ public class MainConsultorio extends JFrame {
         getContentPane().add(panelLateral, BorderLayout.WEST);
 
         panelLateral.add(crearPanelSuperior(), BorderLayout.NORTH);
-
-        // Contenedor de Módulos
         panelContenidoMenu = new JPanel();
         panelContenidoMenu.setOpaque(false);
         panelContenidoMenu.setLayout(new BoxLayout(panelContenidoMenu, BoxLayout.Y_AXIS));
         panelContenidoMenu.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
         panelLateral.add(panelContenidoMenu, BorderLayout.CENTER);
 
-        // --- MÓDULO 1: PACIENTE ---
         crearModulo(
                 "Paciente",
                 "recursos/registro.png",
@@ -146,12 +140,11 @@ public class MainConsultorio extends JFrame {
         panelContenidoMenu.add(Box.createVerticalGlue());
         panelLateral.add(crearPiePanelLateral(), BorderLayout.SOUTH);
 
-        // --- Panel Central Limpio ---
+
         JPanel panelCentral = new JPanel(new BorderLayout());
         panelCentral.setBackground(Color.WHITE);
         getContentPane().add(panelCentral, BorderLayout.CENTER);
 
-        // Cargar datos del usuario
         cargarDatosUsuario(usuario);
     }
 
@@ -588,8 +581,8 @@ public class MainConsultorio extends JFrame {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             try {
-                Clinica.getInstancia().initInfo();
-                Usuario userPrueba = Clinica.getInstancia().buscarUsuarioXId("US-1");
+
+                Usuario userPrueba = new Usuario(1, "admin", "admin", "Doctor", "activo");
                 MainConsultorio frame = new MainConsultorio(userPrueba);
                 frame.setVisible(true);
             } catch (Exception e) {

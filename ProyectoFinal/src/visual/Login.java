@@ -5,10 +5,6 @@ import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -25,7 +21,10 @@ import logico.Clinica;
 import logico.catalogo.Doctor;
 import logico.catalogo.Usuario;
 import visual.consultorio.MainConsultorio;
-import visual.enfermeria.MainEnfermeria; // <-- 1. IMPORTACIÓN AGREGADA
+import visual.enfermeria.MainEnfermeria;
+
+// IMPORTANTE: Asegúrate de tener UsuarioDAO importado si lo necesitas aquí,
+// o que Clinica.cargarBD() ya esté llenando la lista de usuarios.
 
 public class Login extends JFrame {
     private static final long serialVersionUID = 1L;
@@ -47,8 +46,10 @@ public class Login extends JFrame {
     }
 
     public Login() {
-        // 1. Carga sincrónica de datos antes de renderizar la interfaz
-        cargarDatosClinica();
+        // 1. Conectar y cargar los datos desde SQL Server
+        // Asegúrate de que dentro de cargarBD() en la clase Clinica
+        // tengas algo como: usuarios = UsuarioDAO.getInstance().obtenerUsuarios();
+        Clinica.getInstancia().cargarBD();
 
         setTitle("Login - Sistema Clinica");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -124,10 +125,9 @@ public class Login extends JFrame {
         btnLogin.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 Usuario user = verificar();
- 
+
                 if (user != null) {
                     Clinica.getInstancia().setUsuarioActual(user);
-
 
                     String tipoUsuario = user.getRol();
 
@@ -138,7 +138,6 @@ public class Login extends JFrame {
                         MainEnfermeria menuEnfermeria = new MainEnfermeria();
                         menuEnfermeria.setVisible(true);
                     } else {
-                        // Por defecto abre Consultorio si es Admin u otro rol
                         MainConsultorio menuGeneral = new MainConsultorio();
                         menuGeneral.setVisible(true);
                     }
@@ -158,36 +157,6 @@ public class Login extends JFrame {
         getRootPane().setDefaultButton(btnLogin);
     }
 
-    private void cargarDatosClinica() {
-        try (FileInputStream readClinica = new FileInputStream("clinica.dat");
-             ObjectInputStream readClass = new ObjectInputStream(readClinica)) {
-
-            Clinica deserializada = (Clinica) readClass.readObject();
-            Clinica.getInstancia().setClinica(deserializada);
-            Clinica.getInstancia().asignarContadores();
-
-        } catch (Exception e) {
-            Clinica.getInstancia().initInfo();
-            guardarDatosClinica();
-        }
-
-        if (Clinica.getInstancia().getUsuarios() == null || Clinica.getInstancia().getUsuarios().isEmpty()) {
-            Clinica.getInstancia().initInfo();
-            guardarDatosClinica();
-        }
-    }
-
-    private void guardarDatosClinica() {
-        try (FileOutputStream writeClinica = new FileOutputStream("clinica.dat");
-             ObjectOutputStream writeClass = new ObjectOutputStream(writeClinica)) {
-
-            writeClass.writeObject(Clinica.getInstancia());
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     private Usuario verificar() {
         String nombreInput = txtNombre.getText().trim();
         String passInput = new String(txtPassword.getPassword()).trim();
@@ -198,6 +167,7 @@ public class Login extends JFrame {
 
         Usuario aux = null;
 
+        // Se verifica contra la lista cargada desde la Base de Datos
         if (Clinica.getInstancia().getUsuarios() != null) {
             for (Usuario user : Clinica.getInstancia().getUsuarios()) {
                 if (user.match(nombreInput, passInput)) {
