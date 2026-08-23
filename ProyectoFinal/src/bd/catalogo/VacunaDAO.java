@@ -56,7 +56,7 @@ public class VacunaDAO {
         }
     }
 
-    // --- NUEVO MÉTODO DE ELIMINACIÓN ---
+
     public void eliminarVacuna(int idVacuna) {
         final String sql = "{call str_delete_vacuna(?)}";
 
