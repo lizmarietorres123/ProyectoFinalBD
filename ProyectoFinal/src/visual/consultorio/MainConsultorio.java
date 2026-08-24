@@ -132,7 +132,7 @@ public class MainConsultorio extends JFrame {
                 "recursos/listado.png",
                 new String[]{"Registrar", "Listar"},
                 new ActionListener[]{
-                        e -> abrirRealizarConsulta(),
+                        //e -> abrirRealizarConsulta(),
                         e -> abrirListarConsulta()
                 }
         );
@@ -355,7 +355,7 @@ public class MainConsultorio extends JFrame {
 
     private void abrirRegistrarPaciente() {
         try {
-            RegistrarPaciente reg = new RegistrarPaciente(null);
+            CrearPaciente reg = new CrearPaciente(null);
             reg.setVisible(true);
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Error al abrir registro de paciente: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -373,7 +373,7 @@ public class MainConsultorio extends JFrame {
 
     private void abrirRegistrarCita() {
         try {
-            RegistrarCita reg = new RegistrarCita();
+            CrearCita reg = new CrearCita(null);
             reg.setVisible(true);
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Error al abrir registro de cita: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -389,14 +389,14 @@ public class MainConsultorio extends JFrame {
         }
     }
 
-    private void abrirRealizarConsulta() {
-        try {
-            RealizarConsulta reg = new RealizarConsulta();
-            reg.setVisible(true);
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Error al abrir registro de consulta: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-        }
-    }
+//    private void abrirRealizarConsulta() {
+//        try {
+//            CrearConsulta reg = new CrearConsulta();
+//            reg.setVisible(true);
+//        } catch (Exception ex) {
+//            JOptionPane.showMessageDialog(this, "Error al abrir registro de consulta: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+//        }
+//    }
 
     private void abrirListarConsulta() {
         try {

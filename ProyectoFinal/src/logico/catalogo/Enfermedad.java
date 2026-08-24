@@ -11,6 +11,7 @@ public class Enfermedad implements Serializable {
 	private static final long serialVersionUID = -1798792587237642015L;
 
 	private String id;
+	private String nombre;
 	private String descripcion;
 	private boolean esContagiosa;
 	private Especialidad especialidad;
@@ -18,9 +19,10 @@ public class Enfermedad implements Serializable {
 	private int casosReportados;
 	private LocalDate fechaUltimoCaso;
 
-	public Enfermedad(int idNumber, String descripcion, boolean esContagiosa, Especialidad especialidad, ArrayList<Sintoma> sintomas) {
+	public Enfermedad(int idNumber, String nombre, String descripcion, boolean esContagiosa, Especialidad especialidad, ArrayList<Sintoma> sintomas) {
 		super();
 		setId(idNumber);
+		this.nombre = nombre;
 		this.descripcion = descripcion;
 		this.esContagiosa = esContagiosa;
 		this.especialidad = especialidad;
@@ -38,6 +40,14 @@ public class Enfermedad implements Serializable {
 
 	public void setId(int idNumber) {
 		this.id = Clinica.getInstancia().genId(idNumber, Enfermedad.class);
+	}
+
+	public String getNombre() {
+		return nombre;
+	}
+
+	public void setNombre(String nombre) {
+		this.nombre = nombre;
 	}
 
 	public String getDescripcion() {
@@ -72,6 +82,10 @@ public class Enfermedad implements Serializable {
 		this.sintomas = sintomas;
 	}
 
+	public void addSintoma(int sintoma) {
+		sintomas.add(Clinica.getInstancia().buscarSintomaXIdNumber(sintoma));
+	}
+
 	public int getCasosReportados() {
 		return casosReportados;
 	}
@@ -95,6 +109,6 @@ public class Enfermedad implements Serializable {
 
 	@Override
 	public String toString() {
-		return descripcion; // Ajustado ya que no existe 'nombre'
+		return nombre;
 	}
 }

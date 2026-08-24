@@ -26,6 +26,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 
+import bd.catalogo.CitaDAO;
 import logico.Clinica;
 import logico.consultorio.Cita;
 
@@ -157,6 +158,7 @@ public class ListarCita extends JDialog {
                             JOptionPane.WARNING_MESSAGE
                     );
                     if (option == JOptionPane.OK_OPTION) {
+                        CitaDAO.getInstance().eliminarCita(auxCita.getIdNumber());
                         Clinica.getInstancia().getCitas().remove(auxCita);
                         auxCita = null;
                         btnEliminar.setEnabled(false);
@@ -180,7 +182,7 @@ public class ListarCita extends JDialog {
         btnModificar.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 if (auxCita != null) {
-                    RegistrarCita modCita = new RegistrarCita(auxCita);
+                    CrearCita modCita = new CrearCita(auxCita);
                     modCita.setModal(true);
                     modCita.setVisible(true);
                     filtrarTabla(txtBuscar.getText());

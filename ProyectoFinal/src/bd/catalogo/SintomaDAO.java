@@ -12,7 +12,6 @@ import java.util.ArrayList;
 
 public class SintomaDAO {
 
-    // Inicialización temprana: garantiza que sea thread-safe sin usar bloques 'synchronized'
     private static final SintomaDAO instance = new SintomaDAO();
 
     private SintomaDAO() {}
@@ -21,7 +20,6 @@ public class SintomaDAO {
         return instance;
     }
 
-    // Se propaga la excepción para que la interfaz gráfica (ej. JavaFX) pueda mostrar un mensaje de error
     public void guardarSintoma(Sintoma sintoma) throws SQLException {
         final String sql = "{call str_insert_sintoma(?, ?)}";
 

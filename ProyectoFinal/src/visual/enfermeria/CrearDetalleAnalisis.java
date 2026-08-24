@@ -34,6 +34,7 @@ import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableModel;
 
+import bd.catalogo.DetalleAnalisisDAO;
 import logico.Clinica;
 import logico.catalogo.Enfermera;
 import logico.consultorio.Consulta;
@@ -390,6 +391,106 @@ public class CrearDetalleAnalisis extends JDialog {
         }
     }
 
+
+    private void guardarDatosAnalisis() {
+        if (detalleSeleccionado == null) {
+            JOptionPane.showMessageDialog(this, "Por favor, seleccione un detalle de análisis.", "Atención", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        try {
+            double res = Double.parseDouble(txtResultado.getText().trim());
+            detalleSeleccionado.setResultado(res);
+        } catch (NumberFormatException ex) {
+            detalleSeleccionado.setResultado(0.0);
+        }
+
+        detalleSeleccionado.setEnfermera((Enfermera) cbxEnfermera.getSelectedItem());
+        detalleSeleccionado.setEstado((String) cbxEstadoAnalisis.getSelectedItem());
+        detalleSeleccionado.setObservaciones(txtObservaciones.getText().trim());
+
+        JOptionPane.showMessageDialog(this, "Registro de análisis actualizado correctamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+
+        if (esModoEdicionDirecta) {
+            dispose();
+        } else {
+            cargarTablaDetalles();
+            limpiarFormulario();
+        }
+    }
+
+    private void eliminarAnalisis() {
+        if (detalleSeleccionado == null) {
+            JOptionPane.showMessageDialog(this, "Seleccione un detalle para eliminar.", "Atención", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        int confirm = JOptionPane.showConfirmDialog(
+                this,
+                "¿Está seguro de que desea eliminar este detalle de análisis?",
+                "Confirmar Eliminación",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE
+        );
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            Consulta consulta = detalleSeleccionado.getConsulta();
+
+            DetalleAnalisisDAO.getInstance().eliminarDetalleAnalisis(detalleSeleccionado.getIdNumber());
+            consulta.getAnalisis().remove(detalleSeleccionado);
+
+            JOptionPane.showMessageDialog(this, "Detalle de análisis eliminado con éxito.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+
+            if (esModoEdicionDirecta) {
+                dispose();
+            } else {
+                cargarTablaDetalles();
+                limpiarFormulario();
+            }
+        }
+    }
+
+    private void seleccionarDetalle(DetalleAnalisis detalle) {
+        this.detalleSeleccionado = detalle;
+        if (detalle == null) {
+            limpiarFormulario();
+            return;
+        }
+
+        btnEliminar.setVisible(true);
+
+        Consulta consulta = detalle.getConsulta();
+        Paciente paciente = obtenerPacienteDeConsulta(consulta);
+
+        if (paciente != null) {
+            txtNombrePaciente.setText(paciente.getNombre());
+            txtApellidoPaciente.setText(paciente.getApellido() != null ? paciente.getApellido() : "");
+            txtSexoPaciente.setText(paciente.getSexo() != null ? paciente.getSexo() : "N/A");
+            txtEdadPaciente.setText(calcularEdad(paciente.getFecNacim()) + " años");
+        } else if (consulta != null && consulta.getCita() != null) {
+            txtNombrePaciente.setText(consulta.getCita().getNombrePersona() != null ? consulta.getCita().getNombrePersona() : "N/A");
+            txtApellidoPaciente.setText("");
+            txtSexoPaciente.setText("N/A");
+            txtEdadPaciente.setText("N/A");
+        }
+
+        if (detalle.getAnalisis() != null) {
+            txtNombreAnalisis.setText(detalle.getAnalisis().getNombre());
+        } else {
+            txtNombreAnalisis.setText("N/A");
+        }
+
+        if (detalle.getEnfermera() != null) {
+            cbxEnfermera.setSelectedItem(detalle.getEnfermera());
+        } else {
+            cbxEnfermera.setSelectedIndex(0);
+        }
+
+        txtResultado.setText(detalle.getResultado() != null ? detalle.getResultado().toString() : "");
+        cbxEstadoAnalisis.setSelectedItem(detalle.getEstado() != null ? detalle.getEstado() : "Pendiente");
+        txtObservaciones.setText(detalle.getObservaciones() != null ? detalle.getObservaciones() : "");
+    }
+
     private void cargarComboEnfermeras() {
         DefaultComboBoxModel<Enfermera> model = new DefaultComboBoxModel<>();
         model.addElement(null);
@@ -471,104 +572,6 @@ public class CrearDetalleAnalisis extends JDialog {
                         }
                     }
                 }
-            }
-        }
-    }
-
-    private void seleccionarDetalle(DetalleAnalisis detalle) {
-        this.detalleSeleccionado = detalle;
-        if (detalle == null) {
-            limpiarFormulario();
-            return;
-        }
-
-        btnEliminar.setVisible(true);
-
-        Consulta consulta = detalle.getConsulta();
-        Paciente paciente = obtenerPacienteDeConsulta(consulta);
-
-        if (paciente != null) {
-            txtNombrePaciente.setText(paciente.getNombre());
-            txtApellidoPaciente.setText(paciente.getApellido() != null ? paciente.getApellido() : "");
-            txtSexoPaciente.setText(paciente.getSexo() != null ? paciente.getSexo() : "N/A");
-            txtEdadPaciente.setText(calcularEdad(paciente.getFecNacim()) + " años");
-        } else if (consulta != null && consulta.getCita() != null) {
-            txtNombrePaciente.setText(consulta.getCita().getNombrePersona() != null ? consulta.getCita().getNombrePersona() : "N/A");
-            txtApellidoPaciente.setText("");
-            txtSexoPaciente.setText("N/A");
-            txtEdadPaciente.setText("N/A");
-        }
-
-        if (detalle.getAnalisis() != null) {
-            txtNombreAnalisis.setText(detalle.getAnalisis().getNombre());
-        } else {
-            txtNombreAnalisis.setText("N/A");
-        }
-
-        if (detalle.getEnfermera() != null) {
-            cbxEnfermera.setSelectedItem(detalle.getEnfermera());
-        } else {
-            cbxEnfermera.setSelectedIndex(0);
-        }
-
-        txtResultado.setText(detalle.getResultado() != null ? detalle.getResultado().toString() : "");
-        cbxEstadoAnalisis.setSelectedItem(detalle.getEstado() != null ? detalle.getEstado() : "Pendiente");
-        txtObservaciones.setText(detalle.getObservaciones() != null ? detalle.getObservaciones() : "");
-    }
-
-    private void guardarDatosAnalisis() {
-        if (detalleSeleccionado == null) {
-            JOptionPane.showMessageDialog(this, "Por favor, seleccione un detalle de análisis.", "Atención", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        try {
-            double res = Double.parseDouble(txtResultado.getText().trim());
-            detalleSeleccionado.setResultado(res);
-        } catch (NumberFormatException ex) {
-            detalleSeleccionado.setResultado(0.0);
-        }
-
-        detalleSeleccionado.setEnfermera((Enfermera) cbxEnfermera.getSelectedItem());
-        detalleSeleccionado.setEstado((String) cbxEstadoAnalisis.getSelectedItem());
-        detalleSeleccionado.setObservaciones(txtObservaciones.getText().trim());
-
-        JOptionPane.showMessageDialog(this, "Registro de análisis actualizado correctamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
-
-        if (esModoEdicionDirecta) {
-            dispose();
-        } else {
-            cargarTablaDetalles();
-            limpiarFormulario();
-        }
-    }
-
-    private void eliminarAnalisis() {
-        if (detalleSeleccionado == null) {
-            JOptionPane.showMessageDialog(this, "Seleccione un detalle para eliminar.", "Atención", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        int confirm = JOptionPane.showConfirmDialog(
-                this,
-                "¿Está seguro de que desea eliminar este detalle de análisis?",
-                "Confirmar Eliminación",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.QUESTION_MESSAGE
-        );
-
-        if (confirm == JOptionPane.YES_OPTION) {
-            Consulta consulta = detalleSeleccionado.getConsulta();
-            if (consulta != null && consulta.getAnalisis() != null) {
-                consulta.getAnalisis().remove(detalleSeleccionado);
-            }
-            JOptionPane.showMessageDialog(this, "Detalle de análisis eliminado con éxito.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
-
-            if (esModoEdicionDirecta) {
-                dispose();
-            } else {
-                cargarTablaDetalles();
-                limpiarFormulario();
             }
         }
     }

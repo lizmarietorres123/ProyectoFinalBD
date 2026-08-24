@@ -22,6 +22,7 @@ import logico.Clinica;
 import logico.consultorio.Paciente;
 import utilidad.Formato;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import javax.swing.JSpinner;
 import javax.swing.JComboBox;
@@ -30,7 +31,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import java.util.Calendar;
 
-public class RegistrarPaciente extends JDialog {
+public class CrearPaciente extends JDialog {
 
 	private static final long serialVersionUID = 1L;
 	private final JPanel contentPanel = new JPanel();
@@ -51,7 +52,7 @@ public class RegistrarPaciente extends JDialog {
 
 	public static void main(String[] args) {
 		try {
-			RegistrarPaciente dialog = new RegistrarPaciente(null);
+			CrearPaciente dialog = new CrearPaciente(null);
 			dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 			dialog.setVisible(true);
 		} catch (Exception e) {
@@ -59,7 +60,7 @@ public class RegistrarPaciente extends JDialog {
 		}
 	}
 
-	public RegistrarPaciente(Paciente pac) {
+	public CrearPaciente(Paciente pac) {
 		this.miPaciente = pac;
 
 		if (miPaciente == null) {
@@ -304,25 +305,6 @@ public class RegistrarPaciente extends JDialog {
 		cargarDatos();
 	}
 
-	// Nota: Por ahora mantenemos la validación de la cédula buscando en la lista cargada en memoria,
-	// pero lo ideal a futuro es que el DAO tenga un método tipo buscarCedula().
-	private boolean existeCedula(String cedula) {
-		if (cedula == null || Clinica.getInstancia().getPacientes() == null) {
-			return false;
-		}
-		String cedulaLimpia = cedula.replace("-", "").replaceAll("\\s+", "");
-
-		for (Paciente p : Clinica.getInstancia().getPacientes()) {
-			if (p.getCedula() != null) {
-				String cedulaP = p.getCedula().replace("-", "").replaceAll("\\s+", "");
-				if (cedulaP.equalsIgnoreCase(cedulaLimpia)) {
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
 	private void registrarPaciente() {
 		String nombre = txtNombre.getText();
 		String apellido = txtApellido.getText();
@@ -352,9 +334,9 @@ public class RegistrarPaciente extends JDialog {
 		if (Formato.verificarEntradaRegex(pesoStr.trim(), "^[0-9]+(\\.[0-9]+)?$", "El peso debe ser un número válido.")) return;
 		if (Formato.entradaVacia(estaturaStr, "Debe ingresar la estatura del paciente.")) return;
 		if (Formato.verificarEntradaRegex(estaturaStr.trim(), "^[0-9]+(\\.[0-9]+)?$", "La estatura debe ser un número válido.")) return;
+		BigDecimal pesoVal = new BigDecimal(pesoStr.trim());
+		BigDecimal estaturaVal = new BigDecimal(estaturaStr.trim());
 
-		// OJO: Asumimos que tu base de datos genera el ID automáticamente (IDENTITY).
-		// Si es así, el 'Clinica.genCodigoPacientes' se ignora al hacer el INSERT en el DAO, pero lo mandamos por consistencia del objeto.
 		Paciente paciente = new Paciente(
 				Clinica.genCodigoPacientes,
 				nombre.trim(),
@@ -363,23 +345,37 @@ public class RegistrarPaciente extends JDialog {
 				telefono.trim(),
 				fecNacim,
 				sexo,
-				Float.parseFloat(pesoStr.trim()),
-				Float.parseFloat(estaturaStr.trim()),
+				pesoVal,
+				estaturaVal,
 				tipoSangre,
 				direccion.trim(),
 				estado
 		);
 
-
 		PacienteDAO.getInstance().guardarPaciente(paciente);
 
-		// Mantenemos esto para que el listado visual se actualice si depende de memoria,
-		// o hasta que implementes la recarga automática de los select.
 		Clinica.getInstancia().regPaciente(paciente);
 		this.pacienteCreado = paciente;
 
 		JOptionPane.showMessageDialog(null, "Paciente registrado con éxito.", "Registro Exitoso", JOptionPane.INFORMATION_MESSAGE);
 		dispose();
+	}
+
+	private boolean existeCedula(String cedula) {
+		if (cedula == null || Clinica.getInstancia().getPacientes() == null) {
+			return false;
+		}
+		String cedulaLimpia = cedula.replace("-", "").replaceAll("\\s+", "");
+
+		for (Paciente p : Clinica.getInstancia().getPacientes()) {
+			if (p.getCedula() != null) {
+				String cedulaP = p.getCedula().replace("-", "").replaceAll("\\s+", "");
+				if (cedulaP.equalsIgnoreCase(cedulaLimpia)) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	private void modificarPaciente() {
@@ -406,19 +402,20 @@ public class RegistrarPaciente extends JDialog {
 		if (Formato.entradaVacia(estaturaStr, "Debe ingresar la estatura del paciente.")) return;
 		if (Formato.verificarEntradaRegex(estaturaStr.trim(), "^[0-9]+(\\.[0-9]+)?$", "La estatura debe ser un número válido.")) return;
 
-		// Actualizamos el objeto local
+		BigDecimal pesoVal = new BigDecimal(pesoStr.trim());
+		BigDecimal estaturaVal = new BigDecimal(estaturaStr.trim());
+
 		miPaciente.setNombre(nombre.trim());
 		miPaciente.setApellido(apellido.trim());
 		miPaciente.setTelefono(telefono.trim());
 		miPaciente.setFecNacim(fecNacim);
 		miPaciente.setSexo(sexo);
-		miPaciente.setPeso(Float.parseFloat(pesoStr.trim()));
-		miPaciente.setEstatura(Float.parseFloat(estaturaStr.trim()));
+		miPaciente.setPeso(pesoVal);
+		miPaciente.setEstatura(estaturaVal);
 		miPaciente.setTipoSangre(tipoSangre);
 		miPaciente.setDireccion(direccion.trim());
 		miPaciente.setEstado(estado);
 
-		// --- NUEVO: ACTUALIZAR EN LA BASE DE DATOS MEDIANTE EL DAO ---
 		PacienteDAO.getInstance().actualizarPaciente(miPaciente);
 
 		JOptionPane.showMessageDialog(null, "Paciente modificado con éxito.", "Modificación Exitosa", JOptionPane.INFORMATION_MESSAGE);
@@ -451,8 +448,8 @@ public class RegistrarPaciente extends JDialog {
 			txtCedula.setEditable(false);
 			txtTelefono.setText(miPaciente.getTelefono());
 			txtDireccion.setText(miPaciente.getDireccion());
-			txtPeso.setText(String.valueOf(miPaciente.getPeso()));
-			txtEstatura.setText(String.valueOf(miPaciente.getEstatura()));
+			txtPeso.setText(miPaciente.getPeso() != null ? miPaciente.getPeso().toString() : "");
+			txtEstatura.setText(miPaciente.getEstatura() != null ? miPaciente.getEstatura().toString() : "");
 			cbxSexo.setSelectedItem(miPaciente.getSexo());
 			cbxTipoSangre.setSelectedItem(miPaciente.getTipoSangre());
 			if (miPaciente.getEstado() != null) {

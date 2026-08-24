@@ -25,11 +25,10 @@ public class DetalleAnalisisDAO {
         return instance;
     }
 
-    public void guardarDetalleAnalisis(DetalleAnalisis detalle) {
+    public void guardarDetalleAnalisis(Connection connection, DetalleAnalisis detalle) {
         final String sql = "{call str_insert_detalle_analisis(?, ?, ?, ?, ?, ?, ?)}";
 
-        try (Connection connection = ConexionBD.getConnection();
-             CallableStatement callableStatement = connection.prepareCall(sql)) {
+        try (CallableStatement callableStatement = connection.prepareCall(sql)) {
 
             // Relaciones obligatorias
             callableStatement.setInt(1, detalle.getAnalisis().getIdNumber());

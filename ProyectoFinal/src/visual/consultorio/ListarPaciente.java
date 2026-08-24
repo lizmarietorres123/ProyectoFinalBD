@@ -27,6 +27,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 
+import bd.catalogo.PacienteDAO;
 import logico.Clinica;
 import logico.consultorio.Paciente;
 
@@ -162,8 +163,11 @@ public class ListarPaciente extends JDialog {
 							"Confirmación",
 							JOptionPane.WARNING_MESSAGE
 					);
+
 					if (option == JOptionPane.OK_OPTION) {
+						PacienteDAO.getInstance().eliminarPaciente(auxPaciente.getIdNumber());
 						Clinica.getInstancia().getPacientes().remove(auxPaciente);
+
 						auxPaciente = null;
 						btnEliminar.setEnabled(false);
 						btnModificar.setEnabled(false);
@@ -186,7 +190,7 @@ public class ListarPaciente extends JDialog {
 		btnModificar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if (auxPaciente != null) {
-					RegistrarPaciente modPaciente = new RegistrarPaciente(auxPaciente);
+					CrearPaciente modPaciente = new CrearPaciente(auxPaciente);
 					modPaciente.setModal(true);
 					modPaciente.setVisible(true);
 					filtrarTabla(txtBuscar.getText());

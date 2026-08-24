@@ -3,6 +3,7 @@ package bd.catalogo;
 import bd.ConexionBD;
 import logico.consultorio.Paciente;
 
+import java.math.BigDecimal;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -24,7 +25,6 @@ public class PacienteDAO {
     }
 
     public void guardarPaciente(Paciente paciente) {
-        // El SP str_insert_paciente no recibe estado, lo fija como 'Activo' en la BD
         final String sql = "{call str_insert_paciente(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
 
         try (Connection connection = ConexionBD.getConnection();
@@ -34,7 +34,6 @@ public class PacienteDAO {
             callableStatement.setString(2, paciente.getNombre());
             callableStatement.setString(3, paciente.getApellido());
 
-            // Conversión de java.util.Date a java.sql.Date para SQL Server
             if (paciente.getFecNacim() != null) {
                 callableStatement.setDate(4, new java.sql.Date(paciente.getFecNacim().getTime()));
             } else {
@@ -44,12 +43,20 @@ public class PacienteDAO {
             callableStatement.setString(5, paciente.getSexo());
             callableStatement.setString(6, paciente.getTelefono());
             callableStatement.setString(7, paciente.getDireccion());
-              callableStatement.setBigDecimal(8, new java.math.BigDecimal(String.valueOf(paciente.getPeso())));
-            callableStatement.setBigDecimal(9, new java.math.BigDecimal(String.valueOf(paciente.getEstatura())));
+
+            callableStatement.setBigDecimal(8, paciente.getPeso());
+            callableStatement.setBigDecimal(9, paciente.getEstatura());
 
             callableStatement.setString(10, paciente.getTipoSangre());
 
-            callableStatement.execute();
+            boolean exito = callableStatement.execute();
+            if (exito) {
+                try (ResultSet rs = callableStatement.getResultSet()) {
+                    if (rs != null && rs.next()) {
+                        paciente.setId(rs.getInt(1));
+                    }
+                }
+            }
 
         } catch (SQLException e) {
             System.err.println("Error al guardar el paciente: " + e.getMessage());
@@ -57,7 +64,6 @@ public class PacienteDAO {
     }
 
     public void actualizarPaciente(Paciente paciente) {
-        // El SP str_update_paciente recibe 12 parámetros, incluyendo el estado para el borrado lógico
         final String sql = "{call str_update_paciente(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
 
         try (Connection connection = ConexionBD.getConnection();
@@ -77,10 +83,13 @@ public class PacienteDAO {
             callableStatement.setString(6, paciente.getSexo());
             callableStatement.setString(7, paciente.getTelefono());
             callableStatement.setString(8, paciente.getDireccion());
-            callableStatement.setBigDecimal(9, new java.math.BigDecimal(String.valueOf(paciente.getPeso())));
-            callableStatement.setBigDecimal(10, new java.math.BigDecimal(String.valueOf(paciente.getEstatura())));
+
+            // Corrección limpia de los parámetros decimales de peso y estatura
+            callableStatement.setBigDecimal(9, paciente.getPeso());
+            callableStatement.setBigDecimal(10, paciente.getEstatura());
+
             callableStatement.setString(11, paciente.getTipoSangre());
-            callableStatement.setString(12, paciente.getEstado()); // Aquí pasamos el estado
+            callableStatement.setString(12, paciente.getEstado());
 
             callableStatement.execute();
 
@@ -90,7 +99,6 @@ public class PacienteDAO {
     }
 
     public void eliminarPaciente(int idPaciente) {
-        // Llamada al SP de eliminación de tu compañera
         final String sql = "{call str_delete_paciente(?)}";
 
         try (Connection connection = ConexionBD.getConnection();
@@ -119,10 +127,10 @@ public class PacienteDAO {
                         rs.getString("apellido"),
                         rs.getString("cedula"),
                         rs.getString("telefono"),
-                        rs.getDate("fec_nacim"), // Extrae directamente como java.sql.Date
+                        rs.getDate("fec_nacim"),
                         rs.getString("sexo"),
-                        rs.getFloat("peso"),
-                        rs.getFloat("estatura"),
+                        rs.getBigDecimal("peso"),       // Lectura correcta como BigDecimal
+                        rs.getBigDecimal("estatura"),   // Lectura correcta como BigDecimal
                         rs.getString("tipo_sangre"),
                         rs.getString("direccion"),
                         rs.getString("estado")

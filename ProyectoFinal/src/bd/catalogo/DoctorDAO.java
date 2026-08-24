@@ -1,6 +1,7 @@
 package bd.catalogo;
 
 import bd.ConexionBD;
+import logico.Clinica;
 import logico.catalogo.Doctor;
 import logico.catalogo.Usuario;
 
@@ -41,10 +42,19 @@ public class DoctorDAO {
                 callableStatement.setNull(4, java.sql.Types.INTEGER);
             }
 
-            // Ojo: Si la BD espera un INT (id_especialidad), el SP debe manejar esta conversión.
-            callableStatement.setString(5, doctor.getEspecialidad());
+            callableStatement.setInt(5, doctor.getEspecialidad().getIdNumber());
 
             callableStatement.execute();
+
+            boolean exito = callableStatement.execute();
+            if (exito) {
+                try (ResultSet rs = callableStatement.getResultSet()) {
+                    if (rs != null && rs.next()) {
+                        doctor.setId(rs.getInt(1));
+
+                    }
+                }
+            }
 
         } catch (SQLException e) {
             System.err.println("Error al guardar el doctor: " + e.getMessage());
@@ -63,13 +73,16 @@ public class DoctorDAO {
             callableStatement.setString(3, doctor.getApellido());
             callableStatement.setInt(4, doctor.getCupoDiario());
 
+
+            callableStatement.setInt(5, doctor.getUsuario().getIdNumber());
+
+
             if (doctor.getUsuario() != null) {
-                callableStatement.setInt(5, doctor.getUsuario().getIdNumber());
+                callableStatement.setInt(6, doctor.getEspecialidad().getIdNumber());
             } else {
-                callableStatement.setNull(5, java.sql.Types.INTEGER);
+                callableStatement.setNull(6, java.sql.Types.INTEGER);
             }
 
-            callableStatement.setString(6, doctor.getEspecialidad());
             callableStatement.setString(7, doctor.getEstado());
 
             callableStatement.execute();
@@ -96,8 +109,7 @@ public class DoctorDAO {
 
     public ArrayList<Doctor> obtenerDoctores() {
         ArrayList<Doctor> doctores = new ArrayList<>();
-        // Recomendación: Si tienes un id_especialidad en la tabla original,
-        // usa una vista (ej. vw_doctores_completos) que haga el JOIN con la tabla especialidad
+
         final String sql = "SELECT * FROM doctor";
 
         try (Connection connection = ConexionBD.getConnection();
@@ -110,12 +122,10 @@ public class DoctorDAO {
                         rs.getString("nombre"),
                         rs.getString("apellido"),
                         rs.getInt("cupo_diario"),
-                        rs.getString("especialidad"), // Ajusta si la columna en la BD se llama distinto
+                        rs.getInt("id_usuario"),
+                        rs.getInt("id_especialidad"),
                         rs.getString("estado")
                 );
-
-                // Si la vista/tabla incluye info del usuario, podrías mapearlo aquí o dejarlo null
-                // y que un controlador se encargue de ensamblarlo luego.
 
                 doctores.add(doc);
             }

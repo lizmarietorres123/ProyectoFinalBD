@@ -6,7 +6,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
     public class ConexionBD {
-
+/*
         private static final String SERVIDOR = "ASUS-AJ";
         private static final String BASE_DATOS = "Clinica";
 
@@ -31,10 +31,11 @@ import java.sql.SQLException;
 
             return con;
         }
+ */
 
 
-    /*
-    private static final String SERVIDOR = "ASUS-AJ";
+
+    private static final String SERVIDOR = "100.107.122.125";
     private static final String PUERTO = "55488";
     private static final String BASE_DATOS = "Clinica";
 
@@ -73,5 +74,5 @@ import java.sql.SQLException;
 
         return con;
     }
-*/
+
 }

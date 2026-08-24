@@ -23,6 +23,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 
+import bd.catalogo.TratamientoDAO;
 import logico.catalogo.Medicamento;
 import logico.Clinica;
 import logico.consultorio.Diagnostico;
@@ -44,15 +45,14 @@ public class CrearTratamiento extends JDialog {
 
     private Tratamiento tratamientoCreado = null;
     private Tratamiento tratamientoEdicion = null;
-    private Diagnostico diagnosticoActual; // Variable agregada
+    private Diagnostico diagnosticoActual;
+    private boolean eliminado = false; // Indicador para saber si el tratamiento fue eliminado
 
-    // Constructor para tratamiento nuevo
     public CrearTratamiento(Diagnostico diagnostico) {
         this.diagnosticoActual = diagnostico;
         initUI();
     }
 
-    // Constructor para editar tratamiento
     public CrearTratamiento(Diagnostico diagnostico, Tratamiento tratamiento) {
         this.diagnosticoActual = diagnostico;
         this.tratamientoEdicion = tratamiento;
@@ -94,7 +94,6 @@ public class CrearTratamiento extends JDialog {
         cbxMedicamento.setFont(new Font("Bahnschrift", Font.PLAIN, 12));
         cbxMedicamento.setBackground(new Color(224, 247, 250));
         cbxMedicamento.setBounds(120, 25, 375, 22);
-        // Evento para actualizar la visibilidad/estado de la dosis al cambiar la selección
         cbxMedicamento.addActionListener(e -> actualizarEstadoDosis());
         panelDatos.add(cbxMedicamento);
 
@@ -186,6 +185,18 @@ public class CrearTratamiento extends JDialog {
         buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
         getContentPane().add(buttonPane, BorderLayout.SOUTH);
 
+        // Botón Eliminar (Solo se muestra si se está editando un tratamiento existente)
+        if (tratamientoEdicion != null) {
+            JButton btnEliminar = new JButton("Eliminar");
+            btnEliminar.setFont(new Font("Bahnschrift", Font.BOLD, 12));
+            btnEliminar.setBackground(new Color(255, 204, 204));
+            btnEliminar.setForeground(new Color(178, 34, 34));
+            btnEliminar.setBorder(new LineBorder(new Color(205, 92, 92), 2));
+            btnEliminar.setFocusPainted(false);
+            btnEliminar.addActionListener(e -> eliminarTratamiento());
+            buttonPane.add(btnEliminar);
+        }
+
         JButton btnGuardar = new JButton(tratamientoEdicion == null ? "Guardar" : "Guardar Cambios");
         btnGuardar.setFont(new Font("Bahnschrift", Font.BOLD, 12));
         btnGuardar.setBackground(new Color(176, 224, 230));
@@ -205,18 +216,95 @@ public class CrearTratamiento extends JDialog {
         buttonPane.add(btnCancelar);
 
         cargarMedicamentos();
-        actualizarEstadoDosis(); // Evaluamos el estado inicial al terminar initUI
+        actualizarEstadoDosis();
+    }
+
+    private void guardarTratamiento() {
+        if (txtFrecuencia.getText().trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Debe indicar la frecuencia del tratamiento.", "Campo Requerido", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        Medicamento medicamentoElegido;
+        int dosis;
+
+        if (cbxMedicamento.getSelectedIndex() <= 0) {
+            medicamentoElegido = null;
+            dosis = 0;
+        } else {
+            int indexSeleccionado = cbxMedicamento.getSelectedIndex() - 1;
+            String idMedicamento = Clinica.getInstancia().getMedicamentos().get(indexSeleccionado).getId();
+            medicamentoElegido = Clinica.getInstancia().buscarMedicamentoXId(idMedicamento);
+            dosis = (int) spnDosis.getValue();
+        }
+
+        String frecuencia = txtFrecuencia.getText().trim();
+        Date fInicio = (Date) spnFechaInicio.getValue();
+        Date fFin = (Date) spnFechaFin.getValue();
+        String estado = (String) cbxEstado.getSelectedItem();
+        String indicaciones = txtDescripcion.getText().trim();
+
+        if (tratamientoEdicion == null) {
+            tratamientoCreado = new Tratamiento(
+                    0,
+                    diagnosticoActual,
+                    medicamentoElegido,
+                    dosis,
+                    frecuencia,
+                    fInicio,
+                    fFin,
+                    indicaciones,
+                    estado
+            );
+
+        } else {
+            tratamientoEdicion.setMedicamento(medicamentoElegido);
+            tratamientoEdicion.setDosis(dosis);
+            tratamientoEdicion.setFrecuencia(frecuencia);
+            tratamientoEdicion.setFechaInicio(fInicio);
+            tratamientoEdicion.setFechaFin(fFin);
+            tratamientoEdicion.setEstado(estado);
+            tratamientoEdicion.setDescripcion(indicaciones);
+            tratamientoCreado = tratamientoEdicion;
+
+            TratamientoDAO.getInstance().actualizarTratamiento(tratamientoEdicion);
+        }
+
+        dispose();
+    }
+
+    public Tratamiento getTratamientoCreado() {
+        return tratamientoCreado;
+    }
+
+    private void eliminarTratamiento() {
+        int confirm = JOptionPane.showConfirmDialog(
+                this,
+                "¿Está seguro de que desea eliminar este tratamiento?",
+                "Confirmar Eliminación",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE
+        );
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            if (tratamientoEdicion != null) {
+                TratamientoDAO.getInstance().eliminarTratamiento(tratamientoEdicion.getIdNumber());
+            }
+            eliminado = true;
+            tratamientoCreado = null;
+            dispose();
+        }
+    }
+
+    public boolean isEliminado() {
+        return eliminado;
     }
 
     private void actualizarEstadoDosis() {
         boolean tieneMedicamento = cbxMedicamento.getSelectedIndex() > 0;
 
-        // Habilita / Deshabilita los componentes de dosis
         lblDosis.setEnabled(tieneMedicamento);
         spnDosis.setEnabled(tieneMedicamento);
-
-        // Si prefieres que se oculten por completo en lugar de solo deshabilitarse,
-        // puedes usar setVisible en lugar de setEnabled:
         lblDosis.setVisible(tieneMedicamento);
         spnDosis.setVisible(tieneMedicamento);
     }
@@ -256,60 +344,4 @@ public class CrearTratamiento extends JDialog {
         }
     }
 
-    private void guardarTratamiento() {
-
-        if (txtFrecuencia.getText().trim().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Debe indicar la frecuencia del tratamiento.", "Campo Requerido", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        Medicamento medicamentoElegido;
-        int dosis;
-
-        if (cbxMedicamento.getSelectedIndex() <= 0) {
-            medicamentoElegido = null;
-            dosis = 0; // Si no hay medicamento, la dosis queda en 0
-        } else {
-            int indexSeleccionado = cbxMedicamento.getSelectedIndex() - 1;
-            String idMedicamento = Clinica.getInstancia().getMedicamentos().get(indexSeleccionado).getId();
-            medicamentoElegido = Clinica.getInstancia().buscarMedicamentoXId(idMedicamento);
-            dosis = (int) spnDosis.getValue();
-        }
-
-        String frecuencia = txtFrecuencia.getText().trim();
-        Date fInicio = (Date) spnFechaInicio.getValue();
-        Date fFin = (Date) spnFechaFin.getValue();
-        String estado = (String) cbxEstado.getSelectedItem();
-        String indicaciones = txtDescripcion.getText().trim();
-
-        if (tratamientoEdicion == null) {
-            // El 0 es un placeholder. La base de datos asignará el ID real al hacer el INSERT.
-            tratamientoCreado = new Tratamiento(
-                    0,
-                    diagnosticoActual,
-                    medicamentoElegido,
-                    dosis,
-                    frecuencia,
-                    fInicio,
-                    fFin,
-                    indicaciones,
-                    estado
-            );
-        } else {
-            tratamientoEdicion.setMedicamento(medicamentoElegido);
-            tratamientoEdicion.setDosis(dosis);
-            tratamientoEdicion.setFrecuencia(frecuencia);
-            tratamientoEdicion.setFechaInicio(fInicio);
-            tratamientoEdicion.setFechaFin(fFin);
-            tratamientoEdicion.setEstado(estado);
-            tratamientoEdicion.setDescripcion(indicaciones);
-            tratamientoCreado = tratamientoEdicion;
-        }
-
-        dispose();
-    }
-
-    public Tratamiento getTratamientoCreado() {
-        return tratamientoCreado;
-    }
 }

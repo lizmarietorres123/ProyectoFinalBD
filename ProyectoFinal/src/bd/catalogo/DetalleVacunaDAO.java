@@ -25,11 +25,10 @@ public class DetalleVacunaDAO {
         return instance;
     }
 
-    public void guardarDetalleVacuna(DetalleVacuna detalle) {
+    public void guardarDetalleVacuna(Connection connection, DetalleVacuna detalle) {
         final String sql = "{call str_insert_detalle_vacuna(?, ?, ?, ?, ?, ?, ?, ?)}";
 
-        try (Connection connection = ConexionBD.getConnection();
-             CallableStatement callableStatement = connection.prepareCall(sql)) {
+        try (CallableStatement callableStatement = connection.prepareCall(sql)) {
 
             callableStatement.setInt(1, detalle.getVacuna().getIdNumber());
             callableStatement.setInt(2, detalle.getConsulta().getIdNumber());

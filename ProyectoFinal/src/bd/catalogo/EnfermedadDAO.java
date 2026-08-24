@@ -26,35 +26,12 @@ public class EnfermedadDAO {
     }
 
     public void guardarEnfermedad(Enfermedad enfermedad) {
-        final String sql = "{call str_insert_enfermedad(?, ?, ?)}";
+        final String sql = "{call str_insert_enfermedad(?, ?, ?, ?)}";
 
         try (Connection connection = ConexionBD.getConnection();
              CallableStatement callableStatement = connection.prepareCall(sql)) {
 
-            callableStatement.setString(1, enfermedad.getDescripcion());
-            callableStatement.setBoolean(2, enfermedad.isEsContagiosa());
-
-            if (enfermedad.getEspecialidad() != null) {
-                // Se asume que Especialidad tiene el método getIdNumber()
-                callableStatement.setInt(3, enfermedad.getEspecialidad().getIdNumber());
-            } else {
-                callableStatement.setNull(3, java.sql.Types.INTEGER);
-            }
-
-            callableStatement.execute();
-
-        } catch (SQLException e) {
-            System.err.println("Error al guardar la enfermedad: " + e.getMessage());
-        }
-    }
-
-    public void actualizarEnfermedad(Enfermedad enfermedad) {
-        final String sql = "{call str_update_enfermedad(?, ?, ?, ?)}";
-
-        try (Connection connection = ConexionBD.getConnection();
-             CallableStatement callableStatement = connection.prepareCall(sql)) {
-
-            callableStatement.setInt(1, enfermedad.getIdNumber());
+            callableStatement.setString(1, enfermedad.getNombre());
             callableStatement.setString(2, enfermedad.getDescripcion());
             callableStatement.setBoolean(3, enfermedad.isEsContagiosa());
 
@@ -67,11 +44,34 @@ public class EnfermedadDAO {
             callableStatement.execute();
 
         } catch (SQLException e) {
+            System.err.println("Error al guardar la enfermedad: " + e.getMessage());
+        }
+    }
+
+    public void actualizarEnfermedad(Enfermedad enfermedad) {
+        final String sql = "{call str_update_enfermedad(?, ?, ?, ?, ?)}";
+
+        try (Connection connection = ConexionBD.getConnection();
+             CallableStatement callableStatement = connection.prepareCall(sql)) {
+
+            callableStatement.setInt(1, enfermedad.getIdNumber());
+            callableStatement.setString(2, enfermedad.getNombre());
+            callableStatement.setString(3, enfermedad.getDescripcion());
+            callableStatement.setBoolean(4, enfermedad.isEsContagiosa());
+
+            if (enfermedad.getEspecialidad() != null) {
+                callableStatement.setInt(5, enfermedad.getEspecialidad().getIdNumber());
+            } else {
+                callableStatement.setNull(5, java.sql.Types.INTEGER);
+            }
+
+            callableStatement.execute();
+
+        } catch (SQLException e) {
             System.err.println("Error al actualizar la enfermedad: " + e.getMessage());
         }
     }
 
-    // --- NUEVO MÉTODO DE ELIMINACIÓN ---
     public void eliminarEnfermedad(int idEnfermedad) {
         final String sql = "{call str_delete_enfermedad(?)}";
 
@@ -97,7 +97,7 @@ public class EnfermedadDAO {
             while(rs.next()){
                 enfermedades.add(new Enfermedad(
                         rs.getInt("id_enfermedad"),
-                        // rs.getString("nombre") <- Eliminado. Ya no existe en la BD.
+                        rs.getString("nombre"),
                         rs.getString("descripcion"),
                         rs.getBoolean("es_contagiosa"),
                         null, // Aquí deberías cargar el objeto Especialidad si es necesario

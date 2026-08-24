@@ -21,18 +21,18 @@ public class Cita implements Serializable {
 	private Paciente paciente;
 	private Doctor doctor;
 
-	// Constructor para mapeo desde la Base de Datos
-	public Cita(int idNumber, LocalDateTime fechaRegistro, Date fechaConsulta, Time horaConsulta, EstadoCita estado, Paciente paciente, Doctor doctor) {
+	// Constructor para mapeo desde la Base de Datos (siguiendo el patrón de Doctor)[cite: 17, 18]
+	public Cita(int idNumber, LocalDateTime fechaRegistro, Date fechaConsulta, Time horaConsulta, EstadoCita estado, int pacienteId, int doctorId) {
 		setId(idNumber);
 		this.fechaRegistro = fechaRegistro;
 		this.fechaConsulta = fechaConsulta;
 		this.horaConsulta = horaConsulta;
 		this.estado = estado;
-		this.paciente = paciente;
-		this.doctor = doctor;
+		setPaciente(pacienteId);
+		setDoctor(doctorId);
 	}
 
-	// Constructor para la interfaz gráfica (sin ID ni fecha de registro, ya que BD lo genera)
+	// Constructor para la interfaz gráfica (sin ID ni fecha de registro, ya que BD lo genera)[cite: 17]
 	public Cita(Date fechaConsulta, Time horaConsulta, EstadoCita estado, Paciente paciente, Doctor doctor) {
 		this.fechaConsulta = fechaConsulta;
 		this.horaConsulta = horaConsulta;
@@ -93,12 +93,21 @@ public class Cita implements Serializable {
 		this.paciente = paciente;
 	}
 
+	// Setter por ID numérico para el mapeo desde BD (análogo a Doctor)[cite: 18]
+	public void setPaciente(int id) {
+		this.paciente = Clinica.getInstancia().buscarPacienteXIdNumber(id);
+	}
+
 	public Doctor getDoctor() {
 		return doctor;
 	}
 
 	public void setDoctor(Doctor doctor) {
 		this.doctor = doctor;
+	}
+
+	public void setDoctor(int id) {
+		this.doctor = Clinica.getInstancia().buscarDoctorXIdNumber(id);
 	}
 
 	public String getIdPersona() {

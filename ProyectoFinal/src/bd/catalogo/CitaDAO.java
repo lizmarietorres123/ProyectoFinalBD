@@ -33,21 +33,22 @@ public class CitaDAO {
             // La fecha de registro (GETDATE()) se maneja sola en la BD
             callableStatement.setDate(1, new java.sql.Date(cita.getFechaConsulta().getTime()));
             callableStatement.setTime(2, cita.getHoraConsulta());
-            callableStatement.setString(3, cita.getEstado().name()); // Guarda el enum como String
+            callableStatement.setString(3, cita.getEstado().name());
+            callableStatement.setInt(4, cita.getDoctor().getIdNumber());
+            callableStatement.setInt(5, cita.getPaciente().getIdNumber());
 
-            if (cita.getDoctor() != null) {
-                callableStatement.setInt(4, cita.getDoctor().getIdNumber());
-            } else {
-                callableStatement.setNull(4, java.sql.Types.INTEGER);
+            boolean exito = callableStatement.execute();
+            if (exito) {
+                try (ResultSet rs = callableStatement.getResultSet()) {
+                    if (rs != null && rs.next()) {
+                        cita.setId(rs.getInt(1));
+                        java.sql.Timestamp timestamp = rs.getTimestamp(2);
+                        if (timestamp != null) {
+                            cita.setFechaRegistro(timestamp.toLocalDateTime());
+                        }
+                    }
+                }
             }
-
-            if (cita.getPaciente() != null) {
-                callableStatement.setInt(5, cita.getPaciente().getIdNumber());
-            } else {
-                callableStatement.setNull(5, java.sql.Types.INTEGER);
-            }
-
-            callableStatement.execute();
 
         } catch (SQLException e) {
             System.err.println("Error al guardar la cita: " + e.getMessage());
@@ -64,18 +65,8 @@ public class CitaDAO {
             callableStatement.setDate(2, new java.sql.Date(cita.getFechaConsulta().getTime()));
             callableStatement.setTime(3, cita.getHoraConsulta());
             callableStatement.setString(4, cita.getEstado().name());
-
-            if (cita.getDoctor() != null) {
-                callableStatement.setInt(5, cita.getDoctor().getIdNumber());
-            } else {
-                callableStatement.setNull(5, java.sql.Types.INTEGER);
-            }
-
-            if (cita.getPaciente() != null) {
-                callableStatement.setInt(6, cita.getPaciente().getIdNumber());
-            } else {
-                callableStatement.setNull(6, java.sql.Types.INTEGER);
-            }
+            callableStatement.setInt(5, cita.getDoctor().getIdNumber());
+            callableStatement.setInt(6, cita.getPaciente().getIdNumber());
 
             callableStatement.execute();
 
@@ -121,8 +112,8 @@ public class CitaDAO {
                         rs.getDate("fecha_consulta"),
                         rs.getTime("hora_consulta"),
                         estadoEnum,
-                        null,
-                        null
+                        rs.getInt("id_paciente"),
+                        rs.getInt("id_doctor")
                 ));
             }
 

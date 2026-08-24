@@ -20,6 +20,8 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 
+import bd.catalogo.DiagnosticoDAO;
+import bd.catalogo.TratamientoDAO;
 import logico.catalogo.Enfermedad;
 import logico.catalogo.Sintoma;
 import logico.Clinica;
@@ -49,6 +51,7 @@ public class CrearDiagnostico extends JDialog {
     private Diagnostico diagnosticoCreado = null;
     private Diagnostico diagnosticoEdicion = null;
     private Paciente pacienteActual = null;
+    private int eliminado = -1;
 
     // Objeto temporal para amarrar los tratamientos antes de guardar
     private Diagnostico diagnosticoTrabajo;
@@ -227,6 +230,17 @@ public class CrearDiagnostico extends JDialog {
         buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
         getContentPane().add(buttonPane, BorderLayout.SOUTH);
 
+        if (diagnosticoEdicion != null) {
+            JButton btnEliminar = new JButton("Eliminar");
+            btnEliminar.setFont(new Font("Bahnschrift", Font.BOLD, 12));
+            btnEliminar.setBackground(new Color(255, 182, 193));
+            btnEliminar.setForeground(new Color(178, 34, 34));
+            btnEliminar.setBorder(new LineBorder(new Color(240, 128, 128), 2));
+            btnEliminar.setFocusPainted(false);
+            btnEliminar.addActionListener(e -> eliminarDiagnostico());
+            buttonPane.add(btnEliminar);
+        }
+
         JButton btnGuardar = new JButton(diagnosticoEdicion == null ? "Agregar" : "Guardar Cambios");
         btnGuardar.setFont(new Font("Bahnschrift", Font.BOLD, 12));
         btnGuardar.setBackground(new Color(176, 224, 230));
@@ -248,12 +262,63 @@ public class CrearDiagnostico extends JDialog {
         cargarEnfermedades();
     }
 
+    private void guardarDiagnostico() {
+        if (cbxEnfermedad.getSelectedIndex() <= 0) {
+            JOptionPane.showMessageDialog(this, "Debe seleccionar una enfermedad.", "Campo Requerido", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        int indexSeleccionado = cbxEnfermedad.getSelectedIndex() - 1;
+        String idEnfermedad = Clinica.getInstancia().getEnfermedades().get(indexSeleccionado).getId();
+        Enfermedad enfermedadElegida = Clinica.getInstancia().buscarEnfermedadXId(idEnfermedad);
+
+        //Guardar
+        if (diagnosticoEdicion == null) {
+            diagnosticoTrabajo.setEnfermedad(enfermedadElegida);
+            diagnosticoTrabajo.setObservacion(txtObservacion.getText().trim());
+            diagnosticoTrabajo.setTratamientos(new ArrayList<>(tratamientosActuales));
+            diagnosticoTrabajo.setSintomas(sintomasSeleccionados);
+            diagnosticoCreado = diagnosticoTrabajo;
+        } else {
+            //Modificar
+            diagnosticoEdicion.setEnfermedad(enfermedadElegida);
+            diagnosticoEdicion.setObservacion(txtObservacion.getText().trim());
+            diagnosticoEdicion.setTratamientos(new ArrayList<>(tratamientosActuales));
+            diagnosticoEdicion.setSintomas(sintomasSeleccionados);
+            diagnosticoCreado = diagnosticoEdicion;
+
+            DiagnosticoDAO.getInstance().actualizarDiagnostico(diagnosticoEdicion);
+        }
+
+        dispose();
+    }
+
+    private void eliminarDiagnostico() {
+        int confirm = JOptionPane.showConfirmDialog(
+                this,
+                "¿Está seguro de que desea eliminar este diagnóstico?",
+                "Confirmar Eliminación",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE
+        );
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            eliminado = diagnosticoEdicion.getIdNumber();
+            DiagnosticoDAO.getInstance().eliminarDiagnostico(diagnosticoEdicion.getIdNumber());
+            dispose();
+        }
+    }
+
+    public int eliminadoIndex() {
+        return eliminado;
+    }
+
     private void cargarEnfermedades() {
         cbxEnfermedad.removeAllItems();
         cbxEnfermedad.addItem("<<Seleccione>>");
         if (Clinica.getInstancia().getEnfermedades() != null) {
             for (Enfermedad e : Clinica.getInstancia().getEnfermedades()) {
-                cbxEnfermedad.addItem(e.getDescripcion()); // CORREGIDO: getNombre() ya no existe
+                cbxEnfermedad.addItem(e.getNombre());
             }
         }
     }
@@ -315,7 +380,7 @@ public class CrearDiagnostico extends JDialog {
     private void cargarDatosEdicion() {
         if (diagnosticoEdicion != null) {
             if (diagnosticoEdicion.getEnfermedad() != null) {
-                cbxEnfermedad.setSelectedItem(diagnosticoEdicion.getEnfermedad().getDescripcion()); // CORREGIDO
+                cbxEnfermedad.setSelectedItem(diagnosticoEdicion.getEnfermedad().getNombre());
             }
             txtObservacion.setText(diagnosticoEdicion.getObservacion());
             actualizarTextoSintomas();
@@ -324,7 +389,6 @@ public class CrearDiagnostico extends JDialog {
     }
 
     private void abrirAgregarTratamiento() {
-        // CORREGIDO: Se envía el diagnosticoTrabajo para satisfacer el constructor
         CrearTratamiento dialog = new CrearTratamiento(diagnosticoTrabajo);
         dialog.setModal(true);
         dialog.setLocationRelativeTo(this);
@@ -349,11 +413,14 @@ public class CrearDiagnostico extends JDialog {
         }
 
         if (tratamientosActuales.size() == 1) {
-            // CORREGIDO: Se envía el diagnosticoTrabajo
             CrearTratamiento dialog = new CrearTratamiento(diagnosticoTrabajo, tratamientosActuales.get(0));
             dialog.setModal(true);
             dialog.setLocationRelativeTo(this);
             dialog.setVisible(true);
+
+            if (dialog.isEliminado()) {
+                tratamientosActuales.remove(0);
+            }
         } else {
             String[] opciones = new String[tratamientosActuales.size()];
             for (int i = 0; i < tratamientosActuales.size(); i++) {
@@ -375,11 +442,14 @@ public class CrearDiagnostico extends JDialog {
             if (seleccion != null) {
                 for (int i = 0; i < tratamientosActuales.size(); i++) {
                     if (seleccion.startsWith((i + 1) + ".")) {
-                        // CORREGIDO: Se envía el diagnosticoTrabajo
                         CrearTratamiento dialog = new CrearTratamiento(diagnosticoTrabajo, tratamientosActuales.get(i));
                         dialog.setModal(true);
                         dialog.setLocationRelativeTo(this);
                         dialog.setVisible(true);
+
+                        if (dialog.isEliminado()) {
+                            tratamientosActuales.remove(i);
+                        }
                         break;
                     }
                 }
@@ -401,33 +471,6 @@ public class CrearDiagnostico extends JDialog {
             txtTratamientos.setText(sb.toString().trim());
             txtTratamientos.setCaretPosition(0);
         }
-    }
-
-    private void guardarDiagnostico() {
-        if (cbxEnfermedad.getSelectedIndex() <= 0) {
-            JOptionPane.showMessageDialog(this, "Debe seleccionar una enfermedad.", "Campo Requerido", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        int indexSeleccionado = cbxEnfermedad.getSelectedIndex() - 1;
-        String idEnfermedad = Clinica.getInstancia().getEnfermedades().get(indexSeleccionado).getId();
-        Enfermedad enfermedadElegida = Clinica.getInstancia().buscarEnfermedadXId(idEnfermedad);
-
-        if (diagnosticoEdicion == null) {
-            diagnosticoTrabajo.setEnfermedad(enfermedadElegida);
-            diagnosticoTrabajo.setObservacion(txtObservacion.getText().trim());
-            diagnosticoTrabajo.setTratamientos(new ArrayList<>(tratamientosActuales));
-            diagnosticoTrabajo.setSintomas(sintomasSeleccionados);
-            diagnosticoCreado = diagnosticoTrabajo; // Asignamos el temporal al definitivo
-        } else {
-            diagnosticoEdicion.setEnfermedad(enfermedadElegida);
-            diagnosticoEdicion.setObservacion(txtObservacion.getText().trim());
-            diagnosticoEdicion.setTratamientos(new ArrayList<>(tratamientosActuales));
-            diagnosticoEdicion.setSintomas(sintomasSeleccionados);
-            diagnosticoCreado = diagnosticoEdicion;
-        }
-
-        dispose();
     }
 
     public Diagnostico getDiagnosticoCreado() {

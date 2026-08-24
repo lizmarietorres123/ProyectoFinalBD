@@ -1,8 +1,10 @@
 package logico;
 
+import bd.ConsultaDAO;
 import bd.catalogo.*;
 import logico.catalogo.*;
 import logico.consultorio.*;
+import logico.enfermeria.*;
 import java.io.Serializable;
 import java.sql.Time;
 import java.time.LocalDateTime;
@@ -20,6 +22,7 @@ public class Clinica implements Serializable {
     public static int genCodigoVacuna = 1;
     public static int genCodigoEnfermedad = 1;
     public static int genCodigoUsuarios = 1;
+    public static int genCodigoTratamientos = 1;
 
     // --- INICIAL ID ---
     public static String codConsulta = "CONS-";
@@ -40,6 +43,10 @@ public class Clinica implements Serializable {
     private ArrayList<Vacuna> vacunas;
     private ArrayList<Integer> contadores;
     private ArrayList<Especialidad> especialidades;
+    private ArrayList<Diagnostico> diagnosticos;
+    private ArrayList<Tratamiento> tratamientos;
+    private ArrayList<DetalleAnalisis> detalleAnalisis;
+    private ArrayList<DetalleVacuna> detalleVacunas;
 
     private Map<Class<?>,String> ids;
 
@@ -58,6 +65,10 @@ public class Clinica implements Serializable {
         vacunas = new ArrayList<>();
         usuarios = new ArrayList<>();
         especialidades = new ArrayList<>();
+        diagnosticos = new ArrayList<>();
+        tratamientos = new ArrayList<>();
+        detalleAnalisis = new ArrayList<>();
+        detalleVacunas = new ArrayList<>();
 
         ids = new HashMap<>();
 
@@ -212,6 +223,38 @@ public class Clinica implements Serializable {
         setInstancia(auxClinica);
     }
 
+    public ArrayList<Diagnostico> getDiagnosticos() {
+        return diagnosticos;
+    }
+
+    public void setDiagnosticos(ArrayList<Diagnostico> diagnosticos) {
+        this.diagnosticos = diagnosticos;
+    }
+
+    public ArrayList<Tratamiento> getTratamientos() {
+        return tratamientos;
+    }
+
+    public void setTratamientos(ArrayList<Tratamiento> tratamientos) {
+        this.tratamientos = tratamientos;
+    }
+
+    public ArrayList<DetalleAnalisis> getDetalleAnalisis() {
+        return detalleAnalisis;
+    }
+
+    public void setDetalleAnalisis(ArrayList<DetalleAnalisis> detalleAnalisis) {
+        this.detalleAnalisis = detalleAnalisis;
+    }
+
+    public ArrayList<DetalleVacuna> getDetalleVacunas() {
+        return detalleVacunas;
+    }
+
+    public void setDetalleVacunas(ArrayList<DetalleVacuna> detalleVacunas) {
+        this.detalleVacunas = detalleVacunas;
+    }
+
     // --- MANEJO DE CODIGOS ---
 
     private void asignarIds(){
@@ -225,6 +268,10 @@ public class Clinica implements Serializable {
         ids.put(Medicamento.class,"MED-");
         ids.put(Analisis.class,"AN-");
         ids.put(Vacuna.class,"VAC-");
+        ids.put(Paciente.class,"PAC-");
+        ids.put(Especialidad.class,"ESP-");
+        ids.put(Diagnostico.class,"DIAG-");
+        ids.put(Tratamiento.class,"TRAT-");
     }
 
     public <T> String genId(int idNumber, Class<T> clase){
@@ -240,13 +287,21 @@ public class Clinica implements Serializable {
     public void cargarBD() {
         try {
             usuarios = UsuarioDAO.getInstance().obtenerUsuarios();
+            pacientes = PacienteDAO.getInstance().obtenerPacientes();
+            doctores = DoctorDAO.getInstance().obtenerDoctores();
+            citas = CitaDAO.getInstance().obtenerCitas();
+            consultas = ConsultaDAO.getInstance().obtenerConsultas();
             especialidades = EspecialidadDAO.getInstance().obtenerEspecialidades();
             sintomas = SintomaDAO.getInstance().obtenerSintomas();
             vacunas = VacunaDAO.getInstance().obtenerVacunas();
             medicamentos = MedicamentoDAO.getInstance().obtenerMedicamentos();
             analisis = AnalisisDAO.getInstance().obtenerAnalisis();
-            enfermedades = EnfermedadDAO.getInstance().obtenerEnfermedades();
 
+            enfermedades = EnfermedadDAO.getInstance().obtenerEnfermedades();
+            diagnosticos = DiagnosticoDAO.getInstance().obtenerDiagnosticos();
+            tratamientos = TratamientoDAO.getInstance().obtenerTratamientos();
+            detalleAnalisis = DetalleAnalisisDAO.getInstance().obtenerDetallesAnalisis();
+            //detalleVacunas = DetalleVacunaDAO.getInstance().obtenerDetalleVacunas();
 
         } catch (Exception e) {
             System.err.println("Error crítico al cargar datos desde la base de datos: " + e.getMessage());
@@ -333,6 +388,35 @@ public class Clinica implements Serializable {
         }
     }
 
+    public void regDiagnostico(Diagnostico diagnostico) {
+        if (diagnostico != null) {
+            diagnosticos.add(diagnostico);
+            genCodigoDiagnosticos++;
+        }
+    }
+
+    public void regTratamiento(Tratamiento tratamiento) {
+        if (tratamiento != null) {
+            tratamientos.add(tratamiento);
+            genCodigoTratamientos++;
+        }
+    }
+
+    // DetalleAnalisis y DetalleVacuna identifican su fila con un id de tipo
+    // String asignado por la BD (no usan el patrón genId/getIdNumber de las
+    // demás entidades), por lo que aquí solo se agregan a la lista.
+    public void regDetalleAnalisis(DetalleAnalisis detalle) {
+        if (detalle != null) {
+            detalleAnalisis.add(detalle);
+        }
+    }
+
+    public void regDetalleVacuna(DetalleVacuna detalle) {
+        if (detalle != null) {
+            detalleVacunas.add(detalle);
+        }
+    }
+
 
 
     public Paciente buscarPacienteXId(String id) {
@@ -351,12 +435,20 @@ public class Clinica implements Serializable {
         return null;
     }
 
+    public Paciente buscarPacienteXIdNumber(int idNumber) {
+        return buscarPacienteXId(genId(idNumber, Paciente.class));
+    }
+
     public Cita buscarCitaXId(String id) {
         if (id == null) return null;
         for (Cita c : citas) {
             if (c != null && c.getId() != null && c.getId().equalsIgnoreCase(id)) return c;
         }
         return null;
+    }
+
+    public Cita buscarCitaXIdNumber(int idNumber) {
+        return buscarCitaXId(genId(idNumber, Cita.class));
     }
 
     public Enfermera buscarEnfermeraXId(String id) {
@@ -375,6 +467,11 @@ public class Clinica implements Serializable {
             }
         }
         return null;
+    }
+
+
+    public Enfermera buscarEnfermeraXIdNumber(int idNumber) {
+        return buscarEnfermeraXId(genId(idNumber, Enfermera.class));
     }
 
     public Usuario buscarUsuarioXId(String id) {
@@ -436,6 +533,18 @@ public class Clinica implements Serializable {
         return buscarVacunaXId(genId(idNumber, Vacuna.class));
     }
 
+    public Especialidad buscarEspecialidadXId(String id) {
+        if (id == null) return null;
+        for (Especialidad esp : especialidades) {
+            if (esp != null && esp.getId() != null && esp.getId().equalsIgnoreCase(id)) return esp;
+        }
+        return null;
+    }
+
+    public Especialidad buscarEspecialidadXIdNumber(int idNumber) {
+        return buscarEspecialidadXId(genId(idNumber, Especialidad.class));
+    }
+
     public Enfermedad buscarEnfermedadXId(String id) {
         if (id == null) return null;
         for (Enfermedad e : enfermedades) {
@@ -454,6 +563,10 @@ public class Clinica implements Serializable {
             if (s != null && s.getId() != null && s.getId().equalsIgnoreCase(id)) return s;
         }
         return null;
+    }
+
+    public Sintoma buscarSintomaXIdNumber(int idNumber) {
+        return buscarSintomaXId(genId(idNumber, Sintoma.class));
     }
 
     public Medicamento buscarMedicamentoXId(String id) {
@@ -475,8 +588,53 @@ public class Clinica implements Serializable {
         return null;
     }
 
+    public Analisis buscarAnalisisXId(String id) {
+        if (id == null) return null;
+        try {
+            int idNumber = getIdNumber(id, Analisis.class);
+            return buscarAnalisisXIdNumber(idNumber);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    public Diagnostico buscarDiagnosticoXId(String id) {
+        if (id == null) return null;
+        for (Diagnostico d : diagnosticos) {
+            if (d != null && d.getId() != null && d.getId().equalsIgnoreCase(id)) return d;
+        }
+        return null;
+    }
+
     public Diagnostico buscarDiagnosticoXIdNumber(int idNumber) {
-        // Asumiendo que crearás una lista de diagnósticos en Clinica si es necesario
+        return buscarDiagnosticoXId(genId(idNumber, Diagnostico.class));
+    }
+
+    public Tratamiento buscarTratamientoXId(String id) {
+        if (id == null) return null;
+        for (Tratamiento t : tratamientos) {
+            if (t != null && t.getId() != null && t.getId().equalsIgnoreCase(id)) return t;
+        }
+        return null;
+    }
+
+    public Tratamiento buscarTratamientoXIdNumber(int idNumber) {
+        return buscarTratamientoXId(genId(idNumber, Tratamiento.class));
+    }
+
+    public DetalleAnalisis buscarDetalleAnalisisXId(String id) {
+        if (id == null) return null;
+        for (DetalleAnalisis da : detalleAnalisis) {
+            if (da != null && da.getId() != null && da.getId().equalsIgnoreCase(id)) return da;
+        }
+        return null;
+    }
+
+    public DetalleVacuna buscarDetalleVacunaXId(String id) {
+        if (id == null) return null;
+        for (DetalleVacuna dv : detalleVacunas) {
+            if (dv != null && dv.getId() != null && dv.getId().equalsIgnoreCase(id)) return dv;
+        }
         return null;
     }
 

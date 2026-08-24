@@ -1,6 +1,7 @@
 package bd.catalogo;
 
 import bd.ConexionBD;
+import logico.Clinica;
 import logico.catalogo.Usuario;
 
 import java.sql.CallableStatement;
@@ -35,6 +36,17 @@ public class UsuarioDAO {
             callableStatement.setString(3, usuario.getRol());
 
             callableStatement.execute();
+
+
+            boolean exito = callableStatement.execute();
+            if (exito) {
+                    try (ResultSet rs = callableStatement.getResultSet()) {
+                        if (rs != null && rs.next()) {
+                            usuario.setId(rs.getInt(1));
+
+                        }
+                    }
+            }
 
         } catch (SQLException e) {
             System.err.println("Error al guardar el usuario: " + e.getMessage());
@@ -88,7 +100,7 @@ public class UsuarioDAO {
                 usuarios.add(new Usuario(
                         rs.getInt("id_usuario"),
                         rs.getString("nombre"),
-                        rs.getString("password"),
+                        rs.getString("contrasenia"),
                         rs.getString("rol"),
                         rs.getString("estado")
                 ));

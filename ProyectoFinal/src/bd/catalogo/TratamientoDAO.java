@@ -23,11 +23,10 @@ public class TratamientoDAO {
         return instance;
     }
 
-    public void guardarTratamiento(Tratamiento tratamiento) {
+    public void guardarTratamiento(Connection connection, Tratamiento tratamiento) {
         final String sql = "{call str_insert_tratamiento(?, ?, ?, ?, ?, ?, ?, ?)}";
 
-        try (Connection connection = ConexionBD.getConnection();
-             CallableStatement callableStatement = connection.prepareCall(sql)) {
+        try (CallableStatement callableStatement = connection.prepareCall(sql)) {
 
             if (tratamiento.getDescripcion() != null && !tratamiento.getDescripcion().isEmpty()) {
                 callableStatement.setString(1, tratamiento.getDescripcion());
@@ -35,7 +34,6 @@ public class TratamientoDAO {
                 callableStatement.setNull(1, java.sql.Types.VARCHAR);
             }
 
-            // Según el constraint chk_tratamiento_dosis check (dosis > 0)
             if (tratamiento.getDosis() > 0) {
                 callableStatement.setInt(2, tratamiento.getDosis());
             } else {
@@ -51,8 +49,6 @@ public class TratamientoDAO {
             } else {
                 callableStatement.setNull(6, java.sql.Types.VARCHAR);
             }
-
-            // id_diagnostico es NOT NULL en la base de datos
             callableStatement.setInt(7, tratamiento.getDiagnostico().getIdNumber());
 
             // id_medicamento puede ser NULL
@@ -62,7 +58,15 @@ public class TratamientoDAO {
                 callableStatement.setNull(8, java.sql.Types.INTEGER);
             }
 
-            callableStatement.execute();
+            boolean exito = callableStatement.execute();
+            if (exito) {
+                try (ResultSet rs = callableStatement.getResultSet()) {
+                    if (rs != null && rs.next()) {
+                        tratamiento.setId(rs.getInt(1));
+
+                    }
+                }
+            }
 
         } catch (SQLException e) {
             System.err.println("Error al guardar el tratamiento: " + e.getMessage());
@@ -114,7 +118,6 @@ public class TratamientoDAO {
         }
     }
 
-    // --- NUEVO MÉTODO DE ELIMINACIÓN ---
     public void eliminarTratamiento(int idTratamiento) {
         final String sql = "{call str_delete_tratamiento(?)}";
 
@@ -156,5 +159,8 @@ public class TratamientoDAO {
         }
 
         return tratamientos;
+    }
+
+    public void eliminarTratamientosPorConsulta(Connection connection, int idNumber) {
     }
 }

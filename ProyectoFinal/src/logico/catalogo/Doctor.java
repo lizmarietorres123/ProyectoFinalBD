@@ -11,26 +11,18 @@ public class Doctor implements Serializable {
     private String nombre;
     private String apellido;
     private int cupoDiario;
-    private String especialidad;
+    private Especialidad especialidad;
     private Usuario usuario;
     private String estado;
 
-    public Doctor(int idNumber, String nombre, String apellido, int cupoDiario, String especialidad, String estado) {
+    public Doctor(int idNumber, String nombre, String apellido, int cupoDiario, int usuario, int especialidad, String estado) {
         setId(idNumber);
         this.nombre = nombre;
         this.apellido = apellido;
         this.cupoDiario = cupoDiario;
-        this.especialidad = especialidad;
+        setUsuario(usuario);
+        setEspecialidad(especialidad);
         this.estado = estado;
-        this.usuario = null;
-    }
-
-    public Doctor(String nombre, String apellido, int cupoDiario, String especialidad) {
-        this.nombre = nombre;
-        this.apellido = apellido;
-        this.cupoDiario = cupoDiario;
-        this.especialidad = especialidad;
-        this.estado = "activo";
         this.usuario = null;
     }
 
@@ -42,12 +34,12 @@ public class Doctor implements Serializable {
         this.estado = estado;
     }
 
-    public String getEspecialidad() {
+    public Especialidad getEspecialidad() {
         return especialidad;
     }
 
-    public void setEspecialidad(String especialidad) {
-        this.especialidad = especialidad;
+    public void setEspecialidad(int id) {
+        this.especialidad = Clinica.getInstancia().buscarEspecialidadXIdNumber(id);
     }
 
     public String getId() { return id; }
@@ -61,5 +53,5 @@ public class Doctor implements Serializable {
     public int getCupoDiario() { return cupoDiario; }
     public void setCupoDiario(int cupoDiario) { this.cupoDiario = cupoDiario; }
     public Usuario getUsuario() { return usuario; }
-    public void setUsuario(Usuario usuario) { this.usuario = usuario; }
+    public void setUsuario(int id) { this.usuario = Clinica.getInstancia().buscarUsuarioXIdNumber(id); }
 }

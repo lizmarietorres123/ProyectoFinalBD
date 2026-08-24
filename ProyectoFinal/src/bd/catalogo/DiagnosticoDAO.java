@@ -42,12 +42,54 @@ public class DiagnosticoDAO {
             } else {
                 callableStatement.setNull(3, java.sql.Types.VARCHAR);
             }
-
-            // Estas relaciones son obligatorias en tu esquema BD (Not Null)
             callableStatement.setInt(4, diagnostico.getConsulta().getIdNumber());
             callableStatement.setInt(5, diagnostico.getEnfermedad().getIdNumber());
 
-            callableStatement.execute();
+            boolean exito = callableStatement.execute();
+            if (exito) {
+                try (ResultSet rs = callableStatement.getResultSet()) {
+                    if (rs != null && rs.next()) {
+                        diagnostico.setId(rs.getInt(1));
+
+                    }
+                }
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Error al guardar el diagnóstico: " + e.getMessage());
+        }
+    }
+
+    public void guardarDiagnostico(Connection connection, Diagnostico diagnostico) {
+        final String sql = "{call str_insert_diagnostico(?, ?, ?, ?, ?)}";
+
+        try (CallableStatement callableStatement = connection.prepareCall(sql)) {
+
+            callableStatement.setString(1, diagnostico.getDescripcion());
+
+            if (diagnostico.getTipo() != null && !diagnostico.getTipo().isEmpty()) {
+                callableStatement.setString(2, diagnostico.getTipo());
+            } else {
+                callableStatement.setNull(2, java.sql.Types.VARCHAR);
+            }
+
+            if (diagnostico.getEstado() != null && !diagnostico.getEstado().isEmpty()) {
+                callableStatement.setString(3, diagnostico.getEstado());
+            } else {
+                callableStatement.setNull(3, java.sql.Types.VARCHAR);
+            }
+            callableStatement.setInt(4, diagnostico.getConsulta().getIdNumber());
+            callableStatement.setInt(5, diagnostico.getEnfermedad().getIdNumber());
+
+            boolean exito = callableStatement.execute();
+            if (exito) {
+                try (ResultSet rs = callableStatement.getResultSet()) {
+                    if (rs != null && rs.next()) {
+                        diagnostico.setId(rs.getInt(1));
+
+                    }
+                }
+            }
 
         } catch (SQLException e) {
             System.err.println("Error al guardar el diagnóstico: " + e.getMessage());

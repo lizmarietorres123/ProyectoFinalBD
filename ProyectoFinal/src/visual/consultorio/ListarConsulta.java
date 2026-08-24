@@ -18,7 +18,6 @@ import logico.catalogo.Doctor;
 import logico.Clinica;
 import logico.consultorio.Consulta;
 import logico.consultorio.Paciente;
-import utilidad.Formato;
 
 public class ListarConsulta extends JDialog {
 
@@ -241,9 +240,9 @@ public class ListarConsulta extends JDialog {
         Consulta consulta = listaConsultasVisibles.get(row);
 
         // Abrir la ventana RealizarConsulta pasando la Consulta seleccionada
-        RealizarConsulta dialog = new RealizarConsulta(consulta);
-        dialog.setModal(true);
-        dialog.setVisible(true);
+        // CrearConsulta dialog = new CrearConsulta(consulta);
+//        dialog.setModal(true);
+//        dialog.setVisible(true);
 
         // Al regresar, recargar la tabla para reflejar cambios o eliminaciones
         cargarTabla(txtBuscar.getText().trim());
