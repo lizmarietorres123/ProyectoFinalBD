@@ -1,6 +1,7 @@
 package visual.consultorio;
 
 import bd.ConexionBD;
+import logico.Clinica;
 import logico.catalogo.Doctor;
 
 import java.awt.*;
@@ -155,6 +156,7 @@ public class ListarConsulta extends JDialog {
      */
     private void cargarTabla(String filtro) {
         modelTable.setRowCount(0);
+        java.util.Set<Integer> idsYaMostrados = new java.util.HashSet<>();
         String sql = "{call str_listar_buscar_consulta(?)}";
 
         try (Connection conn = ConexionBD.getConnection();
@@ -165,6 +167,14 @@ public class ListarConsulta extends JDialog {
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     int idConsulta = rs.getInt("id_consulta");
+
+                    // Salvaguarda: si el procedimiento almacenado devuelve la misma consulta
+                    // más de una vez (p. ej. por un JOIN uno-a-muchos con diagnósticos/tratamientos),
+                    // solo se muestra la primera aparición.
+                    if (!idsYaMostrados.add(idConsulta)) {
+                        continue;
+                    }
+
                     String fecha = rs.getString("Fecha de Consulta");
                     String paciente = rs.getString("Paciente");
                     String doctor = rs.getString("Doctor");
@@ -208,9 +218,9 @@ public class ListarConsulta extends JDialog {
         int idConsultaSeleccionada = (int) tableConsultas.getValueAt(row, 0);
 
         // TODO: Abre tu ventana de detalle pasándole el idConsultaSeleccionada
-        // RealizarConsulta dialog = new RealizarConsulta(idConsultaSeleccionada);
-        // dialog.setModal(true);
-        // dialog.setVisible(true);
+        CrearConsulta dialog = new CrearConsulta(Clinica.getInstancia().buscarConsultaXIdNumber(idConsultaSeleccionada));
+        dialog.setModal(true);
+        dialog.setVisible(true);
 
         // Recargar la tabla al cerrar la ventana de detalle para ver actualizaciones
         cargarTabla(txtBuscar.getText().trim());

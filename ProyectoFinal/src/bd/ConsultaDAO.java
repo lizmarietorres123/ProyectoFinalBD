@@ -36,6 +36,10 @@ public class ConsultaDAO {
                     if (rs.next()) {
                         idGenerado = rs.getInt(1);
                         consulta.setId(idGenerado);
+                        java.sql.Timestamp timestamp = rs.getTimestamp(2);
+                        if (timestamp != null) {
+                            consulta.setFechaHora(timestamp.toLocalDateTime());
+                        }
                     }
                 }
             }

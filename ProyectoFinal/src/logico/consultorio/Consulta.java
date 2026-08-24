@@ -72,8 +72,7 @@ public class Consulta implements Serializable {
     }
 
     public void setCita(int idNumber) {
-        String idCita = Clinica.getInstancia().genId(idNumber, Cita.class);
-        this.cita = Clinica.getInstancia().buscarCitaXId(idCita);
+        this.cita = Clinica.getInstancia().buscarCitaXIdNumber(idNumber);
     }
 
     public void addDiagnostico(Diagnostico diagnostico) {

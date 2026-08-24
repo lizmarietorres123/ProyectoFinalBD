@@ -23,6 +23,57 @@ public class TratamientoDAO {
         return instance;
     }
 
+    public void guardarTratamiento(Tratamiento tratamiento) {
+        final String sql = "{call str_insert_tratamiento(?, ?, ?, ?, ?, ?, ?, ?)}";
+
+        try (Connection connection = ConexionBD.getConnection();
+             CallableStatement callableStatement = connection.prepareCall(sql)) {
+
+            if (tratamiento.getDescripcion() != null && !tratamiento.getDescripcion().isEmpty()) {
+                callableStatement.setString(1, tratamiento.getDescripcion());
+            } else {
+                callableStatement.setNull(1, java.sql.Types.VARCHAR);
+            }
+
+            if (tratamiento.getDosis() > 0) {
+                callableStatement.setInt(2, tratamiento.getDosis());
+            } else {
+                callableStatement.setNull(2, java.sql.Types.INTEGER);
+            }
+
+            callableStatement.setString(3, tratamiento.getEstado());
+            callableStatement.setDate(4, new java.sql.Date(tratamiento.getFechaInicio().getTime()));
+            callableStatement.setDate(5, new java.sql.Date(tratamiento.getFechaFin().getTime()));
+
+            if (tratamiento.getFrecuencia() != null && !tratamiento.getFrecuencia().isEmpty()) {
+                callableStatement.setString(6, tratamiento.getFrecuencia());
+            } else {
+                callableStatement.setNull(6, java.sql.Types.VARCHAR);
+            }
+            callableStatement.setInt(7, tratamiento.getDiagnostico().getIdNumber());
+
+            // id_medicamento puede ser NULL
+            if (tratamiento.getMedicamento() != null) {
+                callableStatement.setInt(8, tratamiento.getMedicamento().getIdNumber());
+            } else {
+                callableStatement.setNull(8, java.sql.Types.INTEGER);
+            }
+
+            boolean exito = callableStatement.execute();
+            if (exito) {
+                try (ResultSet rs = callableStatement.getResultSet()) {
+                    if (rs != null && rs.next()) {
+                        tratamiento.setId(rs.getInt(1));
+
+                    }
+                }
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Error al guardar el tratamiento: " + e.getMessage());
+        }
+    }
+
     public void guardarTratamiento(Connection connection, Tratamiento tratamiento) {
         final String sql = "{call str_insert_tratamiento(?, ?, ?, ?, ?, ?, ?, ?)}";
 
