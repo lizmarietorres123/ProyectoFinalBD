@@ -200,6 +200,14 @@ public class DetalleVacunaDAO {
                     fechaApli = tsApli.toLocalDateTime();
                 }
 
+                int idConsulta = rs.getInt("id_consulta");
+                int idVacuna = rs.getInt("id_vacuna");
+                int idEnfermera = rs.getInt("id_enfermera");
+
+                logico.consultorio.Consulta consulta = (idConsulta > 0) ? logico.Clinica.getInstancia().buscarConsultaXIdNumber(idConsulta) : null;
+                logico.catalogo.Vacuna vacuna = (idVacuna > 0) ? logico.Clinica.getInstancia().buscarVacunaXIdNumber(idVacuna) : null;
+                logico.catalogo.Enfermera enfermera = (idEnfermera > 0) ? logico.Clinica.getInstancia().buscarEnfermeraXIdNumber(idEnfermera) : null;
+
                 detalles.add(new DetalleVacuna(
                         rs.getInt("id_detalle"),
                         rs.getInt("dosis"),
@@ -207,9 +215,9 @@ public class DetalleVacunaDAO {
                         rs.getString("estado"),
                         fechaApli,
                         rs.getString("observaciones"),
-                        null, // Reemplazar con lógica para cargar Consulta (rs.getInt("id_consulta"))
-                        null, // Reemplazar con lógica para cargar Vacuna (rs.getInt("id_vacuna"))
-                        null  // Reemplazar con lógica para cargar Enfermera (rs.getInt("id_enfermera"))
+                        consulta,
+                        vacuna,
+                        enfermera
                 ));
             }
 

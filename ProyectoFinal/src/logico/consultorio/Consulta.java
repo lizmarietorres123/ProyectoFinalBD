@@ -25,6 +25,8 @@ public class Consulta implements Serializable {
         this.observaciones = observaciones;
         this.cita = cita;
         this.diagnosticos = new ArrayList<>();
+        this.analisis = new ArrayList<>();
+        this.vacunas = new ArrayList<>();
     }
 
     public Consulta(int idNumConsulta, LocalDateTime fechaHora, String observaciones, int idNumCita) {
@@ -33,6 +35,8 @@ public class Consulta implements Serializable {
         this.observaciones = observaciones;
         setCita(idNumCita);
         this.diagnosticos = new ArrayList<>();
+        this.analisis = new ArrayList<>();
+        this.vacunas = new ArrayList<>();
     }
     
     public String getId() {

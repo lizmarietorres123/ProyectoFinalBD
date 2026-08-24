@@ -1,6 +1,7 @@
 package bd.catalogo;
 
 import bd.ConexionBD;
+import logico.Clinica;
 import logico.catalogo.Enfermera;
 
 import java.sql.CallableStatement;
@@ -98,14 +99,16 @@ public class EnfermeraDAO {
              ResultSet rs = statement.executeQuery(sql)){
 
             while(rs.next()){
+                int idUsuario = rs.getInt("id_usuario");
+                logico.catalogo.Usuario user = (idUsuario > 0) ? Clinica.getInstancia().buscarUsuarioXIdNumber(idUsuario) : null;
                 enfermeras.add(new Enfermera(
                         rs.getInt("id_enfermera"),
                         rs.getString("nombre"),
                         rs.getString("apellido"),
                         rs.getString("cedula"),
                         rs.getString("telefono"),
-                        null, // Reemplazar con la lógica de búsqueda de Usuario
-                        rs.getString("estado") // Mapeo del estado
+                        user,
+                        rs.getString("estado")
                 ));
             }
 

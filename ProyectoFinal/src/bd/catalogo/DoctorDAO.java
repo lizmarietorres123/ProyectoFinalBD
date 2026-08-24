@@ -44,8 +44,6 @@ public class DoctorDAO {
 
             callableStatement.setInt(5, doctor.getEspecialidad().getIdNumber());
 
-            callableStatement.execute();
-
             boolean exito = callableStatement.execute();
             if (exito) {
                 try (ResultSet rs = callableStatement.getResultSet()) {

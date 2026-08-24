@@ -199,11 +199,19 @@ public class DetalleAnalisisDAO {
                     resultado = null;
                 }
 
+                int idAnalisis = rs.getInt("id_analisis");
+                int idConsulta = rs.getInt("id_consulta");
+                int idEnfermera = rs.getInt("id_enfermera");
+
+                logico.catalogo.Analisis analisis = (idAnalisis > 0) ? logico.Clinica.getInstancia().buscarAnalisisXIdNumber(idAnalisis) : null;
+                logico.consultorio.Consulta consulta = (idConsulta > 0) ? logico.Clinica.getInstancia().buscarConsultaXIdNumber(idConsulta) : null;
+                logico.catalogo.Enfermera enfermera = (idEnfermera > 0) ? logico.Clinica.getInstancia().buscarEnfermeraXIdNumber(idEnfermera) : null;
+
                 detalles.add(new DetalleAnalisis(
                         rs.getInt("id_detalle"),
-                        null, // Reemplazar con lógica para cargar Analisis desde rs.getInt("id_analisis")
-                        null, // Reemplazar con lógica para cargar Consulta desde rs.getInt("id_consulta")
-                        null, // Reemplazar con lógica para cargar Enfermera desde rs.getInt("id_enfermera")
+                        analisis,
+                        consulta,
+                        enfermera,
                         resultado,
                         rs.getString("estado"),
                         fechaReg,

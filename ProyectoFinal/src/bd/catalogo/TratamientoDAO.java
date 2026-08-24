@@ -192,10 +192,14 @@ public class TratamientoDAO {
              ResultSet rs = statement.executeQuery(sql)) {
 
             while (rs.next()) {
+                int idDiagnostico = rs.getInt("id_diagnostico");
+                int idMedicamento = rs.getInt("id_medicamento");
+                logico.consultorio.Diagnostico diag = (idDiagnostico > 0) ? logico.Clinica.getInstancia().buscarDiagnosticoXIdNumber(idDiagnostico) : null;
+                logico.catalogo.Medicamento med = (idMedicamento > 0) ? logico.Clinica.getInstancia().buscarMedicamentoXIdNumber(idMedicamento) : null;
                 tratamientos.add(new Tratamiento(
                         rs.getInt("id_tratamiento"),
-                        null, // Reemplazar con el método para buscar/cargar el Diagnostico real
-                        null, // Reemplazar con el método para buscar/cargar el Medicamento real
+                        diag,
+                        med,
                         rs.getInt("dosis"),
                         rs.getString("frecuencia"),
                         rs.getDate("fecha_inicio"),

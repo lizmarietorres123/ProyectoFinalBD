@@ -151,13 +151,17 @@ public class DiagnosticoDAO {
              ResultSet rs = statement.executeQuery(sql)) {
 
             while (rs.next()) {
+                int idConsulta = rs.getInt("id_consulta");
+                int idEnfermedad = rs.getInt("id_enfermedad");
+                logico.consultorio.Consulta consulta = (idConsulta > 0) ? logico.Clinica.getInstancia().buscarConsultaXIdNumber(idConsulta) : null;
+                logico.catalogo.Enfermedad enfermedad = (idEnfermedad > 0) ? logico.Clinica.getInstancia().buscarEnfermedadXIdNumber(idEnfermedad) : null;
                 diagnosticos.add(new Diagnostico(
                         rs.getInt("id_diagnostico"),
                         rs.getString("descripcion"),
                         rs.getString("tipo"),
                         rs.getString("estado"),
-                        null, // Reemplazar con lógica para cargar Consulta desde ID (rs.getInt("id_consulta"))
-                        null  // Reemplazar con lógica para cargar Enfermedad desde ID (rs.getInt("id_enfermedad"))
+                        consulta,
+                        enfermedad
                 ));
             }
 

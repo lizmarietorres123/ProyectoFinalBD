@@ -301,7 +301,7 @@ public class Clinica implements Serializable {
             diagnosticos = DiagnosticoDAO.getInstance().obtenerDiagnosticos();
             tratamientos = TratamientoDAO.getInstance().obtenerTratamientos();
             detalleAnalisis = DetalleAnalisisDAO.getInstance().obtenerDetallesAnalisis();
-            //detalleVacunas = DetalleVacunaDAO.getInstance().obtenerDetalleVacunas();
+            detalleVacunas = DetalleVacunaDAO.getInstance().obtenerDetallesVacuna();
 
         } catch (Exception e) {
             System.err.println("Error crítico al cargar datos desde la base de datos: " + e.getMessage());
@@ -665,10 +665,18 @@ public class Clinica implements Serializable {
     }
 
     public ArrayList<Consulta> getConsultasXDoctor(Doctor doctor) {
+        ArrayList<Consulta> res = new ArrayList<>();
         if (this.consultas != null) {
-            return this.consultas;
+            if (doctor == null) {
+                return new ArrayList<>(this.consultas);
+            }
+            for (Consulta c : this.consultas) {
+                if (c != null && c.getDoctor() != null && c.getDoctor().getId() != null && c.getDoctor().getId().equals(doctor.getId())) {
+                    res.add(c);
+                }
+            }
         }
-        return new ArrayList<>();
+        return res;
     }
 
     public ArrayList<Consulta> getConsultasVisiblesXDoctor(Doctor doctor) {

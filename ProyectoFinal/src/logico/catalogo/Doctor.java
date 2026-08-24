@@ -23,7 +23,6 @@ public class Doctor implements Serializable {
         setUsuario(usuario);
         setEspecialidad(especialidad);
         this.estado = estado;
-        this.usuario = null;
     }
 
     public String getEstado() {
@@ -53,5 +52,6 @@ public class Doctor implements Serializable {
     public int getCupoDiario() { return cupoDiario; }
     public void setCupoDiario(int cupoDiario) { this.cupoDiario = cupoDiario; }
     public Usuario getUsuario() { return usuario; }
+    public void setUsuario(Usuario usuario) { this.usuario = usuario; }
     public void setUsuario(int id) { this.usuario = Clinica.getInstancia().buscarUsuarioXIdNumber(id); }
 }

@@ -35,9 +35,6 @@ public class UsuarioDAO {
             callableStatement.setString(2, usuario.getPassword());
             callableStatement.setString(3, usuario.getRol());
 
-            callableStatement.execute();
-
-
             boolean exito = callableStatement.execute();
             if (exito) {
                     try (ResultSet rs = callableStatement.getResultSet()) {

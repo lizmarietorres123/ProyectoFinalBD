@@ -79,6 +79,10 @@ public class Enfermera implements Serializable {
         this.usuario = usuario;
     }
 
+    public void setUsuario(int id) {
+        this.usuario = Clinica.getInstancia().buscarUsuarioXIdNumber(id);
+    }
+
     public String getEstado() {
         return estado;
     }
