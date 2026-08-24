@@ -46,7 +46,7 @@ public class CrearTratamiento extends JDialog {
     private Tratamiento tratamientoCreado = null;
     private Tratamiento tratamientoEdicion = null;
     private Diagnostico diagnosticoActual;
-    private boolean eliminado = false; // Indicador para saber si el tratamiento fue eliminado
+    private boolean eliminado = false;
 
     public CrearTratamiento(Diagnostico diagnostico) {
         this.diagnosticoActual = diagnostico;
@@ -185,7 +185,7 @@ public class CrearTratamiento extends JDialog {
         buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
         getContentPane().add(buttonPane, BorderLayout.SOUTH);
 
-        // Botón Eliminar (Solo se muestra si se está editando un tratamiento existente)
+
         if (tratamientoEdicion != null) {
             JButton btnEliminar = new JButton("Eliminar");
             btnEliminar.setFont(new Font("Bahnschrift", Font.BOLD, 12));

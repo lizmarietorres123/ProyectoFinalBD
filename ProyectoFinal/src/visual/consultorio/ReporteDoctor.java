@@ -53,26 +53,18 @@ public class ReporteDoctor {
                 for (int i = 0; i < columnas.length; i++) {
                     Cell celda = filaTitulo.createCell(i);
                     celda.setCellStyle(estiloEncabezado);
-                    if (i == 0) celda.setCellValue("Nombre del reporte"); // Título principal
+                    if (i == 0) celda.setCellValue("Nombre del reporte");
                 }
 
-                // Combina desde la columna 0 hasta la última columna disponible (dinámico)
-                // Parámetros: (Fila inicio, Fila fin, Columna inicio, Columna fin)
                 sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, columnas.length - 1));
 
-                // ==========================================================
-                // 3. FILA 1: ENCABEZADOS DE COLUMNA
-                // ==========================================================
                 Row filaEncabezado = sheet.createRow(1);
                 for (int i = 0; i < columnas.length; i++) {
                     Cell celda = filaEncabezado.createCell(i);
                     celda.setCellValue(columnas[i]);
-                    celda.setCellStyle(estiloEncabezado); // Aplica el fondo verde y bordes
+                    celda.setCellStyle(estiloEncabezado);
                 }
 
-                // ==========================================================
-                // 4. FILA 2 EN ADELANTE: DATOS
-                // ==========================================================
                 int numeroFila = 2;
                 if (rs.next()) {
                     Row filaDatos = sheet.createRow(numeroFila++);
@@ -85,7 +77,6 @@ public class ReporteDoctor {
                     celdaTotal.setCellValue(rs.getInt("Total_Pacientes"));
                     celdaTotal.setCellStyle(estiloCelda); // Aplica bordes
                 } else {
-                    // Si no hay datos, crea una fila vacía con bordes
                     Row filaVacia = sheet.createRow(numeroFila);
                     for (int i = 0; i < columnas.length; i++) {
                         Cell celdaVacia = filaVacia.createCell(i);
@@ -95,12 +86,9 @@ public class ReporteDoctor {
                     sheet.addMergedRegion(new CellRangeAddress(numeroFila, numeroFila, 0, columnas.length - 1));
                 }
 
-                // Ajustar columnas
                 for (int i = 0; i < columnas.length; i++) {
                     sheet.autoSizeColumn(i);
                 }
-
-                // Guardar archivo
                 try (FileOutputStream fileOut = new FileOutputStream(rutaArchivo)) {
                     workbook.write(fileOut);
                     System.out.println("ÉXITO: Reporte estructurado generado en -> " + rutaArchivo);

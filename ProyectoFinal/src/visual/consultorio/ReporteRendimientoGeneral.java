@@ -24,9 +24,6 @@ public class ReporteRendimientoGeneral {
             try (ResultSet rs = stmt.executeQuery()) {
                 Sheet sheet = workbook.createSheet("Rendimiento Anual");
 
-                // ==========================================================
-                // 1. ESTILOS (Mismo formato)
-                // ==========================================================
                 CellStyle estiloEncabezado = workbook.createCellStyle();
                 estiloEncabezado.setFillForegroundColor(IndexedColors.SEA_GREEN.getIndex());
                 estiloEncabezado.setFillPattern(FillPatternType.SOLID_FOREGROUND);
@@ -48,9 +45,7 @@ public class ReporteRendimientoGeneral {
 
                 String[] columnas = {"Doctor", "Total de Consultas", "Pacientes Únicos"};
 
-                // ==========================================================
-                // 2. TÍTULO Y ENCABEZADOS
-                // ==========================================================
+
                 Row filaTitulo = sheet.createRow(0);
                 for (int i = 0; i < columnas.length; i++) {
                     Cell celda = filaTitulo.createCell(i);
@@ -66,9 +61,7 @@ public class ReporteRendimientoGeneral {
                     celda.setCellStyle(estiloEncabezado);
                 }
 
-                // ==========================================================
-                // 3. EXTRACCIÓN DE DATOS (Bucle While)
-                // ==========================================================
+
                 int numeroFila = 2;
                 boolean hayDatos = false;
 
@@ -100,7 +93,7 @@ public class ReporteRendimientoGeneral {
                     sheet.addMergedRegion(new CellRangeAddress(numeroFila, numeroFila, 0, columnas.length - 1));
                 }
 
-                // Ajustar columnas
+
                 for (int i = 0; i < columnas.length; i++) {
                     sheet.autoSizeColumn(i);
                 }

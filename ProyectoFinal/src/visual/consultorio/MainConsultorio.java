@@ -62,11 +62,11 @@ public class MainConsultorio extends JFrame {
     private JPanel panelLateral;
     private JPanel panelContenidoMenu;
 
-    // Labels para datos de sesión
+
     private JLabel lblValorUsuario;
     private JLabel lblValorNombre;
 
-    // Sockets para respaldos
+
     private static Socket sfd = null;
     private static DataInputStream EntradaSocket;
     private static DataOutputStream SalidaSocket;
@@ -126,7 +126,7 @@ public class MainConsultorio extends JFrame {
                 }
         );
 
-        // --- MÓDULO 3: CONSULTA ---
+
         crearModulo(
                 "Consulta",
                 "recursos/listado.png",

@@ -111,7 +111,6 @@ public class ListarPaciente extends JDialog {
 			}
 		};
 
-		// Ajustamos los headers al SP de SQL Server
 		String[] headers = {"Código", "Nombre", "Cédula", "Teléfono", "Tipo Sangre", "Peso (Kg)"};
 		model.setColumnIdentifiers(headers);
 
