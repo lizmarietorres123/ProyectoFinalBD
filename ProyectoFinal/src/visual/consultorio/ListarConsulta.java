@@ -1,23 +1,21 @@
 package visual.consultorio;
 
+import bd.ConexionBD;
+import logico.catalogo.Doctor;
+
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.ResultSet;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
-
-import logico.catalogo.Doctor;
-import logico.Clinica;
-import logico.consultorio.Consulta;
-import logico.consultorio.Paciente;
 
 public class ListarConsulta extends JDialog {
 
@@ -27,11 +25,8 @@ public class ListarConsulta extends JDialog {
     private DefaultTableModel modelTable;
     private JTextField txtBuscar;
 
-    // Doctor para filtrar las consultas (si es null, muestra todas)
+    // Doctor para filtrar las consultas
     private Doctor doctorFiltro;
-
-    // Lista auxiliar para sincronizar la fila seleccionada con el objeto Consulta
-    private List<Consulta> listaConsultasVisibles = new ArrayList<>();
 
     public static void main(String[] args) {
         try {
@@ -43,12 +38,10 @@ public class ListarConsulta extends JDialog {
         }
     }
 
-    // Constructor por defecto (para pruebas o uso general)
     public ListarConsulta() {
         this(null);
     }
 
-    // Constructor que recibe el Doctor desde Main
     public ListarConsulta(Doctor doctorFiltro) {
         this.doctorFiltro = doctorFiltro;
 
@@ -71,7 +64,7 @@ public class ListarConsulta extends JDialog {
         JPanel panelFiltro = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
         panelFiltro.setBackground(new Color(240, 248, 255));
 
-        JLabel lblBuscar = new JLabel("Buscar (Paciente / Doctor / Cita):");
+        JLabel lblBuscar = new JLabel("Buscar (Paciente / Doctor):");
         lblBuscar.setFont(new Font("Bahnschrift", Font.BOLD, 12));
         lblBuscar.setForeground(new Color(70, 130, 180));
         panelFiltro.add(lblBuscar);
@@ -90,12 +83,13 @@ public class ListarConsulta extends JDialog {
         contentPanel.add(panelFiltro, BorderLayout.NORTH);
 
         // --- TABLA DE CONSULTAS ---
-        String[] headers = {"Cita / ID", "Paciente", "Doctor", "Fecha / Hora", "Diagnósticos"};
+        // Se ajustan los encabezados para coincidir con el Procedimiento Almacenado
+        String[] headers = {"ID", "Fecha / Hora", "Paciente", "Doctor", "Observaciones"};
         modelTable = new DefaultTableModel(headers, 0) {
             private static final long serialVersionUID = 1L;
             @Override
             public boolean isCellEditable(int row, int column) {
-                return false; // Deshabilitar edición directa en celda
+                return false;
             }
         };
 
@@ -107,7 +101,13 @@ public class ListarConsulta extends JDialog {
         tableConsultas.getTableHeader().setForeground(new Color(70, 130, 180));
         tableConsultas.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-        // Evento de doble clic para abrir detalle/modificación
+        // Configurar ancho de columnas
+        tableConsultas.getColumnModel().getColumn(0).setPreferredWidth(40);  // ID
+        tableConsultas.getColumnModel().getColumn(1).setPreferredWidth(130); // Fecha
+        tableConsultas.getColumnModel().getColumn(2).setPreferredWidth(150); // Paciente
+        tableConsultas.getColumnModel().getColumn(3).setPreferredWidth(150); // Doctor
+        tableConsultas.getColumnModel().getColumn(4).setPreferredWidth(200); // Observaciones
+
         tableConsultas.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -146,89 +146,56 @@ public class ListarConsulta extends JDialog {
         btnCerrar.addActionListener(e -> dispose());
         buttonPane.add(btnCerrar);
 
-        // Carga inicial de datos
+        // Carga inicial de datos desde SQL Server
         cargarTabla("");
     }
 
     /**
-     * Llena la tabla filtrando por el doctor actual (si aplica) y por el texto del buscador.
+     * Llena la tabla ejecutando el procedimiento almacenado en SQL Server.
      */
     private void cargarTabla(String filtro) {
         modelTable.setRowCount(0);
-        listaConsultasVisibles.clear();
+        String sql = "{call str_listar_buscar_consulta(?)}";
 
-        List<Consulta> todas = Clinica.getInstancia().getConsultas();
-        if (todas == null) return;
+        try (Connection conn = ConexionBD.getConnection();
+             CallableStatement stmt = conn.prepareCall(sql)) {
 
-        String f = filtro.toLowerCase();
+            stmt.setString(1, filtro);
 
-        for (Consulta c : todas) {
-            if (c == null) continue;
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    int idConsulta = rs.getInt("id_consulta");
+                    String fecha = rs.getString("Fecha de Consulta");
+                    String paciente = rs.getString("Paciente");
+                    String doctor = rs.getString("Doctor");
+                    String observaciones = rs.getString("observaciones");
 
-            // 1. FILTRADO POR DOCTOR (Si doctorFiltro no es null)
-            if (doctorFiltro != null) {
-                Doctor docConsulta = c.getDoctor();
-                if (docConsulta == null && c.getCita() != null) {
-                    docConsulta = c.getCita().getDoctor();
+                    // Si la ventana fue abierta por un doctor en específico, filtramos visualmente
+                    if (doctorFiltro != null) {
+                        String nombreDoctorLogueado = doctorFiltro.getNombre() + " " + doctorFiltro.getApellido();
+                        // Si el doctor de la consulta no coincide con el logueado, saltamos la fila
+                        if (!doctor.equalsIgnoreCase(nombreDoctorLogueado.trim())) {
+                            continue;
+                        }
+                    }
+
+                    modelTable.addRow(new Object[]{
+                            idConsulta,
+                            fecha,
+                            paciente,
+                            doctor,
+                            (observaciones != null) ? observaciones : "Sin observaciones"
+                    });
                 }
-
-                if (docConsulta == null) {
-                    continue;
-                }
-                boolean esMismoDoctor = docConsulta.equals(doctorFiltro) ||
-                        (docConsulta.getId() != null && docConsulta.getId().equalsIgnoreCase(doctorFiltro.getId()));
-
-                if (!esMismoDoctor) {
-                    continue;
-                }
             }
-
-            // 2. OBTENCIÓN DE DATOS PARA LA TABLA
-            String idCita = (c.getCita() != null && c.getCita().getId() != null) ? c.getCita().getId() : "N/A";
-
-            String nombrePaciente = "Desconocido";
-            if (c.getCita() != null && c.getCita().getPaciente() != null) {
-                Paciente p = c.getCita().getPaciente();
-                nombrePaciente = p.getNombre() + " " + (p.getApellido() != null ? p.getApellido() : "");
-            } else if (c.getCita() != null && c.getCita().getNombrePersona() != null) {
-                nombrePaciente = c.getCita().getNombrePersona();
-            }
-
-            String nombreDoctor = "N/A";
-            if (c.getDoctor() != null) {
-                nombreDoctor = c.getDoctor().getNombre();
-            } else if (c.getCita() != null && c.getCita().getDoctor() != null) {
-                nombreDoctor = c.getCita().getDoctor().getNombre();
-            }
-
-            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm a");
-
-            String fechaStr = (c.getCita() != null && c.getCita().getFechaRegistro() != null)
-                    ? c.getCita().getFechaRegistro().format(fmt)
-                    : "N/A";
-
-            int cantDiag = (c.getDiagnosticos() != null) ? c.getDiagnosticos().size() : 0;
-            String diagSummary = cantDiag + (cantDiag == 1 ? " diagnóstico" : " diagnósticos");
-
-            // 3. FILTRADO POR TEXTO DE BÚSQUEDA
-            if (f.isEmpty() || idCita.toLowerCase().contains(f)
-                    || nombrePaciente.toLowerCase().contains(f)
-                    || nombreDoctor.toLowerCase().contains(f)) {
-
-                listaConsultasVisibles.add(c);
-                modelTable.addRow(new Object[]{
-                        idCita,
-                        nombrePaciente,
-                        nombreDoctor,
-                        fechaStr,
-                        diagSummary
-                });
-            }
+        } catch (Exception e) {
+            System.err.println("ERROR: Fallo al cargar las consultas desde la base de datos.");
+            e.printStackTrace();
         }
     }
 
     /**
-     * Obtiene la consulta seleccionada y abre el diálogo RealizarConsulta en modo edición.
+     * Obtiene el ID de la consulta seleccionada para abrir su detalle.
      */
     private void verDetallesConsulta() {
         int row = tableConsultas.getSelectedRow();
@@ -237,14 +204,15 @@ public class ListarConsulta extends JDialog {
             return;
         }
 
-        Consulta consulta = listaConsultasVisibles.get(row);
+        // Ya no dependemos de una lista en memoria, tomamos el ID directo de la columna 0 del JTable
+        int idConsultaSeleccionada = (int) tableConsultas.getValueAt(row, 0);
 
-        // Abrir la ventana RealizarConsulta pasando la Consulta seleccionada
-        // CrearConsulta dialog = new CrearConsulta(consulta);
-//        dialog.setModal(true);
-//        dialog.setVisible(true);
+        // TODO: Abre tu ventana de detalle pasándole el idConsultaSeleccionada
+        // RealizarConsulta dialog = new RealizarConsulta(idConsultaSeleccionada);
+        // dialog.setModal(true);
+        // dialog.setVisible(true);
 
-        // Al regresar, recargar la tabla para reflejar cambios o eliminaciones
+        // Recargar la tabla al cerrar la ventana de detalle para ver actualizaciones
         cargarTabla(txtBuscar.getText().trim());
     }
 }

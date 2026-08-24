@@ -1,5 +1,8 @@
 package visual.consultorio;
 
+import bd.ConexionBD;
+import bd.catalogo.PacienteDAO;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
@@ -10,9 +13,9 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.ResultSet;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -27,17 +30,15 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 
-import bd.catalogo.PacienteDAO;
-import logico.Clinica;
-import logico.consultorio.Paciente;
-
 public class ListarPaciente extends JDialog {
 
 	private static final long serialVersionUID = 1L;
 	private final JPanel contentPanel = new JPanel();
 	private DefaultTableModel model;
-	private Object[] row;
-	private Paciente auxPaciente = null;
+
+	// Sustituyendo el objeto auxiliar por IDs nativos
+	private int idPacienteSeleccionado = -1;
+	private String nombrePacienteSeleccionado = "";
 
 	private JTextField txtBuscar;
 	private JTable table;
@@ -82,7 +83,7 @@ public class ListarPaciente extends JDialog {
 		panelBarra.add(lblBuscar);
 
 		txtBuscar = new JTextField();
-		txtBuscar.setToolTipText("Filtrar por código, nombre, apellido o cédula");
+		txtBuscar.setToolTipText("Filtrar por nombre, apellido o cédula");
 		txtBuscar.setBounds(90, 16, 660, 28);
 		txtBuscar.setFont(new Font("Bahnschrift", Font.PLAIN, 13));
 		txtBuscar.addKeyListener(new KeyAdapter() {
@@ -102,21 +103,20 @@ public class ListarPaciente extends JDialog {
 		JScrollPane scrollTabla = new JScrollPane();
 		panelTable.add(scrollTabla, BorderLayout.CENTER);
 
-		table = new JTable();
-		scrollTabla.setViewportView(table);
-
 		model = new DefaultTableModel() {
 			private static final long serialVersionUID = 1L;
-
 			@Override
 			public boolean isCellEditable(int row, int column) {
 				return false;
 			}
 		};
 
-		String[] headers = {"Código", "Nombre", "Cédula", "Edad", "Teléfono"};
+		// Ajustamos los headers al SP de SQL Server
+		String[] headers = {"Código", "Nombre", "Cédula", "Teléfono", "Tipo Sangre", "Peso (Kg)"};
 		model.setColumnIdentifiers(headers);
-		table.setModel(model);
+
+		table = new JTable(model);
+		scrollTabla.setViewportView(table);
 
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		table.setFont(new Font("Bahnschrift", Font.PLAIN, 12));
@@ -128,17 +128,25 @@ public class ListarPaciente extends JDialog {
 		table.getTableHeader().setBackground(new Color(135, 206, 235));
 		table.getTableHeader().setForeground(new Color(70, 130, 180));
 
+		// Ajuste visual de columnas
+		table.getColumnModel().getColumn(0).setPreferredWidth(50);
+		table.getColumnModel().getColumn(1).setPreferredWidth(200);
+		table.getColumnModel().getColumn(2).setPreferredWidth(100);
+		table.getColumnModel().getColumn(3).setPreferredWidth(100);
+		table.getColumnModel().getColumn(4).setPreferredWidth(80);
+		table.getColumnModel().getColumn(5).setPreferredWidth(80);
+
 		table.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				int index = table.getSelectedRow();
 				if (index > -1) {
-					String id = table.getValueAt(index, 0).toString();
-					auxPaciente = Clinica.getInstancia().buscarPacienteXId(id);
-					if (auxPaciente != null) {
-						btnModificar.setEnabled(true);
-						btnEliminar.setEnabled(true);
-					}
+					// Capturar variables directo del JTable
+					idPacienteSeleccionado = (int) table.getValueAt(index, 0);
+					nombrePacienteSeleccionado = table.getValueAt(index, 1).toString();
+
+					btnModificar.setEnabled(true);
+					btnEliminar.setEnabled(true);
 				}
 			}
 		});
@@ -156,19 +164,21 @@ public class ListarPaciente extends JDialog {
 		btnEliminar.setEnabled(false);
 		btnEliminar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if (auxPaciente != null) {
+				if (idPacienteSeleccionado != -1) {
 					int option = JOptionPane.showConfirmDialog(
 							null,
-							"¿Está seguro que desea eliminar al paciente: " + auxPaciente.getNombre() + " " + auxPaciente.getApellido() + "?",
+							"¿Está seguro que desea eliminar al paciente: " + nombrePacienteSeleccionado + "?",
 							"Confirmación",
 							JOptionPane.WARNING_MESSAGE
 					);
 
 					if (option == JOptionPane.OK_OPTION) {
-						PacienteDAO.getInstance().eliminarPaciente(auxPaciente.getIdNumber());
-						Clinica.getInstancia().getPacientes().remove(auxPaciente);
 
-						auxPaciente = null;
+						//TODO: Asegurar que eliminarPaciente recibe un 'int'
+						PacienteDAO.getInstance().eliminarPaciente(idPacienteSeleccionado);
+
+						idPacienteSeleccionado = -1;
+						nombrePacienteSeleccionado = "";
 						btnEliminar.setEnabled(false);
 						btnModificar.setEnabled(false);
 						filtrarTabla(txtBuscar.getText());
@@ -189,11 +199,16 @@ public class ListarPaciente extends JDialog {
 		btnModificar.setEnabled(false);
 		btnModificar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if (auxPaciente != null) {
-					CrearPaciente modPaciente = new CrearPaciente(auxPaciente);
-					modPaciente.setModal(true);
-					modPaciente.setVisible(true);
+				if (idPacienteSeleccionado != -1) {
+					//TODO: Modificar constructor de CrearPaciente para recibir el 'int' ID
+					// CrearPaciente modPaciente = new CrearPaciente(idPacienteSeleccionado);
+					// modPaciente.setModal(true);
+					// modPaciente.setVisible(true);
+
 					filtrarTabla(txtBuscar.getText());
+					btnModificar.setEnabled(false);
+					btnEliminar.setEnabled(false);
+					idPacienteSeleccionado = -1;
 				}
 			}
 		});
@@ -213,43 +228,41 @@ public class ListarPaciente extends JDialog {
 		filtrarTabla("");
 	}
 
-	private int calcularEdad(Date fecNac) {
-		if (fecNac == null) return 0;
-		Calendar nacimiento = Calendar.getInstance();
-		nacimiento.setTime(fecNac);
-		Calendar hoy = Calendar.getInstance();
-		int edad = hoy.get(Calendar.YEAR) - nacimiento.get(Calendar.YEAR);
-		if (hoy.get(Calendar.DAY_OF_YEAR) < nacimiento.get(Calendar.DAY_OF_YEAR)) {
-			edad--;
-		}
-		return edad;
-	}
-
 	private void filtrarTabla(String filtro) {
 		model.setRowCount(0);
-		String f = filtro != null ? filtro.toLowerCase().trim() : "";
+		String sql = "{call str_listar_buscar_paciente(?)}";
 
-		ArrayList<Paciente> pacientes = Clinica.getInstancia().getPacientes();
-		if (pacientes != null) {
-			for (Paciente p : pacientes) {
-				if (p != null) {
-					String id = p.getId() != null ? p.getId().toLowerCase() : "";
-					String nombreComp = ((p.getNombre() != null ? p.getNombre() : "") + " " + (p.getApellido() != null ? p.getApellido() : "")).toLowerCase();
-					String cedula = p.getCedula() != null ? p.getCedula().toLowerCase() : "";
+		try (Connection conn = ConexionBD.getConnection();
+			 CallableStatement stmt = conn.prepareCall(sql)) {
 
-					if (f.isEmpty() || id.contains(f) || nombreComp.contains(f) || cedula.contains(f)) {
-						row = new Object[5];
-						row[0] = p.getId();
-						row[1] = p.getNombre() + (p.getApellido() != null ? " " + p.getApellido() : "");
-						row[2] = p.getCedula();
-						row[3] = calcularEdad(p.getFecNacim());
-						row[4] = p.getTelefono();
-						model.addRow(row);
-					}
+			stmt.setString(1, filtro);
+
+			try (ResultSet rs = stmt.executeQuery()) {
+				while (rs.next()) {
+					int id = rs.getInt("id_paciente");
+					String nombre = rs.getString("nombre");
+					String apellido = rs.getString("apellido");
+					String cedula = rs.getString("cedula");
+					String telefono = rs.getString("telefono");
+					String tipoSangre = rs.getString("tipo_sangre");
+					double peso = rs.getDouble("peso");
+
+					model.addRow(new Object[]{
+							id,
+							nombre + " " + apellido,
+							cedula,
+							telefono,
+							(tipoSangre != null) ? tipoSangre : "N/A",
+							(peso > 0) ? peso : "N/A"
+					});
 				}
 			}
+		} catch (Exception e) {
+			System.err.println("ERROR: Fallo al cargar los pacientes desde la base de datos.");
+			e.printStackTrace();
 		}
-		auxPaciente = null;
+
+		idPacienteSeleccionado = -1;
 		if (btnModificar != null) btnModificar.setEnabled(false);
 		if (btnEliminar != null) btnEliminar.setEnabled(false);
 	}

@@ -1,5 +1,8 @@
 package visual.consultorio;
 
+import bd.ConexionBD;
+import bd.catalogo.CitaDAO;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
@@ -10,8 +13,10 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.ResultSet;
 import java.text.SimpleDateFormat;
-import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -26,17 +31,15 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 
-import bd.catalogo.CitaDAO;
-import logico.Clinica;
-import logico.consultorio.Cita;
-
 public class ListarCita extends JDialog {
 
     private static final long serialVersionUID = 1L;
     private final JPanel contentPanel = new JPanel();
     private DefaultTableModel model;
-    private Object[] row;
-    private Cita auxCita = null;
+
+
+    private int idCitaSeleccionada = -1;
+    private String nombrePacienteSeleccionado = "";
 
     private JTextField txtBuscar;
     private JTable table;
@@ -73,7 +76,7 @@ public class ListarCita extends JDialog {
         panelBarra.add(lblBuscar);
 
         txtBuscar = new JTextField();
-        txtBuscar.setToolTipText("Filtrar por código, paciente, cédula, doctor o estado");
+        txtBuscar.setToolTipText("Filtrar por paciente, doctor o estado");
         txtBuscar.setBounds(90, 16, 625, 28);
         txtBuscar.setFont(new Font("Bahnschrift", Font.PLAIN, 13));
         txtBuscar.addKeyListener(new KeyAdapter() {
@@ -93,12 +96,8 @@ public class ListarCita extends JDialog {
         JScrollPane scrollTabla = new JScrollPane();
         panelTable.add(scrollTabla, BorderLayout.CENTER);
 
-        table = new JTable();
-        scrollTabla.setViewportView(table);
-
         model = new DefaultTableModel() {
             private static final long serialVersionUID = 1L;
-
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -107,6 +106,9 @@ public class ListarCita extends JDialog {
 
         String[] headers = {"Código", "Paciente", "Doctor", "Fecha y Hora", "Estado"};
         model.setColumnIdentifiers(headers);
+
+        table = new JTable(model);
+        scrollTabla.setViewportView(table);
 
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         table.setFont(new Font("Bahnschrift", Font.PLAIN, 12));
@@ -121,21 +123,27 @@ public class ListarCita extends JDialog {
         table.setRowSelectionAllowed(true);
         table.setColumnSelectionAllowed(false);
 
+        // Ajustar anchos de columna
+        table.getColumnModel().getColumn(0).setPreferredWidth(60);  // Código
+        table.getColumnModel().getColumn(1).setPreferredWidth(200); // Paciente
+        table.getColumnModel().getColumn(2).setPreferredWidth(200); // Doctor
+        table.getColumnModel().getColumn(3).setPreferredWidth(150); // Fecha y Hora
+        table.getColumnModel().getColumn(4).setPreferredWidth(100); // Estado
+
         table.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 int index = table.getSelectedRow();
                 if (index > -1) {
-                    String id = table.getValueAt(index, 0).toString();
-                    auxCita = Clinica.getInstancia().buscarCitaXId(id);
-                    if (auxCita != null) {
-                        btnModificar.setEnabled(true);
-                        btnEliminar.setEnabled(true);
-                    }
+                    // Capturamos el ID y el nombre directamente de la tabla
+                    idCitaSeleccionada = (int) table.getValueAt(index, 0);
+                    nombrePacienteSeleccionado = table.getValueAt(index, 1).toString();
+
+                    btnModificar.setEnabled(true);
+                    btnEliminar.setEnabled(true);
                 }
             }
         });
-        table.setModel(model);
 
         JPanel buttonPane = new JPanel();
         buttonPane.setBackground(Color.WHITE);
@@ -150,17 +158,20 @@ public class ListarCita extends JDialog {
         btnEliminar.setEnabled(false);
         btnEliminar.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                if (auxCita != null) {
+                if (idCitaSeleccionada != -1) {
                     int option = JOptionPane.showConfirmDialog(
                             null,
-                            "¿Está seguro que desea eliminar la cita " + auxCita.getId() + " de " + auxCita.getNombrePersona() + "?",
+                            "¿Está seguro que desea eliminar la cita " + idCitaSeleccionada + " de " + nombrePacienteSeleccionado + "?",
                             "Confirmación",
                             JOptionPane.WARNING_MESSAGE
                     );
                     if (option == JOptionPane.OK_OPTION) {
-                        CitaDAO.getInstance().eliminarCita(auxCita.getIdNumber());
-                        Clinica.getInstancia().getCitas().remove(auxCita);
-                        auxCita = null;
+
+                        // TODO: Asegúrate de que este método en tu DAO reciba un 'int'
+                        CitaDAO.getInstance().eliminarCita(idCitaSeleccionada);
+
+                        idCitaSeleccionada = -1;
+                        nombrePacienteSeleccionado = "";
                         btnEliminar.setEnabled(false);
                         btnModificar.setEnabled(false);
                         filtrarTabla(txtBuscar.getText());
@@ -181,14 +192,16 @@ public class ListarCita extends JDialog {
         btnModificar.setEnabled(false);
         btnModificar.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                if (auxCita != null) {
-                    CrearCita modCita = new CrearCita(auxCita);
-                    modCita.setModal(true);
-                    modCita.setVisible(true);
+                if (idCitaSeleccionada != -1) {
+                    // TODO: Ajusta CrearCita para que reciba el ID (int) en lugar del objeto
+                    // CrearCita modCita = new CrearCita(idCitaSeleccionada);
+                    // modCita.setModal(true);
+                    // modCita.setVisible(true);
+
                     filtrarTabla(txtBuscar.getText());
                     btnModificar.setEnabled(false);
                     btnEliminar.setEnabled(false);
-                    auxCita = null;
+                    idCitaSeleccionada = -1;
                 }
             }
         });
@@ -210,41 +223,47 @@ public class ListarCita extends JDialog {
 
     private void filtrarTabla(String filtro) {
         model.setRowCount(0);
-        SimpleDateFormat sdfFecha = new SimpleDateFormat("dd/MM/yyyy");
-        SimpleDateFormat sdfHora = new SimpleDateFormat("hh:mm a");
-        String f = (filtro == null) ? "" : filtro.toLowerCase().trim();
+        String sql = "{call str_listar_buscar_cita(?)}";
 
-        List<Cita> citas = Clinica.getInstancia().getCitas();
+        try (Connection conn = ConexionBD.getConnection();
+             CallableStatement stmt = conn.prepareCall(sql)) {
 
-        if (citas != null) {
-            for (Cita c : citas) {
-                if (c != null) {
-                    String id = c.getId() != null ? c.getId().toLowerCase() : "";
-                    String paciente = c.getNombrePersona() != null ? c.getNombrePersona().toLowerCase() : "";
-                    String cedula = c.getIdPersona() != null ? c.getIdPersona().toLowerCase() : "";
-                    String doctor = (c.getDoctor() != null && c.getDoctor().getNombre() != null) ? c.getDoctor().getNombre().toLowerCase() : "";
-                    String estado = c.getEstado() != null ? c.getEstado().toString().toLowerCase() : "";
-                    String fecha = (c.getFechaConsulta() != null) ? sdfFecha.format(c.getFechaConsulta()).toLowerCase() : "";
+            stmt.setString(1, filtro);
 
-                    if (f.isEmpty() || id.contains(f) || paciente.contains(f) || cedula.contains(f) || doctor.contains(f) || estado.contains(f) || fecha.contains(f)) {
-                        row = new Object[5];
-                        row[0] = c.getId();
-                        row[1] = c.getNombrePersona();
-                        row[2] = (c.getDoctor() != null) ? "Dr. " + c.getDoctor().getNombre() : "N/A";
+            try (ResultSet rs = stmt.executeQuery()) {
+                SimpleDateFormat sdfFecha = new SimpleDateFormat("dd/MM/yyyy");
+                SimpleDateFormat sdfHora = new SimpleDateFormat("hh:mm a");
 
-                        String fechaHoraStr = "N/A";
-                        if (c.getFechaConsulta() != null) {
-                            fechaHoraStr = sdfFecha.format(c.getFechaConsulta());
-                            if (c.getHoraConsulta() != null) {
-                                fechaHoraStr += " " + sdfHora.format(c.getHoraConsulta());
-                            }
+                while (rs.next()) {
+                    int idCita = rs.getInt("id_cita");
+                    String paciente = rs.getString("Paciente");
+                    String doctor = "Dr. " + rs.getString("Doctor");
+                    String estado = rs.getString("estado");
+
+                    // Recuperar y formatear fecha y hora desde SQL Server
+                    java.sql.Date sqlFecha = rs.getDate("fecha_consulta");
+                    java.sql.Time sqlHora = rs.getTime("hora_consulta");
+
+                    String fechaHoraStr = "N/A";
+                    if (sqlFecha != null) {
+                        fechaHoraStr = sdfFecha.format(sqlFecha);
+                        if (sqlHora != null) {
+                            fechaHoraStr += " " + sdfHora.format(sqlHora);
                         }
-                        row[3] = fechaHoraStr;
-                        row[4] = (c.getEstado() != null) ? c.getEstado().toString() : "N/A";
-                        model.addRow(row);
                     }
+
+                    model.addRow(new Object[]{
+                            idCita,
+                            paciente,
+                            doctor,
+                            fechaHoraStr,
+                            estado
+                    });
                 }
             }
+        } catch (Exception e) {
+            System.err.println("ERROR: Fallo al cargar las citas desde la base de datos.");
+            e.printStackTrace();
         }
     }
 }
