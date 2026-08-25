@@ -199,11 +199,6 @@ public class ListarPaciente extends JDialog {
 		btnModificar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if (idPacienteSeleccionado != -1) {
-					//TODO: Modificar constructor de CrearPaciente para recibir el 'int' ID
-//					 CrearPaciente modPaciente = new CrearPaciente(idPacienteSeleccionado);
-//					 modPaciente.setModal(true);
-//					 modPaciente.setVisible(true);
-
 					filtrarTabla(txtBuscar.getText());
 					btnModificar.setEnabled(false);
 					btnEliminar.setEnabled(false);

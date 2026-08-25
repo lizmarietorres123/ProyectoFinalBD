@@ -14,7 +14,7 @@ public class ReporteRendimientoGeneral {
 
     public static void generarReporteGeneral(String rutaArchivo) {
 
-        // Llamada al Procedimiento sin parámetros
+
         String sql = "{call str_reporte_general_rendimiento}";
 
         try (Connection conn = ConexionBD.getConnection();

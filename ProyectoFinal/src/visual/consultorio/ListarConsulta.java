@@ -25,8 +25,6 @@ public class ListarConsulta extends JDialog {
     private JTable tableConsultas;
     private DefaultTableModel modelTable;
     private JTextField txtBuscar;
-
-    // Doctor para filtrar las consultas
     private Doctor doctorFiltro;
 
     public static void main(String[] args) {
@@ -61,7 +59,6 @@ public class ListarConsulta extends JDialog {
         getContentPane().add(contentPanel, BorderLayout.CENTER);
         contentPanel.setLayout(new BorderLayout(0, 10));
 
-        // --- PANEL SUPERIOR DE FILTRO ---
         JPanel panelFiltro = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
         panelFiltro.setBackground(new Color(240, 248, 255));
 
@@ -83,8 +80,6 @@ public class ListarConsulta extends JDialog {
 
         contentPanel.add(panelFiltro, BorderLayout.NORTH);
 
-        // --- TABLA DE CONSULTAS ---
-        // Se ajustan los encabezados para coincidir con el Procedimiento Almacenado
         String[] headers = {"ID", "Fecha / Hora", "Paciente", "Doctor", "Observaciones"};
         modelTable = new DefaultTableModel(headers, 0) {
             private static final long serialVersionUID = 1L;
@@ -102,7 +97,6 @@ public class ListarConsulta extends JDialog {
         tableConsultas.getTableHeader().setForeground(new Color(70, 130, 180));
         tableConsultas.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-        // Configurar ancho de columnas
         tableConsultas.getColumnModel().getColumn(0).setPreferredWidth(40);  // ID
         tableConsultas.getColumnModel().getColumn(1).setPreferredWidth(130); // Fecha
         tableConsultas.getColumnModel().getColumn(2).setPreferredWidth(150); // Paciente
@@ -122,7 +116,6 @@ public class ListarConsulta extends JDialog {
         scrollPane.setBorder(new LineBorder(new Color(135, 206, 235), 1));
         contentPanel.add(scrollPane, BorderLayout.CENTER);
 
-        // --- PANEL DE BOTONES INFERIOR ---
         JPanel buttonPane = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 8));
         buttonPane.setBackground(new Color(240, 248, 255));
         getContentPane().add(buttonPane, BorderLayout.SOUTH);
@@ -151,9 +144,9 @@ public class ListarConsulta extends JDialog {
         cargarTabla("");
     }
 
-    /**
-     * Llena la tabla ejecutando el procedimiento almacenado en SQL Server.
-     */
+
+    //  Llena la tabla ejecutando el procedimiento almacenado en SQL Server.
+
     private void cargarTabla(String filtro) {
         modelTable.setRowCount(0);
         java.util.Set<Integer> idsYaMostrados = new java.util.HashSet<>();
@@ -168,9 +161,6 @@ public class ListarConsulta extends JDialog {
                 while (rs.next()) {
                     int idConsulta = rs.getInt("id_consulta");
 
-                    // Salvaguarda: si el procedimiento almacenado devuelve la misma consulta
-                    // más de una vez (p. ej. por un JOIN uno-a-muchos con diagnósticos/tratamientos),
-                    // solo se muestra la primera aparición.
                     if (!idsYaMostrados.add(idConsulta)) {
                         continue;
                     }
@@ -180,10 +170,8 @@ public class ListarConsulta extends JDialog {
                     String doctor = rs.getString("Doctor");
                     String observaciones = rs.getString("observaciones");
 
-                    // Si la ventana fue abierta por un doctor en específico, filtramos visualmente
                     if (doctorFiltro != null) {
                         String nombreDoctorLogueado = doctorFiltro.getNombre() + " " + doctorFiltro.getApellido();
-                        // Si el doctor de la consulta no coincide con el logueado, saltamos la fila
                         if (!doctor.equalsIgnoreCase(nombreDoctorLogueado.trim())) {
                             continue;
                         }
@@ -204,9 +192,9 @@ public class ListarConsulta extends JDialog {
         }
     }
 
-    /**
-     * Obtiene el ID de la consulta seleccionada para abrir su detalle.
-     */
+
+     // Obtiene el ID de la consulta seleccionada para abrir su detalle.
+
     private void verDetallesConsulta() {
         int row = tableConsultas.getSelectedRow();
         if (row < 0) {
@@ -214,10 +202,9 @@ public class ListarConsulta extends JDialog {
             return;
         }
 
-        // Ya no dependemos de una lista en memoria, tomamos el ID directo de la columna 0 del JTable
         int idConsultaSeleccionada = (int) tableConsultas.getValueAt(row, 0);
 
-        // TODO: Abre tu ventana de detalle pasándole el idConsultaSeleccionada
+
         CrearConsulta dialog = new CrearConsulta(Clinica.getInstancia().buscarConsultaXIdNumber(idConsultaSeleccionada));
         dialog.setModal(true);
         dialog.setVisible(true);

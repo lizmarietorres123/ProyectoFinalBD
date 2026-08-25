@@ -360,7 +360,6 @@ public class MainConsultorio extends JFrame {
         panelContenidoMenu.add(Box.createVerticalStrut(8));
     }
 
-    // --- ACCIONES DE NAVEGACIÓN Y VENTANAS ---
 
     private void abrirRegistrarPaciente() {
         try {

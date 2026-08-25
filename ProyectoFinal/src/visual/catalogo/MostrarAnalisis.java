@@ -25,7 +25,7 @@ public class MostrarAnalisis extends JDialog {
         add(contentPanel, BorderLayout.CENTER);
         contentPanel.setLayout(new BorderLayout());
 
-        // Se amplía a 7 filas para acomodar todos los atributos del modelo Analisis
+
         JPanel panelDatos = new JPanel(new GridLayout(7, 2, 8, 8));
         panelDatos.setBackground(Color.WHITE);
         panelDatos.setBorder(new CompoundBorder(
@@ -42,7 +42,7 @@ public class MostrarAnalisis extends JDialog {
 
         String unidad = (analisis != null && analisis.getUnidadMedida() != null) ? " " + analisis.getUnidadMedida() : "";
 
-        // Campos sincronizados con logico.catalogo.Analisis
+
         agregarFila(panelDatos, "Código (ID):", analisis != null ? analisis.getId() : "N/A");
         agregarFila(panelDatos, "Nombre:", analisis != null ? analisis.getNombre() : "N/A");
         agregarFila(panelDatos, "Tipo:", analisis != null ? analisis.getTipo() : "N/A");

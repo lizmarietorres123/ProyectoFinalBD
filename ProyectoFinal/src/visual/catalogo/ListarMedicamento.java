@@ -40,7 +40,7 @@ public class ListarMedicamento extends JDialog {
         contentPanel.setBorder(new EmptyBorder(15, 15, 15, 15));
         add(contentPanel, BorderLayout.CENTER);
 
-        // Panel de búsqueda superior
+
         JPanel panelFiltro = new JPanel(new BorderLayout(8, 8));
         panelFiltro.setBackground(new Color(240, 248, 255));
 

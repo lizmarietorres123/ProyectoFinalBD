@@ -123,19 +123,18 @@ public class ListarCita extends JDialog {
         table.setRowSelectionAllowed(true);
         table.setColumnSelectionAllowed(false);
 
-        // Ajustar anchos de columna
-        table.getColumnModel().getColumn(0).setPreferredWidth(60);  // Código
-        table.getColumnModel().getColumn(1).setPreferredWidth(200); // Paciente
-        table.getColumnModel().getColumn(2).setPreferredWidth(200); // Doctor
-        table.getColumnModel().getColumn(3).setPreferredWidth(150); // Fecha y Hora
-        table.getColumnModel().getColumn(4).setPreferredWidth(100); // Estado
+
+        table.getColumnModel().getColumn(0).setPreferredWidth(60);
+        table.getColumnModel().getColumn(1).setPreferredWidth(200);
+        table.getColumnModel().getColumn(2).setPreferredWidth(200);
+        table.getColumnModel().getColumn(3).setPreferredWidth(150);
+        table.getColumnModel().getColumn(4).setPreferredWidth(100);
 
         table.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 int index = table.getSelectedRow();
                 if (index > -1) {
-                    // Capturamos el ID y el nombre directamente de la tabla
                     idCitaSeleccionada = (int) table.getValueAt(index, 0);
                     nombrePacienteSeleccionado = table.getValueAt(index, 1).toString();
 
@@ -167,7 +166,6 @@ public class ListarCita extends JDialog {
                     );
                     if (option == JOptionPane.OK_OPTION) {
 
-                        // TODO: Asegúrate de que este método en tu DAO reciba un 'int'
                         CitaDAO.getInstance().eliminarCita(idCitaSeleccionada);
 
                         idCitaSeleccionada = -1;
@@ -194,11 +192,10 @@ public class ListarCita extends JDialog {
             public void actionPerformed(ActionEvent e) {
                 if (idCitaSeleccionada != -1) {
 
-                    // 1. Buscamos el objeto Cita completo en la memoria usando el ID
+                    //  Buscamos el objeto Cita completo en la memoria usando el ID
                     logico.consultorio.Cita citaEditar = null;
                     if (logico.Clinica.getInstancia().getCitas() != null) {
                         for (logico.consultorio.Cita c : logico.Clinica.getInstancia().getCitas()) {
-                            // Verifica si tu método es getId() o getIdNumber() y ajústalo si es necesario
                             if (c.getIdNumber() == idCitaSeleccionada) {
                                 citaEditar = c;
                                 break;
@@ -258,13 +255,12 @@ public class ListarCita extends JDialog {
 
                 while (rs.next()) {
 
-                    // CORRECCIÓN: Usando los nombres exactos del nuevo script SQL
                     int idCita = rs.getInt("id_cita");
                     String paciente = rs.getString("nombre_paciente");
                     String doctor = "Dr. " + rs.getString("nombre_doctor");
                     String estado = rs.getString("estado");
 
-                    // Recuperar y formatear fecha y hora desde SQL Server
+                    // Recuperar y formatear fecha y hora la bd
                     java.sql.Date sqlFecha = rs.getDate("fecha_consulta");
                     java.sql.Time sqlHora = rs.getTime("hora_consulta");
 
@@ -276,7 +272,6 @@ public class ListarCita extends JDialog {
                         }
                     }
 
-                    // CORRECCIÓN: Agregado idCita para coincidir con las 5 columnas del modelo
                     model.addRow(new Object[]{
                             idCita,
                             paciente,
