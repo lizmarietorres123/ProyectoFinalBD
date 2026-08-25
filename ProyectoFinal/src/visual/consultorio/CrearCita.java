@@ -48,6 +48,7 @@ public class CrearCita extends JDialog {
     private JSpinner spnHora;
     private JComboBox<PacienteItem> cbxPaciente;
     private JComboBox<DoctorItem> cbxDoctor;
+    private JComboBox<EstadoCita> cbxEstado;
     private JLabel lblTipo;
     private JLabel lblInfoDoctor;
     private TitledBorder borderPanel;
@@ -182,7 +183,7 @@ public class CrearCita extends JDialog {
         this.auxDoctor = null;
 
         setTitle(citaEditar == null ? "Registrar: Cita" : "Modificar: Cita");
-        setBounds(100, 100, 580, 340);
+        setBounds(100, 100, 580, 370);
         setLocationRelativeTo(null);
         setModal(true);
 
@@ -193,7 +194,7 @@ public class CrearCita extends JDialog {
         contentPanel.setLayout(null);
 
         JPanel panel = new JPanel();
-        panel.setBounds(25, 10, 514, 240);
+        panel.setBounds(25, 10, 514, 270);
         borderPanel = new TitledBorder(
                 new LineBorder(new Color(70, 130, 180), 1, true),
                 citaEditar == null ? " Registrar Cita " : " Modificar Cita ",
@@ -253,6 +254,20 @@ public class CrearCita extends JDialog {
             spnHora.setEditor(new JSpinner.DateEditor(spnHora, "hh:mm a"));
             spnHora.setBounds(375, 30, 115, 22);
             panel.add(spnHora);
+
+            JLabel lblEstado = new JLabel("Estado:");
+            lblEstado.setForeground(new Color(70, 130, 180));
+            lblEstado.setFont(new Font("Dialog", Font.BOLD, 12));
+            lblEstado.setBounds(20, 65, 55, 22);
+            panel.add(lblEstado);
+
+            cbxEstado = new JComboBox<>(EstadoCita.values());
+            cbxEstado.setFont(new Font("Dialog", Font.PLAIN, 12));
+            cbxEstado.setBorder(new LineBorder(new Color(70, 130, 180)));
+            cbxEstado.setBounds(75, 65, 135, 22);
+            cbxEstado.setSelectedItem(citaEditar.getEstado());
+            panel.add(cbxEstado);
+
         } else {
             JLabel lblFecha = new JLabel("Fecha:");
             lblFecha.setForeground(new Color(70, 130, 180));
@@ -291,13 +306,13 @@ public class CrearCita extends JDialog {
         lblSeccionPaciente.setBackground(new Color(230, 242, 250));
         lblSeccionPaciente.setForeground(new Color(70, 130, 180));
         lblSeccionPaciente.setFont(new Font("Dialog", Font.BOLD, 11));
-        lblSeccionPaciente.setBounds(20, 68, 470, 22);
+        lblSeccionPaciente.setBounds(20, 98, 470, 22);
         panel.add(lblSeccionPaciente);
 
         JLabel lblIdentificacion = new JLabel("Paciente:");
         lblIdentificacion.setForeground(new Color(70, 130, 180));
         lblIdentificacion.setFont(new Font("Dialog", Font.BOLD, 12));
-        lblIdentificacion.setBounds(20, 100, 70, 22);
+        lblIdentificacion.setBounds(20, 130, 70, 22);
         panel.add(lblIdentificacion);
 
         cbxPaciente = new JComboBox<>();
@@ -306,7 +321,7 @@ public class CrearCita extends JDialog {
         cbxPaciente.setFont(new Font("Dialog", Font.PLAIN, 12));
         cbxPaciente.setBackground(Color.WHITE);
         cbxPaciente.setBorder(new LineBorder(new Color(70, 130, 180)));
-        cbxPaciente.setBounds(90, 100, 275, 24);
+        cbxPaciente.setBounds(90, 130, 275, 24);
 
         JTextField editorPaciente = (JTextField) cbxPaciente.getEditor().getEditorComponent();
         editorPaciente.setBackground(new Color(245, 250, 255));
@@ -345,7 +360,7 @@ public class CrearCita extends JDialog {
         btnCrear.setFont(new Font("Dialog", Font.BOLD, 11));
         btnCrear.setForeground(new Color(70, 130, 180));
         btnCrear.setBackground(new Color(240, 248, 255));
-        btnCrear.setBounds(375, 100, 115, 22);
+        btnCrear.setBounds(375, 130, 115, 22);
         btnCrear.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent arg0) {
                 abrirVentanaCrearPaciente();
@@ -355,7 +370,7 @@ public class CrearCita extends JDialog {
 
         lblTipo = new JLabel("");
         lblTipo.setFont(new Font("Dialog", Font.ITALIC, 11));
-        lblTipo.setBounds(90, 124, 275, 18);
+        lblTipo.setBounds(90, 154, 275, 18);
         panel.add(lblTipo);
 
         JLabel lblSeccionDoctor = new JLabel("DATOS DEL DOCTOR", SwingConstants.CENTER);
@@ -363,13 +378,13 @@ public class CrearCita extends JDialog {
         lblSeccionDoctor.setBackground(new Color(230, 242, 250));
         lblSeccionDoctor.setForeground(new Color(70, 130, 180));
         lblSeccionDoctor.setFont(new Font("Dialog", Font.BOLD, 11));
-        lblSeccionDoctor.setBounds(20, 145, 470, 22);
+        lblSeccionDoctor.setBounds(20, 175, 470, 22);
         panel.add(lblSeccionDoctor);
 
         JLabel lblDoctor = new JLabel("Doctor:");
         lblDoctor.setForeground(new Color(70, 130, 180));
         lblDoctor.setFont(new Font("Dialog", Font.BOLD, 12));
-        lblDoctor.setBounds(20, 178, 60, 22);
+        lblDoctor.setBounds(20, 208, 60, 22);
         panel.add(lblDoctor);
 
         cbxDoctor = new JComboBox<>();
@@ -378,7 +393,7 @@ public class CrearCita extends JDialog {
         cbxDoctor.setFont(new Font("Dialog", Font.PLAIN, 12));
         cbxDoctor.setBackground(Color.WHITE);
         cbxDoctor.setBorder(new LineBorder(new Color(70, 130, 180)));
-        cbxDoctor.setBounds(90, 178, 400, 24);
+        cbxDoctor.setBounds(90, 208, 400, 24);
 
         JTextField editorDoctor = (JTextField) cbxDoctor.getEditor().getEditorComponent();
         editorDoctor.setBackground(new Color(245, 250, 255));
@@ -416,7 +431,7 @@ public class CrearCita extends JDialog {
         lblInfoDoctor = new JLabel("🩺 Escriba o seleccione un doctor...", SwingConstants.LEFT);
         lblInfoDoctor.setForeground(new Color(120, 130, 140));
         lblInfoDoctor.setFont(new Font("Dialog", Font.ITALIC, 11));
-        lblInfoDoctor.setBounds(90, 204, 400, 20);
+        lblInfoDoctor.setBounds(90, 234, 400, 20);
         panel.add(lblInfoDoctor);
 
         JPanel buttonPane = new JPanel();
@@ -494,6 +509,10 @@ public class CrearCita extends JDialog {
             citaEditar.setDoctor(auxDoctor);
             citaEditar.setFechaConsulta(fechaSel);
             citaEditar.setHoraConsulta(horaConsulta);
+
+            if (cbxEstado != null) {
+                citaEditar.setEstado((EstadoCita) cbxEstado.getSelectedItem());
+            }
 
             CitaDAO.getInstance().actualizarCita(citaEditar);
 

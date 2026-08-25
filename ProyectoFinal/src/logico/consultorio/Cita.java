@@ -123,21 +123,9 @@ public class Cita implements Serializable {
 		return nombreComp;
 	}
 
-	public void cancelar() {
-		if (estado == EstadoCita.PROGRAMADA) {
-			estado = EstadoCita.CANCELADA;
-		}
-	}
 
-	public void marcarNoAsistio() {
-		if (estado == EstadoCita.PROGRAMADA) {
-			estado = EstadoCita.NO_ASISTIO;
-		}
-	}
 
-	public void completar() {
-		if (estado == EstadoCita.PROGRAMADA) {
-			estado = EstadoCita.COMPLETADA;
-		}
-	}
+
+
+
 }

@@ -1,8 +1,8 @@
 package logico.catalogo;
 
 public enum EstadoCita {
+    PENDIENTE,
     PROGRAMADA,
-    COMPLETADA,
-    CANCELADA,
-    NO_ASISTIO
+    COMPLETADO,
+    CANCELADO
 }
