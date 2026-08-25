@@ -29,8 +29,6 @@ public class CitaDAO {
 
         try (Connection connection = ConexionBD.getConnection();
              CallableStatement callableStatement = connection.prepareCall(sql)) {
-
-            // La fecha de registro (GETDATE()) se maneja sola en la BD
             callableStatement.setDate(1, new java.sql.Date(cita.getFechaConsulta().getTime()));
             callableStatement.setTime(2, cita.getHoraConsulta());
             callableStatement.setString(3, cita.getEstado().name());
@@ -76,7 +74,6 @@ public class CitaDAO {
     }
 
     public void eliminarCita(int idCita) {
-        // Llamada al SP de tu compañera para eliminar o cancelar la cita
         final String sql = "{call str_delete_cita(?)}";
 
         try (Connection connection = ConexionBD.getConnection();

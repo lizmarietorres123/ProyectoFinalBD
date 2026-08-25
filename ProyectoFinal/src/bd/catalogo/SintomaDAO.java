@@ -59,7 +59,6 @@ public class SintomaDAO {
 
     public ArrayList<Sintoma> obtenerSintomas() throws SQLException {
         ArrayList<Sintoma> sintomas = new ArrayList<>();
-        // Definición explícita de las columnas para mayor robustez
         final String sql = "SELECT id_sintoma, nombre, descripcion FROM sintoma";
 
         try (Connection connection = ConexionBD.getConnection();

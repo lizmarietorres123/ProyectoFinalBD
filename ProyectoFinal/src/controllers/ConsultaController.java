@@ -90,10 +90,7 @@ public class ConsultaController {
             connection = ConexionBD.getConnection();
             connection.setAutoCommit(false);
 
-            // CORRECCIÓN: En modo edición, el controlador SOLO actualiza la tabla maestra de consulta.
-            // La inserción/eliminación de análisis, vacunas y diagnósticos ya fue gestionada
-            // de manera atómica (uno por uno) por la clase CrearConsulta.java en sus métodos
-            // procesarNuevosElementos() y procesarElementosEliminados().
+
             ConsultaDAO.getInstance().actualizarConsulta(connection, consulta);
 
             connection.commit();

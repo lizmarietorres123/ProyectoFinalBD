@@ -127,7 +127,7 @@ public class DiagnosticoDAO {
         }
     }
 
-    // --- NUEVO MÉTODO DE ELIMINACIÓN ---
+
     public void eliminarDiagnostico(int idDiagnostico) {
         final String sql = "{call str_delete_diagnostico(?)}";
 

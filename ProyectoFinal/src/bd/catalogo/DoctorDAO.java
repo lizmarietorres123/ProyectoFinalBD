@@ -60,7 +60,7 @@ public class DoctorDAO {
     }
 
     public void actualizarDoctor(Doctor doctor) {
-        // El SP recibe el estado al final para el borrado lógico.
+
         final String sql = "{call str_update_doctor(?, ?, ?, ?, ?, ?, ?)}";
 
         try (Connection connection = ConexionBD.getConnection();

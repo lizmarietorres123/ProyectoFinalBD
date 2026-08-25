@@ -26,7 +26,7 @@ public class DetalleVacunaDAO {
     }
 
     public void guardarDetalleVacuna(DetalleVacuna detalle) {
-        // CORRECCIÓN: El SP ahora solo recibe 3 parámetros iniciales
+
         final String sql = "{call str_insert_detalle_vacuna(?, ?, ?)}";
 
         try (Connection connection = ConexionBD.getConnection();
@@ -45,7 +45,7 @@ public class DetalleVacunaDAO {
     }
 
     public void guardarDetalleVacuna(Connection connection, DetalleVacuna detalle) {
-        // CORRECCIÓN: Igualación de parámetros para sobrecarga transaccional
+
         final String sql = "{call str_insert_detalle_vacuna(?, ?, ?)}";
 
         try (CallableStatement callableStatement = connection.prepareCall(sql)) {
@@ -151,7 +151,7 @@ public class DetalleVacunaDAO {
                 logico.catalogo.Enfermera enfermera = (idEnfermera > 0) ? logico.Clinica.getInstancia().buscarEnfermeraXIdNumber(idEnfermera) : null;
 
                 detalles.add(new DetalleVacuna(
-                        rs.getInt("id_detalle_vacuna"), // CORREGIDO: id_detalle -> id_detalle_vacuna (basado en tu script SQL)
+                        rs.getInt("id_detalle_vacuna"),
                         rs.getInt("dosis"),
                         rs.getString("lote"),
                         rs.getString("estado"),

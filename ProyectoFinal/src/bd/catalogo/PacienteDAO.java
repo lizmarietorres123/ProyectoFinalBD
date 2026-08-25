@@ -64,7 +64,7 @@ public class PacienteDAO {
     }
 
     public void actualizarPaciente(Paciente paciente) {
-        // CORRECCIÓN: 11 signos de interrogación en lugar de 12
+
         final String sql = "{call str_update_paciente(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
 
         try (Connection connection = ConexionBD.getConnection();

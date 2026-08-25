@@ -25,7 +25,6 @@ public class UsuarioDAO {
     }
 
     public void guardarUsuario(Usuario usuario) {
-        // El SP str_insert_user solo recibe 3 parámetros y pone 'Activo' por defecto en SQL
         final String sql = "{call str_insert_user(?, ?, ?)}";
 
         try (Connection connection = ConexionBD.getConnection();
@@ -61,7 +60,7 @@ public class UsuarioDAO {
             callableStatement.setString(2, usuario.getNombre());
             callableStatement.setString(3, usuario.getPassword());
             callableStatement.setString(4, usuario.getRol());
-            callableStatement.setString(5, usuario.getEstado()); // Usamos getEstado() como String
+            callableStatement.setString(5, usuario.getEstado());
 
             callableStatement.execute();
 

@@ -24,7 +24,6 @@ public class EnfermeraDAO {
     }
 
     public void guardarEnfermera(Enfermera enfermera) {
-        // Asumiendo que el SP fija el estado en 'Activo' por defecto.
         final String sql = "{call str_insert_enfermera(?, ?, ?, ?, ?)}";
 
         try (Connection connection = ConexionBD.getConnection();

@@ -489,7 +489,7 @@ public class CrearDiagnostico extends JDialog {
             return;
         }
 
-        // CORRECCIÓN: Leemos directo de la lista local en lugar de buscar por ID en la memoria rota
+
         int indexSeleccionado = cbxEnfermedad.getSelectedIndex() - 1;
         Enfermedad enfermedadElegida = listaEnfermedadesLocal.get(indexSeleccionado);
 

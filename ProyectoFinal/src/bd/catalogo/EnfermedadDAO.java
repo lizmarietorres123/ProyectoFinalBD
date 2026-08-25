@@ -100,7 +100,7 @@ public class EnfermedadDAO {
                         rs.getString("nombre"),
                         rs.getString("descripcion"),
                         rs.getBoolean("es_contagiosa"),
-                        null, // Aquí deberías cargar el objeto Especialidad si es necesario
+                        null,
                         obtenerSintomas(rs.getInt("id_enfermedad"))
                 ));
             }

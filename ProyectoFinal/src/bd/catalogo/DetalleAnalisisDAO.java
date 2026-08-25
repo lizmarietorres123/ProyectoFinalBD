@@ -26,7 +26,7 @@ public class DetalleAnalisisDAO {
     }
 
     public void guardarDetalleAnalisis(DetalleAnalisis detalle) {
-        // CORRECCIÓN: El SP ahora solo recibe 3 parámetros iniciales
+
         final String sql = "{call str_insert_detalle_analisis(?, ?, ?)}";
 
         try (Connection connection = ConexionBD.getConnection();
@@ -46,7 +46,7 @@ public class DetalleAnalisisDAO {
     }
 
     public void guardarDetalleAnalisis(Connection connection, DetalleAnalisis detalle) {
-        // CORRECCIÓN: Igualación de parámetros para sobrecarga
+
         final String sql = "{call str_insert_detalle_analisis(?, ?, ?)}";
 
         try (CallableStatement callableStatement = connection.prepareCall(sql)) {
@@ -64,7 +64,7 @@ public class DetalleAnalisisDAO {
     }
 
     public void actualizarDetalleAnalisis(DetalleAnalisis detalle) {
-        // El UPDATE se mantiene intacto, ya que aquí la enfermera sí llena todo
+
         final String sql = "{call str_update_detalle_analisis(?, ?, ?, ?, ?, ?, ?, ?)}";
 
         try (Connection connection = ConexionBD.getConnection();
@@ -131,14 +131,13 @@ public class DetalleAnalisisDAO {
 
             while (rs.next()) {
 
-                // Conversión de Timestamp a LocalDateTime
                 LocalDateTime fechaReg = null;
                 Timestamp tsRegistro = rs.getTimestamp("fecha_resultado");
                 if (tsRegistro != null) {
                     fechaReg = tsRegistro.toLocalDateTime();
                 }
 
-                // Manejo de Double null
+
                 Double resultado = rs.getDouble("resultado");
                 if (rs.wasNull()) {
                     resultado = null;
@@ -153,7 +152,7 @@ public class DetalleAnalisisDAO {
                 logico.catalogo.Enfermera enfermera = (idEnfermera > 0) ? logico.Clinica.getInstancia().buscarEnfermeraXIdNumber(idEnfermera) : null;
 
                 detalles.add(new DetalleAnalisis(
-                        rs.getInt("id_detalle_analisis"), // CORREGIDO AQUÍ
+                        rs.getInt("id_detalle_analisis"),
                         analisis,
                         consulta,
                         enfermera,
