@@ -647,29 +647,30 @@ public class CrearConsulta extends JDialog {
     private void cargarDatosConsultaEdicion() {
         if (consultaEdicion == null) return;
 
-        this.citaElegida = consultaEdicion.getCita();
-        if (citaElegida != null) {
-            this.pacienteActual = citaElegida.getPaciente();
+        Cita cita = consultaEdicion.getCita();
+        this.citaElegida = cita;
+        if (cita != null) {
+            this.pacienteActual = cita.getPaciente();
             if (this.pacienteActual == null) {
-                this.pacienteActual = Clinica.getInstancia().buscarPacienteXIdentificacion(citaElegida.getIdPersona());
+                this.pacienteActual = Clinica.getInstancia().buscarPacienteXIdentificacion(cita.getIdPersona());
             }
 
             if (this.pacienteActual != null) {
                 String idPaciente = pacienteActual.getCedula() != null ? pacienteActual.getCedula() : pacienteActual.getId();
                 txtPaciente.setText(pacienteActual.getNombre() + " " + (pacienteActual.getApellido() != null ? pacienteActual.getApellido() : "") + " - " + idPaciente);
             } else {
-                txtPaciente.setText((citaElegida.getNombrePersona() != null ? citaElegida.getNombrePersona() : "") + " - " + (citaElegida.getIdPersona() != null ? citaElegida.getIdPersona() : ""));
+                txtPaciente.setText((cita.getNombrePersona() != null ? cita.getNombrePersona() : "") + " - " + (cita.getIdPersona() != null ? cita.getIdPersona() : ""));
             }
 
-            Doctor doc = citaElegida.getDoctor() != null ? citaElegida.getDoctor() : consultaEdicion.getDoctor();
+            Doctor doc = cita.getDoctor() != null ? cita.getDoctor() : consultaEdicion.getDoctor();
             if (doc != null) {
                 txtDoctor.setText(doc.getNombre() + (doc.getApellido() != null ? " " + doc.getApellido() : ""));
             } else {
                 txtDoctor.setText("N/A");
             }
 
-            if (spinFechaFiltro != null && citaElegida.getFechaConsulta() != null) {
-                spinFechaFiltro.setValue(citaElegida.getFechaConsulta());
+            if (spinFechaFiltro != null && cita.getFechaConsulta() != null) {
+                spinFechaFiltro.setValue(cita.getFechaConsulta());
             }
 
             ActionListener[] listeners = cbxCita.getActionListeners();
@@ -678,12 +679,14 @@ public class CrearConsulta extends JDialog {
             }
 
             cbxCita.removeAllItems();
-            cbxCita.addItem(citaElegida.getIdNumber() + " - " + citaElegida.getNombrePersona());
+            cbxCita.addItem(cita.getIdNumber() + " - " + cita.getNombrePersona());
             cbxCita.setSelectedIndex(0);
 
             for (ActionListener listener : listeners) {
                 cbxCita.addActionListener(listener);
             }
+
+            this.citaElegida = cita;
 
         } else if (consultaEdicion.getDoctor() != null) {
             Doctor doc = consultaEdicion.getDoctor();
@@ -822,7 +825,7 @@ public class CrearConsulta extends JDialog {
                     txtDoctor.setText("N/A");
                 }
             }
-        } else {
+        } else if (consultaEdicion == null) {
             limpiarCampos();
             pacienteActual = null;
             citaElegida = null;
