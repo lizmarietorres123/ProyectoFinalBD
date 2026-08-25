@@ -419,19 +419,6 @@ public class MainConsultorio extends JFrame {
 
 
     private void generarReportePacienteXMes() {
-        Doctor doctorActual = Clinica.getDoctorActual();
-        if (doctorActual == null) {
-            Usuario usuarioActual = Clinica.getInstancia().getUsuarioActual();
-            if (usuarioActual != null) {
-                doctorActual = Clinica.getInstancia().buscarDoctorXUsuario(usuarioActual);
-            }
-        }
-
-        if (doctorActual == null) {
-            JOptionPane.showMessageDialog(this, "No se encontró la información del doctor logueado.", "Advertencia", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Guardar Reporte Pacientes por Mes");
         fileChooser.setSelectedFile(new File("Reporte_Mes_Pico_Doctor.xlsx"));
@@ -446,14 +433,14 @@ public class MainConsultorio extends JFrame {
             }
 
             try {
-                ReporteDoctor.generarReporteMesPico(doctorActual.getIdNumber(), rutaArchivo);
+                ReporteDoctor.generarReporteMesPico(0, rutaArchivo);
+
                 JOptionPane.showMessageDialog(this, "Reporte generado exitosamente en:\n" + rutaArchivo, "Éxito", JOptionPane.INFORMATION_MESSAGE);
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, "Error al generar el reporte de doctor: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
-
     private void generarReporteRendimientoGeneral() {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Guardar Reporte de Rendimiento General");
