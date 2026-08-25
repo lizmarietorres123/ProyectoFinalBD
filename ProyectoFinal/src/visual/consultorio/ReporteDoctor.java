@@ -65,12 +65,11 @@ public class ReporteDoctor {
                 if (rs.next()) {
                     Row filaDatos = sheet.createRow(numeroFila++);
 
-                    // Usar índice 1 para la primera columna (Mes)
+
                     Cell celdaMes = filaDatos.createCell(0);
                     celdaMes.setCellValue(rs.getString(1));
                     celdaMes.setCellStyle(estiloCelda);
 
-                    // Usar índice 2 para la segunda columna (Total Pacientes)
                     Cell celdaTotal = filaDatos.createCell(1);
                     celdaTotal.setCellValue(rs.getInt(2));
                     celdaTotal.setCellStyle(estiloCelda);

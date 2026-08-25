@@ -81,7 +81,7 @@ public class MainConsultorio extends JFrame {
         setLocationRelativeTo(null);
         getContentPane().setLayout(new BorderLayout());
 
-        // Guardado de datos y cierre ordenado al presionar la 'X'
+
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
@@ -103,7 +103,7 @@ public class MainConsultorio extends JFrame {
         panelContenidoMenu.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
         panelLateral.add(panelContenidoMenu, BorderLayout.CENTER);
 
-        // --- MÓDULO 1: PACIENTE ---
+
         crearModulo(
                 "Paciente",
                 "recursos/registro.png",
@@ -114,7 +114,7 @@ public class MainConsultorio extends JFrame {
                 }
         );
 
-        // --- MÓDULO 2: CITA ---
+
         crearModulo(
                 "Cita",
                 "recursos/consulta.png",
@@ -125,7 +125,7 @@ public class MainConsultorio extends JFrame {
                 }
         );
 
-        // --- MÓDULO 3: CONSULTA ---
+
         crearModulo(
                 "Consulta",
                 "recursos/listado.png",
@@ -136,7 +136,7 @@ public class MainConsultorio extends JFrame {
                 }
         );
 
-        // --- MÓDULO 4: REPORTE ---
+
         crearModulo(
                 "Reporte",
                 "recursos/listado.png",
@@ -416,7 +416,7 @@ public class MainConsultorio extends JFrame {
         }
     }
 
-    // --- EJECUCIÓN DE CLASES DE REPORTES ---
+
 
     private void generarReportePacienteXMes() {
         Doctor doctorActual = Clinica.getDoctorActual();
@@ -477,7 +477,7 @@ public class MainConsultorio extends JFrame {
         }
     }
 
-    // --- PERSISTENCIA Y RESPALDOS ---
+
 
     private void guardarDatos() {
         try (FileOutputStream writeFile = new FileOutputStream("clinica.dat");
