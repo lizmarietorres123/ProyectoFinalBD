@@ -605,8 +605,6 @@ public class CrearConsulta extends JDialog {
     private void cargarDatosConsultaEdicion() {
         if (consultaEdicion == null) return;
 
-        // --- SOLUCIÓN: FORZAR CARGA DESDE LA BASE DE DATOS ---
-        // Si el objeto Consulta llegó con las listas vacías, vamos a la BD a buscar sus datos reales.
         if (consultaEdicion.getVacunas() == null || consultaEdicion.getVacunas().isEmpty()) {
             ArrayList<DetalleVacuna> vacunasDB = new ArrayList<>();
             for (DetalleVacuna dv : DetalleVacunaDAO.getInstance().obtenerDetallesVacuna()) {

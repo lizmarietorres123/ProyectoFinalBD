@@ -556,7 +556,6 @@ public class CrearDetalleAnalisis extends JDialog {
         btnEliminar.setVisible(false);
     }
 
-    // --- MÉTODO MAIN PARA EJECUTAR DE FORMA INDEPENDIENTE ---
     public static void main(String[] args) {
         EventQueue.invokeLater(new Runnable() {
             public void run() {

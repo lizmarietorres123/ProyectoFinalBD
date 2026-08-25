@@ -502,6 +502,25 @@ public class CrearCita extends JDialog {
         }
     }
 
+    private void actualizarComboPacientes(String filtro) {
+        filtrandoPaciente = true;
+        cbxPaciente.removeAllItems();
+        cbxPaciente.addItem(new PacienteItem(null));
+
+        String f = filtro.trim().toLowerCase();
+        for (Paciente p : Clinica.getInstancia().getPacientes()) {
+            String cedula = p.getCedula() != null ? p.getCedula().toLowerCase() : "";
+            String nombre = p.getNombre() != null ? p.getNombre().toLowerCase() : "";
+            String apellido = p.getApellido() != null ? p.getApellido().toLowerCase() : "";
+            String nombreCompleto = (nombre + " " + apellido).trim();
+
+            if (f.isEmpty() || cedula.contains(f) || nombreCompleto.contains(f)) {
+                cbxPaciente.addItem(new PacienteItem(p));
+            }
+        }
+        filtrandoPaciente = false;
+    }
+
     private void cargarDatosModificacion() {
         if (citaEditar == null) return;
 
@@ -539,25 +558,6 @@ public class CrearCita extends JDialog {
                 }
             }
         }
-    }
-
-    private void actualizarComboPacientes(String filtro) {
-        filtrandoPaciente = true;
-        cbxPaciente.removeAllItems();
-        cbxPaciente.addItem(new PacienteItem(null));
-
-        String f = filtro.trim().toLowerCase();
-        for (Paciente p : Clinica.getInstancia().getPacientes()) {
-            String cedula = p.getCedula() != null ? p.getCedula().toLowerCase() : "";
-            String nombre = p.getNombre() != null ? p.getNombre().toLowerCase() : "";
-            String apellido = p.getApellido() != null ? p.getApellido().toLowerCase() : "";
-            String nombreCompleto = (nombre + " " + apellido).trim();
-
-            if (f.isEmpty() || cedula.contains(f) || nombreCompleto.contains(f)) {
-                cbxPaciente.addItem(new PacienteItem(p));
-            }
-        }
-        filtrandoPaciente = false;
     }
 
     private void seleccionarPaciente() {

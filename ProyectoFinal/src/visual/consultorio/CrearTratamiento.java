@@ -336,7 +336,6 @@ public class CrearTratamiento extends JDialog {
                 spnFechaFin.setValue(tratamientoEdicion.getFechaFin());
             }
             if (tratamientoEdicion.getEstado() != null) {
-                // CORRECCIÓN: Para evitar fallos si el dato guardado antes tenía mayúsculas, forzamos minúsculas
                 cbxEstado.setSelectedItem(tratamientoEdicion.getEstado().toLowerCase());
             }
             txtDescripcion.setText(tratamientoEdicion.getDescripcion());

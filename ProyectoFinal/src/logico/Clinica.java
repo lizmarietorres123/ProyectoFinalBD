@@ -13,7 +13,6 @@ import java.util.*;
 public class Clinica implements Serializable {
     private static final long serialVersionUID = -2147265011502063886L;
 
-    // --- VARIABLES ESTÁTICAS DE GENERACIÓN DE CÓDIGOS Y SESIÓN ---
     public static Doctor loginDoctor;
     public static int genCodigoPacientes = 1;
     public static int genCodigoCitas = 1;
@@ -24,10 +23,8 @@ public class Clinica implements Serializable {
     public static int genCodigoUsuarios = 1;
     public static int genCodigoTratamientos = 1;
 
-    // --- INICIAL ID ---
     public static String codConsulta = "CONS-";
 
-    // --- ATRIBUTOS DE INSTANCIA ---
     private Usuario usuarioActual;
     private ArrayList<Usuario> usuarios;
     private ArrayList<Cita> citas;
@@ -317,13 +314,13 @@ public class Clinica implements Serializable {
 
     private void iniciarContadores() {
         contadores = new ArrayList<Integer>();
-        contadores.add(genCodigoPacientes); // 0
-        contadores.add(genCodigoDoctores);  // 1
-        contadores.add(genCodigoCitas);     // 2
-        contadores.add(genCodigoDiagnosticos); // 3
-        contadores.add(genCodigoEnfermedad);   // 4
-        contadores.add(genCodigoVacuna);       // 5
-        contadores.add(genCodigoUsuarios);     // 6
+        contadores.add(genCodigoPacientes);
+        contadores.add(genCodigoDoctores);
+        contadores.add(genCodigoCitas);
+        contadores.add(genCodigoDiagnosticos);
+        contadores.add(genCodigoEnfermedad);
+        contadores.add(genCodigoVacuna);
+        contadores.add(genCodigoUsuarios);
     }
 
     public void asignarContadores() {
@@ -422,7 +419,7 @@ public class Clinica implements Serializable {
         }
     }
 
-    // --- BÚSQUEDAS ROBUSTAS ACTUALIZADAS ---
+    // --- BÚSQUEDAS ---
 
     public Paciente buscarPacienteXId(String id) {
         if (id == null) return null;

@@ -90,7 +90,6 @@ public class ConsultaController {
             connection = ConexionBD.getConnection();
             connection.setAutoCommit(false);
 
-
             ConsultaDAO.getInstance().actualizarConsulta(connection, consulta);
 
             connection.commit();

@@ -7,7 +7,6 @@ import java.util.ArrayList;
 
 public class ConsultaDAO {
 
-    // Inicialización temprana sugerida para evitar problemas de concurrencia
     private static final ConsultaDAO instance = new ConsultaDAO();
 
     private ConsultaDAO() {}
@@ -16,12 +15,10 @@ public class ConsultaDAO {
         return instance;
     }
 
-    // Ejemplo en ConsultaDAO
     public int guardarConsulta(Connection connection, Consulta consulta) throws SQLException {
         final String sql = "{call str_insert_consulta(?, ?)}";
         int idGenerado = -1;
 
-        // Nota: Ya NO usamos try-with-resources con la conexión aquí para no cerrarla antes de tiempo
         try (CallableStatement callableStatement = connection.prepareCall(sql)) {
             callableStatement.setString(1, consulta.getObservaciones());
             if (consulta.getCita() != null) {
