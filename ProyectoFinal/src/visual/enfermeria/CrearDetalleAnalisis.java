@@ -1,10 +1,6 @@
 package visual.enfermeria;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Font;
+import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.text.SimpleDateFormat;
@@ -14,21 +10,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JDialog;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JSpinner;
-import javax.swing.JTable;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.ListSelectionModel;
-import javax.swing.SpinnerDateModel;
+import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
@@ -37,6 +19,7 @@ import javax.swing.table.DefaultTableModel;
 import bd.catalogo.DetalleAnalisisDAO;
 import logico.Clinica;
 import logico.catalogo.Enfermera;
+import logico.catalogo.Usuario;
 import logico.consultorio.Consulta;
 import logico.consultorio.Paciente;
 import logico.enfermeria.DetalleAnalisis;
@@ -46,8 +29,6 @@ public class CrearDetalleAnalisis extends JDialog {
     private static final long serialVersionUID = 1L;
     private final JPanel contentPanel = new JPanel();
 
-    private JSpinner spinFechaFiltro;
-    private JCheckBox chkFiltrarFecha;
     private JComboBox<String> cbxFiltroEstado;
     private JTextField txtBuscarAnalisis;
 
@@ -100,51 +81,29 @@ public class CrearDetalleAnalisis extends JDialog {
         contentPanel.add(panelFiltros);
         panelFiltros.setLayout(null);
 
-        chkFiltrarFecha = new JCheckBox("Filtrar Fecha:");
-        chkFiltrarFecha.setSelected(false);
-        chkFiltrarFecha.setBackground(Color.WHITE);
-        chkFiltrarFecha.setForeground(new Color(70, 130, 180));
-        chkFiltrarFecha.setFont(new Font("Bahnschrift", Font.BOLD, 12));
-        chkFiltrarFecha.setBounds(12, 26, 110, 22);
-        chkFiltrarFecha.addActionListener(e -> {
-            spinFechaFiltro.setEnabled(chkFiltrarFecha.isSelected());
-            cargarTablaDetalles();
-        });
-        panelFiltros.add(chkFiltrarFecha);
-
-        SpinnerDateModel dateModel = new SpinnerDateModel(new Date(), null, null, Calendar.DAY_OF_MONTH);
-        spinFechaFiltro = new JSpinner(dateModel);
-        JSpinner.DateEditor dateEditor = new JSpinner.DateEditor(spinFechaFiltro, "dd/MM/yyyy");
-        spinFechaFiltro.setEditor(dateEditor);
-        spinFechaFiltro.setEnabled(false);
-        spinFechaFiltro.setFont(new Font("Bahnschrift", Font.PLAIN, 12));
-        spinFechaFiltro.setBounds(125, 26, 110, 22);
-        spinFechaFiltro.addChangeListener(e -> cargarTablaDetalles());
-        panelFiltros.add(spinFechaFiltro);
-
         JLabel lblFiltroEstado = new JLabel("Estado:");
         lblFiltroEstado.setForeground(new Color(70, 130, 180));
         lblFiltroEstado.setFont(new Font("Bahnschrift", Font.BOLD, 12));
-        lblFiltroEstado.setBounds(255, 29, 50, 16);
+        lblFiltroEstado.setBounds(15, 29, 50, 16);
         panelFiltros.add(lblFiltroEstado);
 
         cbxFiltroEstado = new JComboBox<>();
         cbxFiltroEstado.setModel(new DefaultComboBoxModel<>(new String[] {"Todos", "Pendiente", "En proceso", "Completado"}));
         cbxFiltroEstado.setFont(new Font("Bahnschrift", Font.PLAIN, 12));
         cbxFiltroEstado.setBackground(new Color(224, 247, 250));
-        cbxFiltroEstado.setBounds(310, 26, 130, 22);
+        cbxFiltroEstado.setBounds(70, 26, 130, 22);
         cbxFiltroEstado.addActionListener(e -> cargarTablaDetalles());
         panelFiltros.add(cbxFiltroEstado);
 
         JLabel lblBuscar = new JLabel("Buscar:");
         lblBuscar.setForeground(new Color(70, 130, 180));
         lblBuscar.setFont(new Font("Bahnschrift", Font.BOLD, 12));
-        lblBuscar.setBounds(460, 29, 50, 16);
+        lblBuscar.setBounds(220, 29, 50, 16);
         panelFiltros.add(lblBuscar);
 
         txtBuscarAnalisis = new JTextField();
         txtBuscarAnalisis.setFont(new Font("Bahnschrift", Font.PLAIN, 12));
-        txtBuscarAnalisis.setBounds(515, 26, 270, 22);
+        txtBuscarAnalisis.setBounds(275, 26, 270, 22);
         txtBuscarAnalisis.addKeyListener(new KeyAdapter() {
             @Override
             public void keyReleased(KeyEvent e) {
@@ -391,7 +350,6 @@ public class CrearDetalleAnalisis extends JDialog {
         }
     }
 
-
     private void guardarDatosAnalisis() {
         if (detalleSeleccionado == null) {
             JOptionPane.showMessageDialog(this, "Por favor, seleccione un detalle de análisis.", "Atención", JOptionPane.WARNING_MESSAGE);
@@ -508,69 +466,53 @@ public class CrearDetalleAnalisis extends JDialog {
         listaDetallesVisibles.clear();
 
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-        String fechaFiltroStr = (chkFiltrarFecha.isSelected() && spinFechaFiltro.getValue() != null)
-                ? sdf.format((Date) spinFechaFiltro.getValue()) : "";
         String estadoFiltro = (String) cbxFiltroEstado.getSelectedItem();
         String textoFiltro = txtBuscarAnalisis.getText().trim().toLowerCase();
 
-        List<Consulta> consultas = Clinica.getInstancia().getConsultas();
-        if (consultas != null) {
-            for (Consulta consulta : consultas) {
-                if (consulta != null && consulta.getAnalisis() != null) {
+        List<DetalleAnalisis> detalles = Clinica.getInstancia().getDetalleAnalisis();
 
-                    boolean coincideFecha = true;
-                    if (chkFiltrarFecha.isSelected() && !fechaFiltroStr.isEmpty()) {
-                        String fechaConsultaStr = "";
-                        if (consulta.getFechaHora() != null) {
-                            Date fechaDate = Date.from(consulta.getFechaHora().atZone(ZoneId.systemDefault()).toInstant());
-                            fechaConsultaStr = sdf.format(fechaDate);
-                        } else if (consulta.getCita() != null && consulta.getCita().getFechaRegistro() != null) {
-                            fechaConsultaStr = sdf.format(consulta.getCita().getFechaRegistro());
-                        }
-                        if (!fechaConsultaStr.equals(fechaFiltroStr)) {
-                            coincideFecha = false;
-                        }
-                    }
+        if (detalles != null) {
+            for (DetalleAnalisis detalle : detalles) {
+                if (detalle == null) continue;
 
-                    if (!coincideFecha) continue;
+                Consulta consulta = detalle.getConsulta();
+                if (consulta == null) continue;
 
-                    for (DetalleAnalisis detalle : consulta.getAnalisis()) {
-                        if (detalle == null) continue;
+                String estadoDetalle = detalle.getEstado() != null ? detalle.getEstado().trim() : "Pendiente";
+                boolean coincideEstado = estadoFiltro == null
+                        || estadoFiltro.equalsIgnoreCase("Todos")
+                        || estadoDetalle.equalsIgnoreCase(estadoFiltro.trim());
 
-                        boolean coincideEstado = estadoFiltro.equalsIgnoreCase("Todos")
-                                || (detalle.getEstado() != null && detalle.getEstado().equalsIgnoreCase(estadoFiltro));
+                if (!coincideEstado) continue;
 
-                        if (!coincideEstado) continue;
+                Paciente paciente = obtenerPacienteDeConsulta(consulta);
+                String nombrePacienteStr = (paciente != null)
+                        ? paciente.getNombre() + " " + (paciente.getApellido() != null ? paciente.getApellido() : "")
+                        : (consulta.getCita() != null && consulta.getCita().getNombrePersona() != null
+                        ? consulta.getCita().getNombrePersona() : "N/A");
 
-                        Paciente paciente = obtenerPacienteDeConsulta(consulta);
-                        String nombrePacienteStr = (paciente != null)
-                                ? paciente.getNombre() + " " + (paciente.getApellido() != null ? paciente.getApellido() : "")
-                                : (consulta.getCita() != null ? consulta.getCita().getNombrePersona() : "N/A");
+                String nombreAnalisisStr = (detalle.getAnalisis() != null && detalle.getAnalisis().getNombre() != null)
+                        ? detalle.getAnalisis().getNombre() : "N/A";
 
-                        String nombreAnalisisStr = (detalle.getAnalisis() != null && detalle.getAnalisis().getNombre() != null)
-                                ? detalle.getAnalisis().getNombre() : "N/A";
+                boolean coincideTexto = textoFiltro.isEmpty()
+                        || (detalle.getId() != null && detalle.getId().toLowerCase().contains(textoFiltro))
+                        || nombreAnalisisStr.toLowerCase().contains(textoFiltro)
+                        || nombrePacienteStr.toLowerCase().contains(textoFiltro);
 
-                        boolean coincideTexto = textoFiltro.isEmpty()
-                                || (detalle.getId() != null && detalle.getId().toLowerCase().contains(textoFiltro))
-                                || nombreAnalisisStr.toLowerCase().contains(textoFiltro)
-                                || nombrePacienteStr.toLowerCase().contains(textoFiltro);
+                if (coincideTexto) {
+                    listaDetallesVisibles.add(detalle);
+                    String fechaStr = (consulta.getFechaHora() != null)
+                            ? consulta.getFechaHora().toString().replace("T", " ")
+                            : (consulta.getCita() != null && consulta.getCita().getFechaRegistro() != null
+                            ? sdf.format(consulta.getCita().getFechaRegistro()) : "N/A");
 
-                        if (coincideTexto) {
-                            listaDetallesVisibles.add(detalle);
-                            String fechaStr = (consulta.getFechaHora() != null)
-                                    ? consulta.getFechaHora().toString().replace("T", " ")
-                                    : (consulta.getCita() != null && consulta.getCita().getFechaRegistro() != null
-                                    ? sdf.format(consulta.getCita().getFechaRegistro()) : "N/A");
-
-                            tableModel.addRow(new Object[] {
-                                    consulta.getId(),
-                                    nombreAnalisisStr,
-                                    nombrePacienteStr,
-                                    fechaStr,
-                                    detalle.getEstado()
-                            });
-                        }
-                    }
+                    tableModel.addRow(new Object[] {
+                            consulta.getId(),
+                            nombreAnalisisStr,
+                            nombrePacienteStr,
+                            fechaStr,
+                            estadoDetalle
+                    });
                 }
             }
         }
@@ -612,5 +554,23 @@ public class CrearDetalleAnalisis extends JDialog {
         cbxEstadoAnalisis.setSelectedIndex(0);
         txtObservaciones.setText("");
         btnEliminar.setVisible(false);
+    }
+
+    // --- MÉTODO MAIN PARA EJECUTAR DE FORMA INDEPENDIENTE ---
+    public static void main(String[] args) {
+        EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                try {
+                    // Carga la base de datos localmente para poblar los registros antes de abrir la ventana
+                    Clinica.getInstancia().cargarBD();
+
+                    CrearDetalleAnalisis dialog = new CrearDetalleAnalisis();
+                    dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+                    dialog.setVisible(true);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 }

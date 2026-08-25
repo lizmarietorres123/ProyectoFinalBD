@@ -2,6 +2,7 @@ package logico.catalogo;
 
 import logico.Clinica;
 import java.io.Serializable;
+import java.util.Objects;
 
 public class Enfermera implements Serializable {
     private static final long serialVersionUID = 1L;
@@ -44,7 +45,10 @@ public class Enfermera implements Serializable {
     }
 
     public String getNombreApellido() {
-        return nombre + " " + apellido;
+        String nom = (nombre != null) ? nombre.trim() : "";
+        String ape = (apellido != null) ? apellido.trim() : "";
+        String res = (nom + " " + ape).trim();
+        return res;
     }
 
     public String getApellido() {
@@ -89,5 +93,27 @@ public class Enfermera implements Serializable {
 
     public void setEstado(String estado) {
         this.estado = estado;
+    }
+
+    @Override
+    public String toString() {
+        String nomCompleto = getNombreApellido();
+        if (nomCompleto != null && !nomCompleto.isEmpty()) {
+            return nomCompleto;
+        }
+        return (id != null) ? id : "";
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        Enfermera other = (Enfermera) obj;
+        return Objects.equals(this.id, other.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(this.id);
     }
 }

@@ -2,6 +2,7 @@ package visual.enfermeria;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -16,11 +17,13 @@ import java.util.Date;
 import java.util.List;
 
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -38,6 +41,7 @@ import javax.swing.table.DefaultTableModel;
 
 import logico.Clinica;
 import logico.catalogo.Enfermera;
+import logico.catalogo.Usuario;
 import logico.consultorio.Consulta;
 import logico.consultorio.Paciente;
 import logico.enfermeria.DetalleVacuna;
@@ -79,12 +83,12 @@ public class CrearDetalleVacuna extends JDialog {
     }
 
     public CrearDetalleVacuna(DetalleVacuna detalleParaEditar) {
-        setTitle(detalleParaEditar == null ? "Gestión y Registro de Aplicación de Vacunas" : "Detalle / Modificar Aplicación de Vacuna");
-        setBounds(100, 100, 850, 710);
+        setTitle(detalleParaEditar == null ? "Gestion y Registro de Aplicacion de Vacunas" : "Detalle / Modificar Aplicacion de Vacuna");
+        setBounds(100, 100, 850, 560);
         setLocationRelativeTo(null);
         getContentPane().setLayout(new BorderLayout());
         contentPanel.setBackground(new Color(240, 248, 255));
-        contentPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+        contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
         getContentPane().add(contentPanel, BorderLayout.CENTER);
         contentPanel.setLayout(null);
 
@@ -92,13 +96,13 @@ public class CrearDetalleVacuna extends JDialog {
         panelFiltros.setBackground(Color.WHITE);
         panelFiltros.setBorder(new TitledBorder(
                 new LineBorder(new Color(135, 206, 235), 2),
-                "Filtros de Búsqueda",
+                "Filtros de Busqueda",
                 TitledBorder.CENTER,
                 TitledBorder.TOP,
-                new Font("Bahnschrift", Font.BOLD, 14),
+                new Font("Bahnschrift", Font.BOLD, 12),
                 new Color(70, 130, 180)
         ));
-        panelFiltros.setBounds(15, 10, 804, 70);
+        panelFiltros.setBounds(10, 5, 816, 50);
         contentPanel.add(panelFiltros);
         panelFiltros.setLayout(null);
 
@@ -106,8 +110,8 @@ public class CrearDetalleVacuna extends JDialog {
         chkFiltrarFecha.setSelected(false);
         chkFiltrarFecha.setBackground(Color.WHITE);
         chkFiltrarFecha.setForeground(new Color(70, 130, 180));
-        chkFiltrarFecha.setFont(new Font("Bahnschrift", Font.BOLD, 12));
-        chkFiltrarFecha.setBounds(12, 26, 110, 22);
+        chkFiltrarFecha.setFont(new Font("Bahnschrift", Font.BOLD, 11));
+        chkFiltrarFecha.setBounds(10, 18, 100, 20);
         chkFiltrarFecha.addActionListener(e -> {
             spinFechaFiltro.setEnabled(chkFiltrarFecha.isSelected());
             cargarTablaDetalles();
@@ -119,34 +123,34 @@ public class CrearDetalleVacuna extends JDialog {
         JSpinner.DateEditor dateEditor = new JSpinner.DateEditor(spinFechaFiltro, "dd/MM/yyyy");
         spinFechaFiltro.setEditor(dateEditor);
         spinFechaFiltro.setEnabled(false);
-        spinFechaFiltro.setFont(new Font("Bahnschrift", Font.PLAIN, 12));
-        spinFechaFiltro.setBounds(125, 26, 110, 22);
+        spinFechaFiltro.setFont(new Font("Bahnschrift", Font.PLAIN, 11));
+        spinFechaFiltro.setBounds(110, 18, 95, 20);
         spinFechaFiltro.addChangeListener(e -> cargarTablaDetalles());
         panelFiltros.add(spinFechaFiltro);
 
         JLabel lblFiltroEstado = new JLabel("Estado:");
         lblFiltroEstado.setForeground(new Color(70, 130, 180));
-        lblFiltroEstado.setFont(new Font("Bahnschrift", Font.BOLD, 12));
-        lblFiltroEstado.setBounds(255, 29, 50, 16);
+        lblFiltroEstado.setFont(new Font("Bahnschrift", Font.BOLD, 11));
+        lblFiltroEstado.setBounds(220, 20, 45, 15);
         panelFiltros.add(lblFiltroEstado);
 
         cbxFiltroEstado = new JComboBox<>();
         cbxFiltroEstado.setModel(new DefaultComboBoxModel<>(new String[] {"Todos", "Pendiente", "Aplicada", "Cancelada"}));
-        cbxFiltroEstado.setFont(new Font("Bahnschrift", Font.PLAIN, 12));
+        cbxFiltroEstado.setFont(new Font("Bahnschrift", Font.PLAIN, 11));
         cbxFiltroEstado.setBackground(new Color(224, 247, 250));
-        cbxFiltroEstado.setBounds(310, 26, 130, 22);
+        cbxFiltroEstado.setBounds(265, 18, 110, 20);
         cbxFiltroEstado.addActionListener(e -> cargarTablaDetalles());
         panelFiltros.add(cbxFiltroEstado);
 
         JLabel lblBuscar = new JLabel("Buscar:");
         lblBuscar.setForeground(new Color(70, 130, 180));
-        lblBuscar.setFont(new Font("Bahnschrift", Font.BOLD, 12));
-        lblBuscar.setBounds(460, 29, 50, 16);
+        lblBuscar.setFont(new Font("Bahnschrift", Font.BOLD, 11));
+        lblBuscar.setBounds(390, 20, 45, 15);
         panelFiltros.add(lblBuscar);
 
         txtBuscarVacuna = new JTextField();
-        txtBuscarVacuna.setFont(new Font("Bahnschrift", Font.PLAIN, 12));
-        txtBuscarVacuna.setBounds(515, 26, 270, 22);
+        txtBuscarVacuna.setFont(new Font("Bahnschrift", Font.PLAIN, 11));
+        txtBuscarVacuna.setBounds(435, 18, 365, 20);
         txtBuscarVacuna.addKeyListener(new KeyAdapter() {
             @Override
             public void keyReleased(KeyEvent e) {
@@ -162,10 +166,10 @@ public class CrearDetalleVacuna extends JDialog {
                 "Seleccionar Detalle de Vacuna",
                 TitledBorder.CENTER,
                 TitledBorder.TOP,
-                new Font("Bahnschrift", Font.BOLD, 14),
+                new Font("Bahnschrift", Font.BOLD, 12),
                 new Color(70, 130, 180)
         ));
-        panelTabla.setBounds(15, 85, 804, 180);
+        panelTabla.setBounds(10, 58, 816, 110);
         contentPanel.add(panelTabla);
         panelTabla.setLayout(new BorderLayout(0, 0));
 
@@ -179,9 +183,9 @@ public class CrearDetalleVacuna extends JDialog {
         };
 
         tblDetalles = new JTable(tableModel);
-        tblDetalles.setFont(new Font("Bahnschrift", Font.PLAIN, 12));
+        tblDetalles.setFont(new Font("Bahnschrift", Font.PLAIN, 11));
         tblDetalles.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        tblDetalles.getTableHeader().setFont(new Font("Bahnschrift", Font.BOLD, 12));
+        tblDetalles.getTableHeader().setFont(new Font("Bahnschrift", Font.BOLD, 11));
         tblDetalles.getTableHeader().setBackground(new Color(176, 224, 230));
         tblDetalles.getTableHeader().setForeground(new Color(70, 130, 180));
         tblDetalles.getSelectionModel().addListSelectionListener(e -> {
@@ -201,157 +205,173 @@ public class CrearDetalleVacuna extends JDialog {
         panelPaciente.setBackground(Color.WHITE);
         panelPaciente.setBorder(new TitledBorder(
                 new LineBorder(new Color(135, 206, 235), 2),
-                "Información Principal del Paciente",
+                "Informacion Principal del Paciente",
                 TitledBorder.CENTER,
                 TitledBorder.TOP,
-                new Font("Bahnschrift", Font.BOLD, 14),
+                new Font("Bahnschrift", Font.BOLD, 12),
                 new Color(70, 130, 180)
         ));
-        panelPaciente.setBounds(15, 270, 804, 100);
+        panelPaciente.setBounds(10, 171, 816, 85);
         contentPanel.add(panelPaciente);
         panelPaciente.setLayout(null);
 
         JLabel lblNombre = new JLabel("Nombre:");
         lblNombre.setForeground(new Color(70, 130, 180));
-        lblNombre.setFont(new Font("Bahnschrift", Font.BOLD, 12));
-        lblNombre.setBounds(15, 28, 60, 14);
+        lblNombre.setFont(new Font("Bahnschrift", Font.BOLD, 11));
+        lblNombre.setBounds(10, 22, 50, 14);
         panelPaciente.add(lblNombre);
 
         txtNombrePaciente = new JTextField();
         txtNombrePaciente.setEditable(false);
-        txtNombrePaciente.setFont(new Font("Bahnschrift", Font.PLAIN, 12));
+        txtNombrePaciente.setFont(new Font("Bahnschrift", Font.PLAIN, 11));
         txtNombrePaciente.setBackground(new Color(224, 247, 250));
-        txtNombrePaciente.setBounds(80, 25, 180, 22);
+        txtNombrePaciente.setBounds(65, 20, 180, 20);
         panelPaciente.add(txtNombrePaciente);
 
         JLabel lblApellido = new JLabel("Apellido:");
         lblApellido.setForeground(new Color(70, 130, 180));
-        lblApellido.setFont(new Font("Bahnschrift", Font.BOLD, 12));
-        lblApellido.setBounds(280, 28, 60, 14);
+        lblApellido.setFont(new Font("Bahnschrift", Font.BOLD, 11));
+        lblApellido.setBounds(255, 22, 50, 14);
         panelPaciente.add(lblApellido);
 
         txtApellidoPaciente = new JTextField();
         txtApellidoPaciente.setEditable(false);
-        txtApellidoPaciente.setFont(new Font("Bahnschrift", Font.PLAIN, 12));
+        txtApellidoPaciente.setFont(new Font("Bahnschrift", Font.PLAIN, 11));
         txtApellidoPaciente.setBackground(new Color(224, 247, 250));
-        txtApellidoPaciente.setBounds(345, 25, 180, 22);
+        txtApellidoPaciente.setBounds(310, 20, 180, 20);
         panelPaciente.add(txtApellidoPaciente);
 
         JLabel lblSexo = new JLabel("Sexo:");
         lblSexo.setForeground(new Color(70, 130, 180));
-        lblSexo.setFont(new Font("Bahnschrift", Font.BOLD, 12));
-        lblSexo.setBounds(545, 28, 40, 14);
+        lblSexo.setFont(new Font("Bahnschrift", Font.BOLD, 11));
+        lblSexo.setBounds(505, 22, 35, 14);
         panelPaciente.add(lblSexo);
 
         txtSexoPaciente = new JTextField();
         txtSexoPaciente.setEditable(false);
-        txtSexoPaciente.setFont(new Font("Bahnschrift", Font.PLAIN, 12));
+        txtSexoPaciente.setFont(new Font("Bahnschrift", Font.PLAIN, 11));
         txtSexoPaciente.setBackground(new Color(224, 247, 250));
-        txtSexoPaciente.setBounds(590, 25, 80, 22);
+        txtSexoPaciente.setBounds(540, 20, 75, 20);
         panelPaciente.add(txtSexoPaciente);
 
         JLabel lblEdad = new JLabel("Edad:");
         lblEdad.setForeground(new Color(70, 130, 180));
-        lblEdad.setFont(new Font("Bahnschrift", Font.BOLD, 12));
-        lblEdad.setBounds(685, 28, 40, 14);
+        lblEdad.setFont(new Font("Bahnschrift", Font.BOLD, 11));
+        lblEdad.setBounds(625, 22, 35, 14);
         panelPaciente.add(lblEdad);
 
         txtEdadPaciente = new JTextField();
         txtEdadPaciente.setEditable(false);
-        txtEdadPaciente.setFont(new Font("Bahnschrift", Font.PLAIN, 12));
+        txtEdadPaciente.setFont(new Font("Bahnschrift", Font.PLAIN, 11));
         txtEdadPaciente.setBackground(new Color(224, 247, 250));
-        txtEdadPaciente.setBounds(730, 25, 55, 22);
+        txtEdadPaciente.setBounds(665, 20, 135, 20);
         panelPaciente.add(txtEdadPaciente);
 
         JLabel lblVacunaInfo = new JLabel("Vacuna:");
         lblVacunaInfo.setForeground(new Color(70, 130, 180));
-        lblVacunaInfo.setFont(new Font("Bahnschrift", Font.BOLD, 12));
-        lblVacunaInfo.setBounds(15, 62, 60, 14);
+        lblVacunaInfo.setFont(new Font("Bahnschrift", Font.BOLD, 11));
+        lblVacunaInfo.setBounds(10, 52, 50, 14);
         panelPaciente.add(lblVacunaInfo);
 
         txtNombreVacuna = new JTextField();
         txtNombreVacuna.setEditable(false);
-        txtNombreVacuna.setFont(new Font("Bahnschrift", Font.BOLD, 12));
+        txtNombreVacuna.setFont(new Font("Bahnschrift", Font.BOLD, 11));
         txtNombreVacuna.setBackground(new Color(224, 247, 250));
-        txtNombreVacuna.setBounds(80, 59, 705, 22);
+        txtNombreVacuna.setBounds(65, 50, 735, 20);
         panelPaciente.add(txtNombreVacuna);
 
         JPanel panelEnfermera = new JPanel();
         panelEnfermera.setBackground(Color.WHITE);
         panelEnfermera.setBorder(new TitledBorder(
                 new LineBorder(new Color(135, 206, 235), 2),
-                "Registro de Aplicación",
+                "Registro de Aplicacion",
                 TitledBorder.CENTER,
                 TitledBorder.TOP,
-                new Font("Bahnschrift", Font.BOLD, 14),
+                new Font("Bahnschrift", Font.BOLD, 12),
                 new Color(70, 130, 180)
         ));
-        panelEnfermera.setBounds(15, 375, 804, 240);
+        panelEnfermera.setBounds(10, 258, 816, 215);
         contentPanel.add(panelEnfermera);
         panelEnfermera.setLayout(null);
 
         JLabel lblDosis = new JLabel("Dosis Aplicada:");
         lblDosis.setForeground(new Color(70, 130, 180));
-        lblDosis.setFont(new Font("Bahnschrift", Font.BOLD, 12));
-        lblDosis.setBounds(15, 30, 100, 14);
+        lblDosis.setFont(new Font("Bahnschrift", Font.BOLD, 11));
+        lblDosis.setBounds(10, 24, 90, 14);
         panelEnfermera.add(lblDosis);
 
         spinDosis = new JSpinner(new SpinnerNumberModel(1, 1, 10, 1));
-        spinDosis.setFont(new Font("Bahnschrift", Font.PLAIN, 12));
-        spinDosis.setBounds(115, 26, 70, 22);
+        spinDosis.setFont(new Font("Bahnschrift", Font.PLAIN, 11));
+        spinDosis.setBounds(105, 21, 60, 20);
         panelEnfermera.add(spinDosis);
 
         JLabel lblLote = new JLabel("Lote:");
         lblLote.setForeground(new Color(70, 130, 180));
-        lblLote.setFont(new Font("Bahnschrift", Font.BOLD, 12));
-        lblLote.setBounds(215, 30, 40, 14);
+        lblLote.setFont(new Font("Bahnschrift", Font.BOLD, 11));
+        lblLote.setBounds(180, 24, 35, 14);
         panelEnfermera.add(lblLote);
 
         txtLote = new JTextField();
-        txtLote.setFont(new Font("Bahnschrift", Font.PLAIN, 12));
-        txtLote.setBounds(255, 26, 160, 22);
+        txtLote.setFont(new Font("Bahnschrift", Font.PLAIN, 11));
+        txtLote.setBounds(215, 21, 150, 20);
         panelEnfermera.add(txtLote);
 
         JLabel lblEstado = new JLabel("Estado:");
         lblEstado.setForeground(new Color(70, 130, 180));
-        lblEstado.setFont(new Font("Bahnschrift", Font.BOLD, 12));
-        lblEstado.setBounds(440, 30, 60, 14);
+        lblEstado.setFont(new Font("Bahnschrift", Font.BOLD, 11));
+        lblEstado.setBounds(385, 24, 50, 14);
         panelEnfermera.add(lblEstado);
 
         cbxEstadoVacuna = new JComboBox<>();
         cbxEstadoVacuna.setModel(new DefaultComboBoxModel<>(new String[] {"Pendiente", "Aplicada", "Cancelada"}));
-        cbxEstadoVacuna.setFont(new Font("Bahnschrift", Font.PLAIN, 12));
+        cbxEstadoVacuna.setFont(new Font("Bahnschrift", Font.PLAIN, 11));
         cbxEstadoVacuna.setBackground(new Color(224, 247, 250));
-        cbxEstadoVacuna.setBounds(500, 26, 160, 22);
+        cbxEstadoVacuna.setBounds(440, 21, 130, 20);
         panelEnfermera.add(cbxEstadoVacuna);
 
         JLabel lblEnfermeraObj = new JLabel("Enfermera:");
         lblEnfermeraObj.setForeground(new Color(70, 130, 180));
-        lblEnfermeraObj.setFont(new Font("Bahnschrift", Font.BOLD, 12));
-        lblEnfermeraObj.setBounds(15, 68, 80, 14);
+        lblEnfermeraObj.setFont(new Font("Bahnschrift", Font.BOLD, 11));
+        lblEnfermeraObj.setBounds(10, 52, 75, 14);
         panelEnfermera.add(lblEnfermeraObj);
 
         cbxEnfermera = new JComboBox<>();
-        cbxEnfermera.setFont(new Font("Bahnschrift", Font.PLAIN, 12));
+        cbxEnfermera.setFont(new Font("Bahnschrift", Font.PLAIN, 11));
         cbxEnfermera.setBackground(new Color(224, 247, 250));
-        cbxEnfermera.setBounds(95, 65, 320, 22);
+        cbxEnfermera.setBounds(90, 49, 320, 20);
+        cbxEnfermera.setEnabled(false);
+        cbxEnfermera.setRenderer(new DefaultListCellRenderer() {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value instanceof Enfermera) {
+                    Enfermera enf = (Enfermera) value;
+                    String nomCompleto = enf.getNombreApellido();
+                    setText(nomCompleto != null && !nomCompleto.trim().isEmpty() ? nomCompleto : (enf.getId() != null ? enf.getId() : ""));
+                } else if (value == null) {
+                    setText("<Seleccione Enfermera>");
+                }
+                return this;
+            }
+        });
         panelEnfermera.add(cbxEnfermera);
 
         JLabel lblObservaciones = new JLabel("Observaciones / Notas:");
         lblObservaciones.setForeground(new Color(70, 130, 180));
-        lblObservaciones.setFont(new Font("Bahnschrift", Font.BOLD, 12));
-        lblObservaciones.setBounds(15, 105, 160, 14);
+        lblObservaciones.setFont(new Font("Bahnschrift", Font.BOLD, 11));
+        lblObservaciones.setBounds(10, 77, 150, 14);
         panelEnfermera.add(lblObservaciones);
 
         JScrollPane scrollObservaciones = new JScrollPane();
         scrollObservaciones.setBorder(new LineBorder(new Color(173, 216, 230), 1));
-        scrollObservaciones.setBounds(15, 125, 770, 100);
+        scrollObservaciones.setBounds(10, 94, 790, 110);
         panelEnfermera.add(scrollObservaciones);
 
         txtObservaciones = new JTextArea();
         txtObservaciones.setLineWrap(true);
         txtObservaciones.setWrapStyleWord(true);
-        txtObservaciones.setFont(new Font("Bahnschrift", Font.PLAIN, 12));
+        txtObservaciones.setFont(new Font("Bahnschrift", Font.PLAIN, 11));
         scrollObservaciones.setViewportView(txtObservaciones);
 
         JPanel buttonPane = new JPanel();
@@ -360,33 +380,33 @@ public class CrearDetalleVacuna extends JDialog {
         getContentPane().add(buttonPane, BorderLayout.SOUTH);
 
         btnGuardar = new JButton("Guardar Cambios");
-        btnGuardar.setFont(new Font("Bahnschrift", Font.BOLD, 13));
+        btnGuardar.setFont(new Font("Bahnschrift", Font.BOLD, 12));
         btnGuardar.setBackground(new Color(176, 224, 230));
         btnGuardar.setForeground(new Color(70, 130, 180));
         btnGuardar.setBorder(new LineBorder(new Color(135, 206, 235), 2));
         btnGuardar.setFocusPainted(false);
-        btnGuardar.setPreferredSize(new Dimension(140, 30));
+        btnGuardar.setPreferredSize(new Dimension(130, 26));
         btnGuardar.addActionListener(e -> guardarDatosVacuna());
         buttonPane.add(btnGuardar);
 
         btnEliminar = new JButton("Eliminar");
-        btnEliminar.setFont(new Font("Bahnschrift", Font.BOLD, 13));
+        btnEliminar.setFont(new Font("Bahnschrift", Font.BOLD, 12));
         btnEliminar.setBackground(new Color(255, 182, 193));
         btnEliminar.setForeground(new Color(178, 34, 34));
         btnEliminar.setBorder(new LineBorder(new Color(240, 128, 128), 2));
         btnEliminar.setFocusPainted(false);
-        btnEliminar.setPreferredSize(new Dimension(110, 30));
+        btnEliminar.setPreferredSize(new Dimension(100, 26));
         btnEliminar.setVisible(false);
         btnEliminar.addActionListener(e -> eliminarVacuna());
         buttonPane.add(btnEliminar);
 
         JButton btnCancelar = new JButton("Cancelar / Salir");
-        btnCancelar.setFont(new Font("Bahnschrift", Font.BOLD, 13));
+        btnCancelar.setFont(new Font("Bahnschrift", Font.BOLD, 12));
         btnCancelar.setBackground(new Color(176, 224, 230));
         btnCancelar.setForeground(new Color(70, 130, 180));
         btnCancelar.setBorder(new LineBorder(new Color(135, 206, 235), 2));
         btnCancelar.setFocusPainted(false);
-        btnCancelar.setPreferredSize(new Dimension(130, 30));
+        btnCancelar.setPreferredSize(new Dimension(120, 26));
         btnCancelar.addActionListener(e -> dispose());
         buttonPane.add(btnCancelar);
 
@@ -410,6 +430,10 @@ public class CrearDetalleVacuna extends JDialog {
             }
         }
         cbxEnfermera.setModel(model);
+        Enfermera enfLogueada = obtenerEnfermeraLogueada();
+        if (enfLogueada != null) {
+            cbxEnfermera.setSelectedItem(enfLogueada);
+        }
     }
 
     private void cargarTablaDetalles() {
@@ -486,6 +510,14 @@ public class CrearDetalleVacuna extends JDialog {
         }
     }
 
+    private Enfermera obtenerEnfermeraLogueada() {
+        Usuario usuarioActual = Clinica.getInstancia().getUsuarioActual();
+        if (usuarioActual != null) {
+            return Clinica.getInstancia().buscarEnfermeraXUsuario(usuarioActual);
+        }
+        return null;
+    }
+
     private void seleccionarDetalle(DetalleVacuna detalle) {
         this.detalleSeleccionado = detalle;
         if (detalle == null) {
@@ -519,7 +551,12 @@ public class CrearDetalleVacuna extends JDialog {
         if (detalle.getEnfermera() != null) {
             cbxEnfermera.setSelectedItem(detalle.getEnfermera());
         } else {
-            cbxEnfermera.setSelectedIndex(0);
+            Enfermera enfLogueada = obtenerEnfermeraLogueada();
+            if (enfLogueada != null) {
+                cbxEnfermera.setSelectedItem(enfLogueada);
+            } else {
+                cbxEnfermera.setSelectedIndex(0);
+            }
         }
 
         spinDosis.setValue(detalle.getDosis() > 0 ? detalle.getDosis() : 1);
@@ -530,18 +567,24 @@ public class CrearDetalleVacuna extends JDialog {
 
     private void guardarDatosVacuna() {
         if (detalleSeleccionado == null) {
-            JOptionPane.showMessageDialog(this, "Por favor, seleccione un detalle de vacuna de la tabla.", "Atención", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Por favor, seleccione un detalle de vacuna de la tabla.", "Atencion", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         detalleSeleccionado.setDosis((int) spinDosis.getValue());
         detalleSeleccionado.setLote(txtLote.getText().trim());
-        detalleSeleccionado.setEnfermera((Enfermera) cbxEnfermera.getSelectedItem());
+        Enfermera enfLogueada = obtenerEnfermeraLogueada();
+        if (enfLogueada != null) {
+            detalleSeleccionado.setEnfermera(enfLogueada);
+            cbxEnfermera.setSelectedItem(enfLogueada);
+        } else if (cbxEnfermera.getSelectedItem() instanceof Enfermera) {
+            detalleSeleccionado.setEnfermera((Enfermera) cbxEnfermera.getSelectedItem());
+        }
         detalleSeleccionado.setEstado((String) cbxEstadoVacuna.getSelectedItem());
         detalleSeleccionado.setObservaciones(txtObservaciones.getText().trim());
         detalleSeleccionado.setFecha_aplicacion(LocalDateTime.now());
 
-        JOptionPane.showMessageDialog(this, "Registro de vacuna actualizado correctamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(this, "Registro de vacuna actualizado correctamente.", "Exito", JOptionPane.INFORMATION_MESSAGE);
 
         if (esModoEdicionDirecta) {
             dispose();
@@ -553,14 +596,14 @@ public class CrearDetalleVacuna extends JDialog {
 
     private void eliminarVacuna() {
         if (detalleSeleccionado == null) {
-            JOptionPane.showMessageDialog(this, "Seleccione un detalle para eliminar.", "Atención", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Seleccione un detalle para eliminar.", "Atencion", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         int confirm = JOptionPane.showConfirmDialog(
                 this,
-                "¿Está seguro de que desea eliminar este detalle de vacuna?",
-                "Confirmar Eliminación",
+                "¿Esta seguro de que desea eliminar este detalle de vacuna?",
+                "Confirmar Eliminacion",
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.QUESTION_MESSAGE
         );
@@ -570,7 +613,7 @@ public class CrearDetalleVacuna extends JDialog {
             if (consulta != null && consulta.getVacunas() != null) {
                 consulta.getVacunas().remove(detalleSeleccionado);
             }
-            JOptionPane.showMessageDialog(this, "Detalle de vacuna eliminado con éxito.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Detalle de vacuna eliminado con exito.", "Exito", JOptionPane.INFORMATION_MESSAGE);
 
             if (esModoEdicionDirecta) {
                 dispose();
@@ -614,7 +657,12 @@ public class CrearDetalleVacuna extends JDialog {
         txtNombreVacuna.setText("");
         spinDosis.setValue(1);
         txtLote.setText("");
-        cbxEnfermera.setSelectedIndex(0);
+        Enfermera enfLogueada = obtenerEnfermeraLogueada();
+        if (enfLogueada != null) {
+            cbxEnfermera.setSelectedItem(enfLogueada);
+        } else {
+            cbxEnfermera.setSelectedIndex(0);
+        }
         cbxEstadoVacuna.setSelectedIndex(0);
         txtObservaciones.setText("");
         btnEliminar.setVisible(false);

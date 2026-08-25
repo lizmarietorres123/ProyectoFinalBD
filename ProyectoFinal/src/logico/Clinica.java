@@ -282,29 +282,36 @@ public class Clinica implements Serializable {
         return Integer.parseInt(id.replace(ids.get(clase), ""));
     }
 
-
-
     public void cargarBD() {
+        usuarios = cargarLista("usuarios", () -> UsuarioDAO.getInstance().obtenerUsuarios(), usuarios);
+        enfermeras = cargarLista("enfermeras", () -> EnfermeraDAO.getInstance().obtenerEnfermeras(), enfermeras);
+        pacientes = cargarLista("pacientes", () -> PacienteDAO.getInstance().obtenerPacientes(), pacientes);
+        doctores = cargarLista("doctores", () -> DoctorDAO.getInstance().obtenerDoctores(), doctores);
+        citas = cargarLista("citas", () -> CitaDAO.getInstance().obtenerCitas(), citas);
+        consultas = cargarLista("consultas", () -> ConsultaDAO.getInstance().obtenerConsultas(), consultas);
+        especialidades = cargarLista("especialidades", () -> EspecialidadDAO.getInstance().obtenerEspecialidades(), especialidades);
+        sintomas = cargarLista("sintomas", () -> SintomaDAO.getInstance().obtenerSintomas(), sintomas);
+        vacunas = cargarLista("vacunas", () -> VacunaDAO.getInstance().obtenerVacunas(), vacunas);
+        medicamentos = cargarLista("medicamentos", () -> MedicamentoDAO.getInstance().obtenerMedicamentos(), medicamentos);
+        analisis = cargarLista("analisis", () -> AnalisisDAO.getInstance().obtenerAnalisis(), analisis);
+        enfermedades = cargarLista("enfermedades", () -> EnfermedadDAO.getInstance().obtenerEnfermedades(), enfermedades);
+        diagnosticos = cargarLista("diagnosticos", () -> DiagnosticoDAO.getInstance().obtenerDiagnosticos(), diagnosticos);
+        tratamientos = cargarLista("tratamientos", () -> TratamientoDAO.getInstance().obtenerTratamientos(), tratamientos);
+        detalleAnalisis = cargarLista("detalleAnalisis", () -> DetalleAnalisisDAO.getInstance().obtenerDetallesAnalisis(), detalleAnalisis);
+        detalleVacunas = cargarLista("detalleVacunas", () -> DetalleVacunaDAO.getInstance().obtenerDetallesVacuna(), detalleVacunas);
+    }
+
+    /**
+     * Ejecuta la carga de una lista desde BD de forma aislada: si un DAO falla,
+     * el resto de las listas se siguen cargando en vez de abortar todo cargarBD().
+     */
+    private <T> ArrayList<T> cargarLista(String nombre, java.util.concurrent.Callable<ArrayList<T>> loader, ArrayList<T> actual) {
         try {
-            usuarios = UsuarioDAO.getInstance().obtenerUsuarios();
-            pacientes = PacienteDAO.getInstance().obtenerPacientes();
-            doctores = DoctorDAO.getInstance().obtenerDoctores();
-            citas = CitaDAO.getInstance().obtenerCitas();
-            consultas = ConsultaDAO.getInstance().obtenerConsultas();
-            especialidades = EspecialidadDAO.getInstance().obtenerEspecialidades();
-            sintomas = SintomaDAO.getInstance().obtenerSintomas();
-            vacunas = VacunaDAO.getInstance().obtenerVacunas();
-            medicamentos = MedicamentoDAO.getInstance().obtenerMedicamentos();
-            analisis = AnalisisDAO.getInstance().obtenerAnalisis();
-
-            enfermedades = EnfermedadDAO.getInstance().obtenerEnfermedades();
-            diagnosticos = DiagnosticoDAO.getInstance().obtenerDiagnosticos();
-            tratamientos = TratamientoDAO.getInstance().obtenerTratamientos();
-            detalleAnalisis = DetalleAnalisisDAO.getInstance().obtenerDetallesAnalisis();
-            detalleVacunas = DetalleVacunaDAO.getInstance().obtenerDetallesVacuna();
-
+            return loader.call();
         } catch (Exception e) {
-            System.err.println("Error crítico al cargar datos desde la base de datos: " + e.getMessage());
+            System.err.println("Error al cargar '" + nombre + "' desde la base de datos: " + e.getMessage());
+            e.printStackTrace();
+            return actual != null ? actual : new ArrayList<>();
         }
     }
 
@@ -344,6 +351,7 @@ public class Clinica implements Serializable {
             contadores.set(6, genCodigoUsuarios);
         }
     }
+
     // --- REGISTRO DE ENTIDADES ---
 
     public void regPaciente(Paciente paciente) {
@@ -402,9 +410,6 @@ public class Clinica implements Serializable {
         }
     }
 
-    // DetalleAnalisis y DetalleVacuna identifican su fila con un id de tipo
-    // String asignado por la BD (no usan el patrón genId/getIdNumber de las
-    // demás entidades), por lo que aquí solo se agregan a la lista.
     public void regDetalleAnalisis(DetalleAnalisis detalle) {
         if (detalle != null) {
             detalleAnalisis.add(detalle);
@@ -417,7 +422,7 @@ public class Clinica implements Serializable {
         }
     }
 
-
+    // --- BÚSQUEDAS ROBUSTAS ACTUALIZADAS ---
 
     public Paciente buscarPacienteXId(String id) {
         if (id == null) return null;
@@ -462,13 +467,16 @@ public class Clinica implements Serializable {
     public Enfermera buscarEnfermeraXUsuario(Usuario usuario) {
         if (usuario == null) return null;
         for (Enfermera efm : enfermeras) {
-            if (efm != null && efm.getUsuario() != null && efm.getUsuario().getNombre().equals(usuario.getNombre())) {
-                return efm;
+            if (efm != null && efm.getUsuario() != null) {
+                Usuario uEfm = efm.getUsuario();
+                if ((uEfm.getId() != null && uEfm.getId().equalsIgnoreCase(usuario.getId())) ||
+                        (uEfm.getNombre() != null && uEfm.getNombre().equalsIgnoreCase(usuario.getNombre()))) {
+                    return efm;
+                }
             }
         }
         return null;
     }
-
 
     public Enfermera buscarEnfermeraXIdNumber(int idNumber) {
         return buscarEnfermeraXId(genId(idNumber, Enfermera.class));
@@ -482,7 +490,6 @@ public class Clinica implements Serializable {
         return null;
     }
 
-    // Sobrecarga para buscar por ID numérico directamente (Útil para mapear los DAOs)
     public Usuario buscarUsuarioXIdNumber(int idNumber) {
         return buscarUsuarioXId(genId(idNumber, Usuario.class));
     }
@@ -502,8 +509,12 @@ public class Clinica implements Serializable {
     public Doctor buscarDoctorXUsuario(Usuario usuario) {
         if (usuario == null) return null;
         for (Doctor doc : doctores) {
-            if (doc != null && doc.getUsuario() != null && doc.getUsuario().getNombre().equals(usuario.getNombre())) {
-                return doc;
+            if (doc != null && doc.getUsuario() != null) {
+                Usuario uDoc = doc.getUsuario();
+                if ((uDoc.getId() != null && uDoc.getId().equalsIgnoreCase(usuario.getId())) ||
+                        (uDoc.getNombre() != null && uDoc.getNombre().equalsIgnoreCase(usuario.getNombre()))) {
+                    return doc;
+                }
             }
         }
         return null;

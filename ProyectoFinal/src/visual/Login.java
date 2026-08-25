@@ -26,6 +26,7 @@ import javax.swing.border.LineBorder;
 
 import logico.Clinica;
 import logico.catalogo.Doctor;
+import logico.catalogo.Enfermera;
 import logico.catalogo.Usuario;
 import visual.consultorio.MainConsultorio;
 import visual.enfermeria.MainEnfermeria;
@@ -164,7 +165,7 @@ public class Login extends JFrame {
         if (Clinica.getInstancia().getUsuarios() != null) {
             for (Usuario u : Clinica.getInstancia().getUsuarios()) {
                 if (u != null && u.getNombre() != null && u.getNombre().equalsIgnoreCase(username) &&
-                    u.getPassword() != null && u.getPassword().equals(password)) {
+                        u.getPassword() != null && u.getPassword().equals(password)) {
                     usuarioAutenticado = u;
                     break;
                 }
@@ -187,6 +188,8 @@ public class Login extends JFrame {
 
         if ("Enfermera".equalsIgnoreCase(usuarioAutenticado.getRol())) {
             Clinica.loginDoctor = null;
+            Enfermera enfermeraEncontrada = Clinica.getInstancia().buscarEnfermeraXUsuario(usuarioAutenticado);
+
             MainEnfermeria mainEnfermeria = new MainEnfermeria(usuarioAutenticado);
             mainEnfermeria.setVisible(true);
         } else {
