@@ -26,45 +26,16 @@ public class DetalleVacunaDAO {
     }
 
     public void guardarDetalleVacuna(DetalleVacuna detalle) {
-        final String sql = "{call str_insert_detalle_vacuna(?, ?, ?, ?, ?, ?, ?, ?)}";
+        // CORRECCIÓN: El SP ahora solo recibe 3 parámetros iniciales
+        final String sql = "{call str_insert_detalle_vacuna(?, ?, ?)}";
 
         try (Connection connection = ConexionBD.getConnection();
              CallableStatement callableStatement = connection.prepareCall(sql)) {
 
-            callableStatement.setInt(1, detalle.getVacuna().getIdNumber());
-            callableStatement.setInt(2, detalle.getConsulta().getIdNumber());
+            callableStatement.setInt(1, detalle.getConsulta().getIdNumber());
+            callableStatement.setInt(2, detalle.getVacuna().getIdNumber());
 
-            if (detalle.getEnfermera() != null) {
-                callableStatement.setInt(3, detalle.getEnfermera().getIdNumber());
-            } else {
-                callableStatement.setNull(3, java.sql.Types.INTEGER);
-            }
-
-            if (detalle.getDosis() > 0) {
-                callableStatement.setInt(4, detalle.getDosis());
-            } else {
-                callableStatement.setNull(4, java.sql.Types.INTEGER);
-            }
-
-            if (detalle.getLote() != null && !detalle.getLote().isEmpty()) {
-                callableStatement.setString(5, detalle.getLote());
-            } else {
-                callableStatement.setNull(5, java.sql.Types.VARCHAR);
-            }
-
-            callableStatement.setString(6, detalle.getEstado());
-
-            if (detalle.getFecha_aplicacion() != null) {
-                callableStatement.setTimestamp(7, Timestamp.valueOf(detalle.getFecha_aplicacion()));
-            } else {
-                callableStatement.setNull(7, java.sql.Types.TIMESTAMP);
-            }
-
-            if (detalle.getObservaciones() != null && !detalle.getObservaciones().isEmpty()) {
-                callableStatement.setString(8, detalle.getObservaciones());
-            } else {
-                callableStatement.setNull(8, java.sql.Types.VARCHAR);
-            }
+            callableStatement.setString(3, detalle.getEstado() != null ? detalle.getEstado() : "Pendiente");
 
             callableStatement.execute();
 
@@ -74,53 +45,25 @@ public class DetalleVacunaDAO {
     }
 
     public void guardarDetalleVacuna(Connection connection, DetalleVacuna detalle) {
-        final String sql = "{call str_insert_detalle_vacuna(?, ?, ?, ?, ?, ?, ?, ?)}";
+        // CORRECCIÓN: Igualación de parámetros para sobrecarga transaccional
+        final String sql = "{call str_insert_detalle_vacuna(?, ?, ?)}";
 
         try (CallableStatement callableStatement = connection.prepareCall(sql)) {
 
-            callableStatement.setInt(1, detalle.getVacuna().getIdNumber());
-            callableStatement.setInt(2, detalle.getConsulta().getIdNumber());
+            callableStatement.setInt(1, detalle.getConsulta().getIdNumber());
+            callableStatement.setInt(2, detalle.getVacuna().getIdNumber());
 
-            if (detalle.getEnfermera() != null) {
-                callableStatement.setInt(3, detalle.getEnfermera().getIdNumber());
-            } else {
-                callableStatement.setNull(3, java.sql.Types.INTEGER);
-            }
-
-            if (detalle.getDosis() > 0) {
-                callableStatement.setInt(4, detalle.getDosis());
-            } else {
-                callableStatement.setNull(4, java.sql.Types.INTEGER);
-            }
-
-            if (detalle.getLote() != null && !detalle.getLote().isEmpty()) {
-                callableStatement.setString(5, detalle.getLote());
-            } else {
-                callableStatement.setNull(5, java.sql.Types.VARCHAR);
-            }
-
-            callableStatement.setString(6, detalle.getEstado());
-
-            if (detalle.getFecha_aplicacion() != null) {
-                callableStatement.setTimestamp(7, Timestamp.valueOf(detalle.getFecha_aplicacion()));
-            } else {
-                callableStatement.setNull(7, java.sql.Types.TIMESTAMP);
-            }
-
-            if (detalle.getObservaciones() != null && !detalle.getObservaciones().isEmpty()) {
-                callableStatement.setString(8, detalle.getObservaciones());
-            } else {
-                callableStatement.setNull(8, java.sql.Types.VARCHAR);
-            }
+            callableStatement.setString(3, detalle.getEstado() != null ? detalle.getEstado() : "Pendiente");
 
             callableStatement.execute();
 
         } catch (SQLException e) {
-            System.err.println("Error al guardar el detalle de vacuna: " + e.getMessage());
+            System.err.println("Error al guardar el detalle de vacuna (transaccional): " + e.getMessage());
         }
     }
 
     public void actualizarDetalleVacuna(DetalleVacuna detalle) {
+        // UPDATE intacto: Enfermería llenará los datos faltantes
         final String sql = "{call str_update_detalle_vacuna(?, ?, ?, ?, ?, ?, ?, ?, ?)}";
 
         try (Connection connection = ConexionBD.getConnection();
@@ -169,7 +112,6 @@ public class DetalleVacunaDAO {
         }
     }
 
-    // --- NUEVO MÉTODO DE ELIMINACIÓN ---
     public void eliminarDetalleVacuna(int idDetalleVacuna) {
         final String sql = "{call str_delete_detalle_vacuna(?)}";
 
@@ -209,7 +151,7 @@ public class DetalleVacunaDAO {
                 logico.catalogo.Enfermera enfermera = (idEnfermera > 0) ? logico.Clinica.getInstancia().buscarEnfermeraXIdNumber(idEnfermera) : null;
 
                 detalles.add(new DetalleVacuna(
-                        rs.getInt("id_detalle"),
+                        rs.getInt("id_detalle_vacuna"), // CORREGIDO: id_detalle -> id_detalle_vacuna (basado en tu script SQL)
                         rs.getInt("dosis"),
                         rs.getString("lote"),
                         rs.getString("estado"),

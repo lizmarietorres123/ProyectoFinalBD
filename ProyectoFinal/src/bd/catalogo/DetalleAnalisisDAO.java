@@ -26,44 +26,17 @@ public class DetalleAnalisisDAO {
     }
 
     public void guardarDetalleAnalisis(DetalleAnalisis detalle) {
-        final String sql = "{call str_insert_detalle_analisis(?, ?, ?, ?, ?, ?, ?)}";
+        // CORRECCIÓN: El SP ahora solo recibe 3 parámetros iniciales
+        final String sql = "{call str_insert_detalle_analisis(?, ?, ?)}";
 
         try (Connection connection = ConexionBD.getConnection();
              CallableStatement callableStatement = connection.prepareCall(sql)) {
 
-            // Relaciones obligatorias
             callableStatement.setInt(1, detalle.getAnalisis().getIdNumber());
             callableStatement.setInt(2, detalle.getConsulta().getIdNumber());
 
-            // Enfermera puede ser null si está pendiente
-            if (detalle.getEnfermera() != null) {
-                callableStatement.setInt(3, detalle.getEnfermera().getIdNumber());
-            } else {
-                callableStatement.setNull(3, java.sql.Types.INTEGER);
-            }
-
-            // Resultado numérico
-            if (detalle.getResultado() != null) {
-                callableStatement.setDouble(4, detalle.getResultado());
-            } else {
-                callableStatement.setNull(4, java.sql.Types.DECIMAL);
-            }
-
-            callableStatement.setString(5, detalle.getEstado());
-
-            // Fecha (Convertir LocalDateTime a Timestamp)
-            if (detalle.getFechaResultado() != null) {
-                callableStatement.setTimestamp(6, Timestamp.valueOf(detalle.getFechaResultado()));
-            } else {
-                callableStatement.setNull(6, java.sql.Types.TIMESTAMP);
-            }
-
-            // Observaciones
-            if (detalle.getObservaciones() != null && !detalle.getObservaciones().isEmpty()) {
-                callableStatement.setString(7, detalle.getObservaciones());
-            } else {
-                callableStatement.setNull(7, java.sql.Types.VARCHAR);
-            }
+            // Enviamos el estado inicial (usualmente "Pendiente" al ser creado por el doctor)
+            callableStatement.setString(3, detalle.getEstado() != null ? detalle.getEstado() : "Pendiente");
 
             callableStatement.execute();
 
@@ -73,52 +46,25 @@ public class DetalleAnalisisDAO {
     }
 
     public void guardarDetalleAnalisis(Connection connection, DetalleAnalisis detalle) {
-        final String sql = "{call str_insert_detalle_analisis(?, ?, ?, ?, ?, ?, ?)}";
+        // CORRECCIÓN: Igualación de parámetros para sobrecarga
+        final String sql = "{call str_insert_detalle_analisis(?, ?, ?)}";
 
         try (CallableStatement callableStatement = connection.prepareCall(sql)) {
 
-            // Relaciones obligatorias
             callableStatement.setInt(1, detalle.getAnalisis().getIdNumber());
             callableStatement.setInt(2, detalle.getConsulta().getIdNumber());
 
-            // Enfermera puede ser null si está pendiente
-            if (detalle.getEnfermera() != null) {
-                callableStatement.setInt(3, detalle.getEnfermera().getIdNumber());
-            } else {
-                callableStatement.setNull(3, java.sql.Types.INTEGER);
-            }
-
-            // Resultado numérico
-            if (detalle.getResultado() != null) {
-                callableStatement.setDouble(4, detalle.getResultado());
-            } else {
-                callableStatement.setNull(4, java.sql.Types.DECIMAL);
-            }
-
-            callableStatement.setString(5, detalle.getEstado());
-
-            // Fecha (Convertir LocalDateTime a Timestamp)
-            if (detalle.getFechaResultado() != null) {
-                callableStatement.setTimestamp(6, Timestamp.valueOf(detalle.getFechaResultado()));
-            } else {
-                callableStatement.setNull(6, java.sql.Types.TIMESTAMP);
-            }
-
-            // Observaciones
-            if (detalle.getObservaciones() != null && !detalle.getObservaciones().isEmpty()) {
-                callableStatement.setString(7, detalle.getObservaciones());
-            } else {
-                callableStatement.setNull(7, java.sql.Types.VARCHAR);
-            }
+            callableStatement.setString(3, detalle.getEstado() != null ? detalle.getEstado() : "Pendiente");
 
             callableStatement.execute();
 
         } catch (SQLException e) {
-            System.err.println("Error al guardar el detalle del análisis: " + e.getMessage());
+            System.err.println("Error al guardar el detalle del análisis (transaccional): " + e.getMessage());
         }
     }
 
     public void actualizarDetalleAnalisis(DetalleAnalisis detalle) {
+        // El UPDATE se mantiene intacto, ya que aquí la enfermera sí llena todo
         final String sql = "{call str_update_detalle_analisis(?, ?, ?, ?, ?, ?, ?, ?)}";
 
         try (Connection connection = ConexionBD.getConnection();
@@ -161,7 +107,6 @@ public class DetalleAnalisisDAO {
         }
     }
 
-    // --- NUEVO MÉTODO DE ELIMINACIÓN ---
     public void eliminarDetalleAnalisis(int idDetalleAnalisis) {
         final String sql = "{call str_delete_detalle_analisis(?)}";
 
@@ -208,7 +153,7 @@ public class DetalleAnalisisDAO {
                 logico.catalogo.Enfermera enfermera = (idEnfermera > 0) ? logico.Clinica.getInstancia().buscarEnfermeraXIdNumber(idEnfermera) : null;
 
                 detalles.add(new DetalleAnalisis(
-                        rs.getInt("id_detalle"),
+                        rs.getInt("id_detalle_analisis"), // CORREGIDO AQUÍ
                         analisis,
                         consulta,
                         enfermera,

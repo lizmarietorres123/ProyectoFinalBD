@@ -156,7 +156,8 @@ public class CrearTratamiento extends JDialog {
         panelDatos.add(lblEstado);
 
         cbxEstado = new JComboBox<>();
-        cbxEstado.setModel(new DefaultComboBoxModel<>(new String[] {"Activo", "Completado", "Suspendido"}));
+        // CORRECCIÓN: Los estados ahora coinciden exactamente con la restricción CHECK de SQL Server (todo en minúsculas)
+        cbxEstado.setModel(new DefaultComboBoxModel<>(new String[] {"activo", "finalizado", "suspendido"}));
         cbxEstado.setFont(new Font("Bahnschrift", Font.PLAIN, 12));
         cbxEstado.setBackground(new Color(224, 247, 250));
         cbxEstado.setBounds(120, 140, 375, 22);
@@ -184,7 +185,6 @@ public class CrearTratamiento extends JDialog {
         buttonPane.setBackground(new Color(240, 248, 255));
         buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
         getContentPane().add(buttonPane, BorderLayout.SOUTH);
-
 
         if (tratamientoEdicion != null) {
             JButton btnEliminar = new JButton("Eliminar");
@@ -336,7 +336,8 @@ public class CrearTratamiento extends JDialog {
                 spnFechaFin.setValue(tratamientoEdicion.getFechaFin());
             }
             if (tratamientoEdicion.getEstado() != null) {
-                cbxEstado.setSelectedItem(tratamientoEdicion.getEstado());
+                // CORRECCIÓN: Para evitar fallos si el dato guardado antes tenía mayúsculas, forzamos minúsculas
+                cbxEstado.setSelectedItem(tratamientoEdicion.getEstado().toLowerCase());
             }
             txtDescripcion.setText(tratamientoEdicion.getDescripcion());
 

@@ -436,8 +436,6 @@ public class CrearConsulta extends JDialog {
                 citaElegida
         );
 
-        // Se cuelgan los diagnósticos (con sus tratamientos) y los detalles de análisis/vacunas
-        // ANTES de guardar, para que el controller los inserte todos dentro de la misma transacción.
         for (Diagnostico d : diagnosticosActuales) {
             d.setConsulta(consulta);
             consulta.addDiagnostico(d);
@@ -455,7 +453,6 @@ public class CrearConsulta extends JDialog {
         }
         consulta.setVacunas(detalleVacunas);
 
-        // Guardado transaccional: consulta + diagnósticos + tratamientos + detalles, todo o nada.
         boolean exito = controller.guardarConsulta(consulta);
         if (!exito) {
             JOptionPane.showMessageDialog(this, "No se pudo guardar la consulta en la base de datos.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -475,54 +472,11 @@ public class CrearConsulta extends JDialog {
         dispose();
     }
 
-    private void registrarDiagnosticos(Consulta consulta, ArrayList<Diagnostico> diagnosticos) {
-        if (diagnosticos != null) {
-            for (Diagnostico d : diagnosticos) {
-                d.setConsulta(consulta);
-                DiagnosticoDAO.getInstance().guardarDiagnostico(d);
-                consulta.addDiagnostico(d);
-
-                registrarTratamientos(d);
-                registrarEnfermedadPaciente(d);
-            }
-        }
-    }
-
-    private void registrarTratamientos(Diagnostico diagnostico) {
-        if (diagnostico.getTratamientos() != null) {
-            for (Tratamiento t : diagnostico.getTratamientos()) {
-                TratamientoDAO.getInstance().guardarTratamiento(t);
-            }
-        }
-    }
-
     private void registrarEnfermedadPaciente(Diagnostico d) {
         Enfermedad enfermedadDiag = d.getEnfermedad();
         if (enfermedadDiag != null && pacienteActual != null) {
             pacienteActual.agregarEnfermedad(enfermedadDiag);
         }
-    }
-
-    public void registrarDA(Consulta consulta) {
-        ArrayList<DetalleAnalisis> analisisDetalle = new ArrayList<>();
-        for (Analisis analisis : analisisIndicados) {
-            DetalleAnalisis da = new DetalleAnalisis(analisis, consulta);
-
-            DetalleAnalisisDAO.getInstance().guardarDetalleAnalisis(da);
-            analisisDetalle.add(da);
-        }
-        consulta.setAnalisis(analisisDetalle);
-    }
-
-    public void registrarDV(Consulta consulta) {
-        ArrayList<DetalleVacuna> vacunasDetalle = new ArrayList<>();
-        for (Vacuna vacuna : vacunasIndicadas) {
-            DetalleVacuna dv = new DetalleVacuna(consulta, vacuna);
-
-            DetalleVacunaDAO.getInstance().guardarDetalleVacuna(dv);
-            vacunasDetalle.add(dv);
-        }
-        consulta.setVacunas(vacunasDetalle);
     }
 
     /// MODIFICAR
@@ -534,8 +488,6 @@ public class CrearConsulta extends JDialog {
         procesarElementosModificados();
 
         controller.actualizarConsulta(consultaEdicion);
-        registrarDA(consultaEdicion);
-        registrarDV(consultaEdicion);
 
         diagnosticosNuevos.clear();
         diagnosticosModificados.clear();
@@ -561,13 +513,19 @@ public class CrearConsulta extends JDialog {
 
         for (DetalleVacuna dv : vacunasEliminadas) {
             if (consultaEdicion.getVacunas() != null) {
-                consultaEdicion.getVacunas().remove(dv);
+                consultaEdicion.getVacunas().removeIf(detalle -> detalle.getVacuna().getIdNumber() == dv.getVacuna().getIdNumber());
+            }
+            if (dv.getIdNumber() > 0) {
+                DetalleVacunaDAO.getInstance().eliminarDetalleVacuna(dv.getIdNumber());
             }
         }
 
         for (DetalleAnalisis da : analisisEliminadas) {
             if (consultaEdicion.getAnalisis() != null) {
-                consultaEdicion.getAnalisis().remove(da);
+                consultaEdicion.getAnalisis().removeIf(detalle -> detalle.getAnalisis().getIdNumber() == da.getAnalisis().getIdNumber());
+            }
+            if (da.getIdNumber() > 0) {
+                DetalleAnalisisDAO.getInstance().eliminarDetalleAnalisis(da.getIdNumber());
             }
         }
     }
@@ -582,10 +540,12 @@ public class CrearConsulta extends JDialog {
 
         for (DetalleVacuna dv : vacunasNuevas) {
             consultaEdicion.getVacunas().add(dv);
+            DetalleVacunaDAO.getInstance().guardarDetalleVacuna(dv);
         }
 
         for (DetalleAnalisis da : analisisNuevos) {
             consultaEdicion.getAnalisis().add(da);
+            DetalleAnalisisDAO.getInstance().guardarDetalleAnalisis(da);
         }
     }
 
@@ -625,7 +585,6 @@ public class CrearConsulta extends JDialog {
             JOptionPane.showMessageDialog(this, "No hay detalles de vacunas registrados en esta consulta.", "Vacunas de la Consulta", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
-
         ListarDetalleVacuna listarVacunas = new ListarDetalleVacuna(consultaEdicion);
         listarVacunas.setModal(true);
         listarVacunas.setLocationRelativeTo(this);
@@ -637,7 +596,6 @@ public class CrearConsulta extends JDialog {
             JOptionPane.showMessageDialog(this, "No hay detalles de análisis registrados en esta consulta.", "Análisis de la Consulta", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
-
         ListarDetalleAnalisis listarAnalisis = new ListarDetalleAnalisis(consultaEdicion);
         listarAnalisis.setModal(true);
         listarAnalisis.setLocationRelativeTo(this);
@@ -646,6 +604,29 @@ public class CrearConsulta extends JDialog {
 
     private void cargarDatosConsultaEdicion() {
         if (consultaEdicion == null) return;
+
+        // --- SOLUCIÓN: FORZAR CARGA DESDE LA BASE DE DATOS ---
+        // Si el objeto Consulta llegó con las listas vacías, vamos a la BD a buscar sus datos reales.
+        if (consultaEdicion.getVacunas() == null || consultaEdicion.getVacunas().isEmpty()) {
+            ArrayList<DetalleVacuna> vacunasDB = new ArrayList<>();
+            for (DetalleVacuna dv : DetalleVacunaDAO.getInstance().obtenerDetallesVacuna()) {
+                if (dv.getConsulta() != null && dv.getConsulta().getIdNumber() == consultaEdicion.getIdNumber()) {
+                    vacunasDB.add(dv);
+                }
+            }
+            consultaEdicion.setVacunas(vacunasDB);
+        }
+
+        if (consultaEdicion.getAnalisis() == null || consultaEdicion.getAnalisis().isEmpty()) {
+            ArrayList<DetalleAnalisis> analisisDB = new ArrayList<>();
+            for (DetalleAnalisis da : DetalleAnalisisDAO.getInstance().obtenerDetallesAnalisis()) {
+                if (da.getConsulta() != null && da.getConsulta().getIdNumber() == consultaEdicion.getIdNumber()) {
+                    analisisDB.add(da);
+                }
+            }
+            consultaEdicion.setAnalisis(analisisDB);
+        }
+
 
         Cita cita = consultaEdicion.getCita();
         this.citaElegida = cita;
@@ -729,7 +710,6 @@ public class CrearConsulta extends JDialog {
         actualizarTextoVacunas();
         actualizarTextoAnalisis();
     }
-
     private Date obtenerFechaCitaExistente() {
         if (Clinica.getInstancia().getCitas() != null) {
             for (Cita c : Clinica.getInstancia().getCitas()) {
@@ -746,12 +726,10 @@ public class CrearConsulta extends JDialog {
             JOptionPane.showMessageDialog(null, "Debe seleccionar una cita.", "Campo Requerido", JOptionPane.WARNING_MESSAGE);
             return false;
         }
-
         if (pacienteActual == null) {
             JOptionPane.showMessageDialog(null, "El paciente debe estar registrado en el sistema antes de realizar la consulta.", "Atención", JOptionPane.WARNING_MESSAGE);
             return false;
         }
-
         return true;
     }
 
@@ -794,7 +772,6 @@ public class CrearConsulta extends JDialog {
         for (ActionListener listener : listeners) {
             cbxCita.addActionListener(listener);
         }
-
         cargarDatosCita();
     }
 
@@ -802,7 +779,6 @@ public class CrearConsulta extends JDialog {
         if (cbxCita.getSelectedIndex() > 0) {
             String codigo = cbxCita.getSelectedItem().toString().split(" ")[0];
 
-            // Intenta buscar por código string primero y luego realiza fallback por ID numérico si es necesario
             citaElegida = Clinica.getInstancia().buscarCitaXId(codigo);
 
             if (citaElegida != null) {
@@ -847,7 +823,6 @@ public class CrearConsulta extends JDialog {
 
     private void registrarDiagnostico(CrearDiagnostico dialogo){
         Diagnostico diag = dialogo.getDiagnosticoCreado();
-
         if (diag != null) {
             diagnosticosActuales.add(diag);
             if (consultaEdicion != null) {
@@ -952,7 +927,6 @@ public class CrearConsulta extends JDialog {
                 }
             }
         }
-
         actualizarTextoDiagnosticos();
     }
 
@@ -1031,14 +1005,29 @@ public class CrearConsulta extends JDialog {
 
                     JCheckBox chk = new JCheckBox();
                     chk.setBackground(Color.WHITE);
-                    chk.setSelected(seleccionadasTemp.contains(v));
+
+                    // CORRECCIÓN: Comprobar selección por ID, no por referencia en memoria
+                    boolean estaSeleccionada = false;
+                    for (Vacuna sel : seleccionadasTemp) {
+                        if (sel.getIdNumber() == v.getIdNumber()) {
+                            estaSeleccionada = true;
+                            break;
+                        }
+                    }
+                    chk.setSelected(estaSeleccionada);
+
                     chk.addActionListener(ev -> {
                         if (chk.isSelected()) {
-                            if (!seleccionadasTemp.contains(v)) {
-                                seleccionadasTemp.add(v);
+                            boolean yaEsta = false;
+                            for (Vacuna sel : seleccionadasTemp) {
+                                if (sel.getIdNumber() == v.getIdNumber()) {
+                                    yaEsta = true;
+                                    break;
+                                }
                             }
+                            if (!yaEsta) seleccionadasTemp.add(v);
                         } else {
-                            seleccionadasTemp.remove(v);
+                            seleccionadasTemp.removeIf(sel -> sel.getIdNumber() == v.getIdNumber());
                         }
                     });
                     tarjeta.add(chk, BorderLayout.WEST);
@@ -1104,17 +1093,34 @@ public class CrearConsulta extends JDialog {
         btnAceptar.setPreferredSize(new Dimension(140, 30));
         btnAceptar.addActionListener(e -> {
             if (consultaEdicion != null) {
+                // CORRECCIÓN: Filtrar eliminadas comparando por ID
                 for (DetalleVacuna dvOriginal : vacunasOriginalesEdicion) {
-                    if (!seleccionadasTemp.contains(dvOriginal.getVacuna())) {
-                        if (!vacunasEliminadas.contains(dvOriginal)) {
+                    boolean sigueSeleccionada = false;
+                    for (Vacuna vSel : seleccionadasTemp) {
+                        if (vSel.getIdNumber() == dvOriginal.getVacuna().getIdNumber()) {
+                            sigueSeleccionada = true;
+                            break;
+                        }
+                    }
+                    if (!sigueSeleccionada) {
+                        boolean yaEnEliminadas = false;
+                        for (DetalleVacuna dvElim : vacunasEliminadas) {
+                            if (dvElim.getIdNumber() == dvOriginal.getIdNumber()) {
+                                yaEnEliminadas = true;
+                                break;
+                            }
+                        }
+                        if (!yaEnEliminadas) {
                             vacunasEliminadas.add(dvOriginal);
                         }
                     }
                 }
+
+                // CORRECCIÓN: Filtrar nuevas comparando por ID
                 for (Vacuna v : seleccionadasTemp) {
                     boolean encontrada = false;
                     for (DetalleVacuna dvOriginal : vacunasOriginalesEdicion) {
-                        if (dvOriginal.getVacuna().equals(v)) {
+                        if (dvOriginal.getVacuna().getIdNumber() == v.getIdNumber()) {
                             encontrada = true;
                             break;
                         }
@@ -1122,7 +1128,7 @@ public class CrearConsulta extends JDialog {
                     if (!encontrada) {
                         boolean yaNueva = false;
                         for (DetalleVacuna dvNueva : vacunasNuevas) {
-                            if (dvNueva.getVacuna().equals(v)) {
+                            if (dvNueva.getVacuna().getIdNumber() == v.getIdNumber()) {
                                 yaNueva = true;
                                 break;
                             }
@@ -1133,8 +1139,10 @@ public class CrearConsulta extends JDialog {
                         }
                     }
                 }
+
+                // Remover de eliminadas si el usuario volvió a seleccionarla
                 for (Vacuna v : seleccionadasTemp) {
-                    vacunasEliminadas.removeIf(dv -> dv.getVacuna().equals(v));
+                    vacunasEliminadas.removeIf(dv -> dv.getVacuna().getIdNumber() == v.getIdNumber());
                 }
             }
 
@@ -1235,14 +1243,29 @@ public class CrearConsulta extends JDialog {
 
                     JCheckBox chk = new JCheckBox();
                     chk.setBackground(Color.WHITE);
-                    chk.setSelected(seleccionadosTemp.contains(a));
+
+                    // CORRECCIÓN: Comprobar selección por ID, no por referencia en memoria
+                    boolean estaSeleccionado = false;
+                    for (Analisis sel : seleccionadosTemp) {
+                        if (sel.getIdNumber() == a.getIdNumber()) {
+                            estaSeleccionado = true;
+                            break;
+                        }
+                    }
+                    chk.setSelected(estaSeleccionado);
+
                     chk.addActionListener(ev -> {
                         if (chk.isSelected()) {
-                            if (!seleccionadosTemp.contains(a)) {
-                                seleccionadosTemp.add(a);
+                            boolean yaEsta = false;
+                            for (Analisis sel : seleccionadosTemp) {
+                                if (sel.getIdNumber() == a.getIdNumber()) {
+                                    yaEsta = true;
+                                    break;
+                                }
                             }
+                            if (!yaEsta) seleccionadosTemp.add(a);
                         } else {
-                            seleccionadosTemp.remove(a);
+                            seleccionadosTemp.removeIf(sel -> sel.getIdNumber() == a.getIdNumber());
                         }
                     });
                     tarjeta.add(chk, BorderLayout.WEST);
@@ -1326,17 +1349,34 @@ public class CrearConsulta extends JDialog {
         btnAceptar.setPreferredSize(new Dimension(140, 30));
         btnAceptar.addActionListener(e -> {
             if (consultaEdicion != null) {
+                // CORRECCIÓN: Filtrar eliminadas comparando por ID
                 for (DetalleAnalisis daOriginal : analisisOriginalesEdicion) {
-                    if (!seleccionadosTemp.contains(daOriginal.getAnalisis())) {
-                        if (!analisisEliminadas.contains(daOriginal)) {
+                    boolean sigueSeleccionada = false;
+                    for (Analisis aSel : seleccionadosTemp) {
+                        if (aSel.getIdNumber() == daOriginal.getAnalisis().getIdNumber()) {
+                            sigueSeleccionada = true;
+                            break;
+                        }
+                    }
+                    if (!sigueSeleccionada) {
+                        boolean yaEnEliminadas = false;
+                        for (DetalleAnalisis daElim : analisisEliminadas) {
+                            if (daElim.getIdNumber() == daOriginal.getIdNumber()) {
+                                yaEnEliminadas = true;
+                                break;
+                            }
+                        }
+                        if (!yaEnEliminadas) {
                             analisisEliminadas.add(daOriginal);
                         }
                     }
                 }
+
+                // CORRECCIÓN: Filtrar nuevos comparando por ID
                 for (Analisis a : seleccionadosTemp) {
                     boolean encontrada = false;
                     for (DetalleAnalisis daOriginal : analisisOriginalesEdicion) {
-                        if (daOriginal.getAnalisis().equals(a)) {
+                        if (daOriginal.getAnalisis().getIdNumber() == a.getIdNumber()) {
                             encontrada = true;
                             break;
                         }
@@ -1344,7 +1384,7 @@ public class CrearConsulta extends JDialog {
                     if (!encontrada) {
                         boolean yaNueva = false;
                         for (DetalleAnalisis daNueva : analisisNuevos) {
-                            if (daNueva.getAnalisis().equals(a)) {
+                            if (daNueva.getAnalisis().getIdNumber() == a.getIdNumber()) {
                                 yaNueva = true;
                                 break;
                             }
@@ -1355,8 +1395,10 @@ public class CrearConsulta extends JDialog {
                         }
                     }
                 }
+
+                // Remover de eliminadas si el usuario volvió a seleccionarlo
                 for (Analisis a : seleccionadosTemp) {
-                    analisisEliminadas.removeIf(da -> da.getAnalisis().equals(a));
+                    analisisEliminadas.removeIf(da -> da.getAnalisis().getIdNumber() == a.getIdNumber());
                 }
             }
 
