@@ -64,7 +64,8 @@ public class PacienteDAO {
     }
 
     public void actualizarPaciente(Paciente paciente) {
-        final String sql = "{call str_update_paciente(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+        // CORRECCIÓN: 11 signos de interrogación en lugar de 12
+        final String sql = "{call str_update_paciente(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
 
         try (Connection connection = ConexionBD.getConnection();
              CallableStatement callableStatement = connection.prepareCall(sql)) {
@@ -83,13 +84,11 @@ public class PacienteDAO {
             callableStatement.setString(6, paciente.getSexo());
             callableStatement.setString(7, paciente.getTelefono());
             callableStatement.setString(8, paciente.getDireccion());
-
-            // Corrección limpia de los parámetros decimales de peso y estatura
             callableStatement.setBigDecimal(9, paciente.getPeso());
             callableStatement.setBigDecimal(10, paciente.getEstatura());
-
             callableStatement.setString(11, paciente.getTipoSangre());
-            callableStatement.setString(12, paciente.getEstado());
+
+
 
             callableStatement.execute();
 
@@ -98,7 +97,7 @@ public class PacienteDAO {
         }
     }
 
-    public void eliminarPaciente(int idPaciente) {
+    public boolean eliminarPaciente(int idPaciente) {
         final String sql = "{call str_delete_paciente(?)}";
 
         try (Connection connection = ConexionBD.getConnection();
@@ -106,9 +105,11 @@ public class PacienteDAO {
 
             callableStatement.setInt(1, idPaciente);
             callableStatement.execute();
+            return true; // Se eliminó con éxito
 
         } catch (SQLException e) {
             System.err.println("Error al eliminar el paciente: " + e.getMessage());
+            return false;
         }
     }
 

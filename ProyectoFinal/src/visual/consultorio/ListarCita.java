@@ -193,15 +193,37 @@ public class ListarCita extends JDialog {
         btnModificar.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 if (idCitaSeleccionada != -1) {
-                    // TODO: Ajusta CrearCita para que reciba el ID (int) en lugar del objeto
-                    // CrearCita modCita = new CrearCita(idCitaSeleccionada);
-                    // modCita.setModal(true);
-                    // modCita.setVisible(true);
 
-                    filtrarTabla(txtBuscar.getText());
-                    btnModificar.setEnabled(false);
-                    btnEliminar.setEnabled(false);
-                    idCitaSeleccionada = -1;
+                    // 1. Buscamos el objeto Cita completo en la memoria usando el ID
+                    logico.consultorio.Cita citaEditar = null;
+                    if (logico.Clinica.getInstancia().getCitas() != null) {
+                        for (logico.consultorio.Cita c : logico.Clinica.getInstancia().getCitas()) {
+                            // Verifica si tu método es getId() o getIdNumber() y ajústalo si es necesario
+                            if (c.getIdNumber() == idCitaSeleccionada) {
+                                citaEditar = c;
+                                break;
+                            }
+                        }
+                    }
+
+
+                    if (citaEditar != null) {
+                        CrearCita modCita = new CrearCita(citaEditar);
+                        modCita.setModal(true);
+                        modCita.setLocationRelativeTo(ListarCita.this);
+                        modCita.setVisible(true);
+
+
+                        filtrarTabla(txtBuscar.getText());
+                        btnModificar.setEnabled(false);
+                        btnEliminar.setEnabled(false);
+                        idCitaSeleccionada = -1;
+                    } else {
+                        JOptionPane.showMessageDialog(null,
+                                "No se pudo cargar la información completa de la cita desde la memoria.",
+                                "Error de Carga",
+                                JOptionPane.ERROR_MESSAGE);
+                    }
                 }
             }
         });
@@ -235,9 +257,11 @@ public class ListarCita extends JDialog {
                 SimpleDateFormat sdfHora = new SimpleDateFormat("hh:mm a");
 
                 while (rs.next()) {
+
+                    // CORRECCIÓN: Usando los nombres exactos del nuevo script SQL
                     int idCita = rs.getInt("id_cita");
-                    String paciente = rs.getString("Paciente");
-                    String doctor = "Dr. " + rs.getString("Doctor");
+                    String paciente = rs.getString("nombre_paciente");
+                    String doctor = "Dr. " + rs.getString("nombre_doctor");
                     String estado = rs.getString("estado");
 
                     // Recuperar y formatear fecha y hora desde SQL Server
@@ -252,6 +276,7 @@ public class ListarCita extends JDialog {
                         }
                     }
 
+                    // CORRECCIÓN: Agregado idCita para coincidir con las 5 columnas del modelo
                     model.addRow(new Object[]{
                             idCita,
                             paciente,
@@ -265,5 +290,10 @@ public class ListarCita extends JDialog {
             System.err.println("ERROR: Fallo al cargar las citas desde la base de datos.");
             e.printStackTrace();
         }
+
+
+        idCitaSeleccionada = -1;
+        if (btnModificar != null) btnModificar.setEnabled(false);
+        if (btnEliminar != null) btnEliminar.setEnabled(false);
     }
 }

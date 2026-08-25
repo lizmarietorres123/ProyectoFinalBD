@@ -5,9 +5,13 @@ import logico.catalogo.Analisis;
 import logico.catalogo.Enfermera;
 import logico.consultorio.Consulta;
 
+import java.io.Serializable; // <-- IMPORTACIÓN AGREGADA
 import java.time.LocalDateTime;
 
-public class DetalleAnalisis {
+
+public class DetalleAnalisis implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private String id;
     private Analisis analisis;
@@ -18,18 +22,17 @@ public class DetalleAnalisis {
     private LocalDateTime fechaResultado;
     private String observaciones;
 
-    // Constructor para cuando el médico indica el análisis desde la consulta (Aún pendiente)
     public DetalleAnalisis(Analisis analisis, Consulta consulta) {
         this.analisis = analisis;
         this.consulta = consulta;
-        this.resultado = null; // Mejor usar null en BD para resultados no procesados aún
+        this.resultado = null;
         this.estado = "Pendiente";
         this.observaciones = null;
         this.enfermera = null;
         this.fechaResultado = null;
     }
 
-    // Constructor completo para mapear desde la Base de Datos
+
     public DetalleAnalisis(int idNumber, Analisis analisis, Consulta consulta, Enfermera enfermera, Double resultado, String estado, LocalDateTime fechaResultado, String observaciones) {
         setId(idNumber);
         this.analisis = analisis;

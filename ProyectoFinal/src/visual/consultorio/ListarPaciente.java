@@ -173,18 +173,25 @@ public class ListarPaciente extends JDialog {
 
 					if (option == JOptionPane.OK_OPTION) {
 
-						//TODO: Asegurar que eliminarPaciente recibe un 'int'
-						PacienteDAO.getInstance().eliminarPaciente(idPacienteSeleccionado);
+						// Recibimos la confirmación del DAO
+						boolean exito = PacienteDAO.getInstance().eliminarPaciente(idPacienteSeleccionado);
 
-						idPacienteSeleccionado = -1;
-						nombrePacienteSeleccionado = "";
-						btnEliminar.setEnabled(false);
-						btnModificar.setEnabled(false);
-						filtrarTabla(txtBuscar.getText());
-						JOptionPane.showMessageDialog(null,
-								"Paciente eliminado exitosamente.",
-								"Éxito",
-								JOptionPane.INFORMATION_MESSAGE);
+						if (exito) {
+							idPacienteSeleccionado = -1;
+							nombrePacienteSeleccionado = "";
+							btnEliminar.setEnabled(false);
+							btnModificar.setEnabled(false);
+							filtrarTabla(txtBuscar.getText());
+							JOptionPane.showMessageDialog(null,
+									"Paciente eliminado exitosamente.",
+									"Éxito",
+									JOptionPane.INFORMATION_MESSAGE);
+						} else {
+							JOptionPane.showMessageDialog(null,
+									"No se pudo eliminar al paciente. Es posible que tenga consultas, citas o historiales asociados en el sistema.",
+									"Error de Eliminación",
+									JOptionPane.ERROR_MESSAGE);
+						}
 					}
 				}
 			}
@@ -199,15 +206,37 @@ public class ListarPaciente extends JDialog {
 		btnModificar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if (idPacienteSeleccionado != -1) {
-					//TODO: Modificar constructor de CrearPaciente para recibir el 'int' ID
-					// CrearPaciente modPaciente = new CrearPaciente(idPacienteSeleccionado);
-					// modPaciente.setModal(true);
-					// modPaciente.setVisible(true);
 
-					filtrarTabla(txtBuscar.getText());
-					btnModificar.setEnabled(false);
-					btnEliminar.setEnabled(false);
-					idPacienteSeleccionado = -1;
+					// 1. Buscamos el objeto Paciente completo en la memoria usando el ID
+					logico.consultorio.Paciente pacienteEditar = null;
+					if (logico.Clinica.getInstancia().getPacientes() != null) {
+						for (logico.consultorio.Paciente p : logico.Clinica.getInstancia().getPacientes()) {
+							// Verifica si tu método es getId() o getIdNumber() y ajústalo si marca error aquí
+							if (p.getIdNumber() == idPacienteSeleccionado) {
+								pacienteEditar = p;
+								break;
+							}
+						}
+					}
+
+
+					if (pacienteEditar != null) {
+						CrearPaciente modPaciente = new CrearPaciente(pacienteEditar);
+						modPaciente.setModal(true);
+						modPaciente.setLocationRelativeTo(ListarPaciente.this);
+						modPaciente.setVisible(true);
+
+						// Al cerrar la ventana, recargamos la tabla por si cambiaste algo
+						filtrarTabla(txtBuscar.getText());
+						btnModificar.setEnabled(false);
+						btnEliminar.setEnabled(false);
+						idPacienteSeleccionado = -1;
+					} else {
+						JOptionPane.showMessageDialog(null,
+								"No se pudo cargar la información completa del paciente.",
+								"Error de Carga",
+								JOptionPane.ERROR_MESSAGE);
+					}
 				}
 			}
 		});

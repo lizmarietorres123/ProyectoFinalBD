@@ -1,8 +1,12 @@
 package logico.catalogo;
 
 import logico.Clinica;
+import java.io.Serializable;
 
-public class Analisis {
+public class Analisis implements Serializable {
+
+
+    private static final long serialVersionUID = 1L;
 
     private String id;
     private String nombre;
@@ -80,5 +84,4 @@ public class Analisis {
     public void setValorMin(Double valorMin) {
         this.valorMin = valorMin;
     }
-
 }

@@ -5,9 +5,13 @@ import logico.catalogo.Enfermera;
 import logico.catalogo.Vacuna;
 import logico.consultorio.Consulta;
 
+import java.io.Serializable; // <-- IMPORTACIÓN AGREGADA
 import java.time.LocalDateTime;
 
-public class DetalleVacuna {
+
+public class DetalleVacuna implements Serializable {
+
+    private static final long serialVersionUID = 1L; // <-- IDENTIFICADOR DE SERIALIZACIÓN
 
     private String id;
     private int dosis;
@@ -19,7 +23,7 @@ public class DetalleVacuna {
     private Vacuna vacuna;
     private Enfermera enfermera;
 
-    // Constructor completo mapeado para la Base de Datos
+
     public DetalleVacuna(int idNumber, int dosis, String lote, String estado, LocalDateTime fecha_aplicacion, String observaciones, Consulta consulta, Vacuna vacuna, Enfermera enfermera) {
         setId(idNumber);
         this.dosis = dosis;
@@ -32,7 +36,6 @@ public class DetalleVacuna {
         this.enfermera = enfermera;
     }
 
-    // Constructor simplificado para cuando el médico la indica (aún no se ha aplicado)
     public DetalleVacuna(Consulta consulta, Vacuna vacuna) {
         this.dosis = 0;
         this.lote = null;
