@@ -49,12 +49,9 @@ public class PacienteDAO {
 
             callableStatement.setString(10, paciente.getTipoSangre());
 
-            boolean exito = callableStatement.execute();
-            if (exito) {
-                try (ResultSet rs = callableStatement.getResultSet()) {
-                    if (rs != null && rs.next()) {
-                        paciente.setId(rs.getInt(1));
-                    }
+            try (ResultSet rs = callableStatement.executeQuery()) {
+                if (rs.next()) {
+                    paciente.setId(rs.getInt(1));
                 }
             }
 
@@ -65,7 +62,7 @@ public class PacienteDAO {
 
     public void actualizarPaciente(Paciente paciente) {
 
-        final String sql = "{call str_update_paciente(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+        final String sql = "{call str_update_paciente(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
 
         try (Connection connection = ConexionBD.getConnection();
              CallableStatement callableStatement = connection.prepareCall(sql)) {
@@ -87,8 +84,7 @@ public class PacienteDAO {
             callableStatement.setBigDecimal(9, paciente.getPeso());
             callableStatement.setBigDecimal(10, paciente.getEstatura());
             callableStatement.setString(11, paciente.getTipoSangre());
-
-
+    callableStatement.setString(12, paciente.getEstado());
 
             callableStatement.execute();
 
@@ -105,7 +101,7 @@ public class PacienteDAO {
 
             callableStatement.setInt(1, idPaciente);
             callableStatement.execute();
-            return true; // Se eliminó con éxito
+            return true;
 
         } catch (SQLException e) {
             System.err.println("Error al eliminar el paciente: " + e.getMessage());
@@ -130,8 +126,8 @@ public class PacienteDAO {
                         rs.getString("telefono"),
                         rs.getDate("fec_nacim"),
                         rs.getString("sexo"),
-                        rs.getBigDecimal("peso"),       // Lectura correcta como BigDecimal
-                        rs.getBigDecimal("estatura"),   // Lectura correcta como BigDecimal
+                        rs.getBigDecimal("peso"),
+                        rs.getBigDecimal("estatura"),
                         rs.getString("tipo_sangre"),
                         rs.getString("direccion"),
                         rs.getString("estado")

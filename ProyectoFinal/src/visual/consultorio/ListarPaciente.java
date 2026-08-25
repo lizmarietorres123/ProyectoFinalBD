@@ -2,6 +2,8 @@ package visual.consultorio;
 
 import bd.ConexionBD;
 import bd.catalogo.PacienteDAO;
+import logico.Clinica;
+import logico.consultorio.Paciente; // Import necesario para buscar al paciente
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -173,7 +175,6 @@ public class ListarPaciente extends JDialog {
 
 					if (option == JOptionPane.OK_OPTION) {
 
-						//TODO: Asegurar que eliminarPaciente recibe un 'int'
 						PacienteDAO.getInstance().eliminarPaciente(idPacienteSeleccionado);
 
 						idPacienteSeleccionado = -1;
@@ -199,10 +200,35 @@ public class ListarPaciente extends JDialog {
 		btnModificar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if (idPacienteSeleccionado != -1) {
-					filtrarTabla(txtBuscar.getText());
-					btnModificar.setEnabled(false);
-					btnEliminar.setEnabled(false);
-					idPacienteSeleccionado = -1;
+
+					// --- NUEVO: Buscar al paciente en la memoria y abrir la ventana ---
+					Paciente pacienteEditar = null;
+					if (Clinica.getInstancia().getPacientes() != null) {
+						for (Paciente p : Clinica.getInstancia().getPacientes()) {
+							if (p.getIdNumber() == idPacienteSeleccionado) {
+								pacienteEditar = p;
+								break;
+							}
+						}
+					}
+
+					if (pacienteEditar != null) {
+						CrearPaciente modPaciente = new CrearPaciente(pacienteEditar);
+						modPaciente.setModal(true);
+						modPaciente.setLocationRelativeTo(ListarPaciente.this);
+						modPaciente.setVisible(true);
+
+						// Al cerrar la ventana, limpiamos la selección y recargamos
+						filtrarTabla(txtBuscar.getText());
+						btnModificar.setEnabled(false);
+						btnEliminar.setEnabled(false);
+						idPacienteSeleccionado = -1;
+					} else {
+						JOptionPane.showMessageDialog(null,
+								"No se pudo cargar la información completa del paciente desde la memoria.",
+								"Error",
+								JOptionPane.ERROR_MESSAGE);
+					}
 				}
 			}
 		});

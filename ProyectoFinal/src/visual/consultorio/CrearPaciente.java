@@ -383,6 +383,8 @@ public class CrearPaciente extends JDialog {
 
 		String nombre = txtNombre.getText();
 		String apellido = txtApellido.getText();
+		// --- NUEVO: Se captura la cédula para actualizarla ---
+		String cedula = txtCedula.getText();
 		String telefono = txtTelefono.getText();
 		Date fecNacim = (Date) spnFechaNacim.getValue();
 		String sexo = (String) cbxSexo.getSelectedItem();
@@ -394,6 +396,7 @@ public class CrearPaciente extends JDialog {
 
 		if (Formato.entradaVacia(nombre, "Debe ingresar el nombre del paciente.")) return;
 		if (Formato.entradaVacia(apellido, "Debe ingresar el apellido del paciente.")) return;
+		if (Formato.entradaVacia(cedula, "Debe ingresar la cédula del paciente.")) return;
 		if (Formato.entradaVacia(telefono, "Debe ingresar el teléfono del paciente.")) return;
 		if (Formato.verificarEntradaRegex(telefono.trim(), "^[0-9-]+$", "El teléfono solo puede contener números y guiones.")) return;
 		if (Formato.entradaVacia(direccion, "Debe ingresar la dirección del paciente.")) return;
@@ -407,6 +410,8 @@ public class CrearPaciente extends JDialog {
 
 		miPaciente.setNombre(nombre.trim());
 		miPaciente.setApellido(apellido.trim());
+		// --- NUEVO: Se asigna la nueva cédula al objeto ---
+		miPaciente.setCedula(cedula.trim());
 		miPaciente.setTelefono(telefono.trim());
 		miPaciente.setFecNacim(fecNacim);
 		miPaciente.setSexo(sexo);
@@ -445,7 +450,7 @@ public class CrearPaciente extends JDialog {
 			txtNombre.setText(miPaciente.getNombre());
 			txtApellido.setText(miPaciente.getApellido());
 			txtCedula.setText(miPaciente.getCedula());
-			txtCedula.setEditable(false);
+
 			txtTelefono.setText(miPaciente.getTelefono());
 			txtDireccion.setText(miPaciente.getDireccion());
 			txtPeso.setText(miPaciente.getPeso() != null ? miPaciente.getPeso().toString() : "");
