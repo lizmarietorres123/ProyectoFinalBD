@@ -3,9 +3,13 @@ package logico.consultorio;
 import logico.Clinica;
 import logico.catalogo.Medicamento;
 
+import java.io.Serializable; // <-- IMPORTACIÓN AGREGADA
 import java.util.Date;
 
-public class Tratamiento {
+// <-- AGREGADO "implements Serializable"
+public class Tratamiento implements Serializable {
+
+    private static final long serialVersionUID = 1L; // <-- IDENTIFICADOR DE SERIALIZACIÓN
 
     private String id;
     private String descripcion;

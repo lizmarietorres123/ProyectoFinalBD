@@ -1,8 +1,12 @@
 package logico.catalogo;
 
 import logico.Clinica;
+import java.io.Serializable; // <-- IMPORTACIÓN AGREGADA
 
-public class Medicamento {
+// <-- AGREGADO "implements Serializable"
+public class Medicamento implements Serializable {
+
+    private static final long serialVersionUID = 1L; // <-- IDENTIFICADOR DE SERIALIZACIÓN
 
     private String id;
     private String nombre;
