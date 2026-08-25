@@ -23,10 +23,8 @@ public class ReporteDoctor {
             stmt.setInt(1, idDoctor);
 
             try (ResultSet rs = stmt.executeQuery()) {
-                Sheet sheet = workbook.createSheet("Me" +
-                        "" +
-                        "" +
-                        "s de Mayor Volumen");
+                Sheet sheet = workbook.createSheet("Mes de Mayor Volumen");
+
                 CellStyle estiloEncabezado = workbook.createCellStyle();
                 estiloEncabezado.setFillForegroundColor(IndexedColors.SEA_GREEN.getIndex());
                 estiloEncabezado.setFillPattern(FillPatternType.SOLID_FOREGROUND);
@@ -49,13 +47,11 @@ public class ReporteDoctor {
                 String[] columnas = {"Mes", "Total de Pacientes Únicos"};
 
                 Row filaTitulo = sheet.createRow(0);
-
                 for (int i = 0; i < columnas.length; i++) {
                     Cell celda = filaTitulo.createCell(i);
                     celda.setCellStyle(estiloEncabezado);
-                    if (i == 0) celda.setCellValue("Nombre del reporte");
+                    if (i == 0) celda.setCellValue("Mes de Mayor Volumen de Pacientes");
                 }
-
                 sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, columnas.length - 1));
 
                 Row filaEncabezado = sheet.createRow(1);
@@ -69,13 +65,15 @@ public class ReporteDoctor {
                 if (rs.next()) {
                     Row filaDatos = sheet.createRow(numeroFila++);
 
+                    // Usar índice 1 para la primera columna (Mes)
                     Cell celdaMes = filaDatos.createCell(0);
-                    celdaMes.setCellValue(rs.getString("Mes"));
-                    celdaMes.setCellStyle(estiloCelda); // Aplica bordes
+                    celdaMes.setCellValue(rs.getString(1));
+                    celdaMes.setCellStyle(estiloCelda);
 
+                    // Usar índice 2 para la segunda columna (Total Pacientes)
                     Cell celdaTotal = filaDatos.createCell(1);
-                    celdaTotal.setCellValue(rs.getInt("Total_Pacientes"));
-                    celdaTotal.setCellStyle(estiloCelda); // Aplica bordes
+                    celdaTotal.setCellValue(rs.getInt(2));
+                    celdaTotal.setCellStyle(estiloCelda);
                 } else {
                     Row filaVacia = sheet.createRow(numeroFila);
                     for (int i = 0; i < columnas.length; i++) {
@@ -89,6 +87,7 @@ public class ReporteDoctor {
                 for (int i = 0; i < columnas.length; i++) {
                     sheet.autoSizeColumn(i);
                 }
+
                 try (FileOutputStream fileOut = new FileOutputStream(rutaArchivo)) {
                     workbook.write(fileOut);
                     System.out.println("ÉXITO: Reporte estructurado generado en -> " + rutaArchivo);

@@ -62,10 +62,8 @@ public class MainConsultorio extends JFrame {
     private JPanel panelLateral;
     private JPanel panelContenidoMenu;
 
-
     private JLabel lblValorUsuario;
     private JLabel lblValorNombre;
-
 
     private static Socket sfd = null;
     private static DataInputStream EntradaSocket;
@@ -79,7 +77,7 @@ public class MainConsultorio extends JFrame {
 
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
-        setSize(850, 580);
+        setSize(850, 650);
         setLocationRelativeTo(null);
         getContentPane().setLayout(new BorderLayout());
 
@@ -105,6 +103,7 @@ public class MainConsultorio extends JFrame {
         panelContenidoMenu.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
         panelLateral.add(panelContenidoMenu, BorderLayout.CENTER);
 
+        // --- MÓDULO 1: PACIENTE ---
         crearModulo(
                 "Paciente",
                 "recursos/registro.png",
@@ -126,7 +125,7 @@ public class MainConsultorio extends JFrame {
                 }
         );
 
-
+        // --- MÓDULO 3: CONSULTA ---
         crearModulo(
                 "Consulta",
                 "recursos/listado.png",
@@ -137,9 +136,19 @@ public class MainConsultorio extends JFrame {
                 }
         );
 
+        // --- MÓDULO 4: REPORTE ---
+        crearModulo(
+                "Reporte",
+                "recursos/listado.png",
+                new String[]{"PacienteXMes", "Rendimiento General"},
+                new ActionListener[]{
+                        e -> generarReportePacienteXMes(),
+                        e -> generarReporteRendimientoGeneral()
+                }
+        );
+
         panelContenidoMenu.add(Box.createVerticalGlue());
         panelLateral.add(crearPiePanelLateral(), BorderLayout.SOUTH);
-
 
         JPanel panelCentral = new JPanel(new BorderLayout());
         panelCentral.setBackground(Color.WHITE);
@@ -408,6 +417,67 @@ public class MainConsultorio extends JFrame {
         }
     }
 
+    // --- EJECUCIÓN DE CLASES DE REPORTES ---
+
+    private void generarReportePacienteXMes() {
+        Doctor doctorActual = Clinica.getDoctorActual();
+        if (doctorActual == null) {
+            Usuario usuarioActual = Clinica.getInstancia().getUsuarioActual();
+            if (usuarioActual != null) {
+                doctorActual = Clinica.getInstancia().buscarDoctorXUsuario(usuarioActual);
+            }
+        }
+
+        if (doctorActual == null) {
+            JOptionPane.showMessageDialog(this, "No se encontró la información del doctor logueado.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Guardar Reporte Pacientes por Mes");
+        fileChooser.setSelectedFile(new File("Reporte_Mes_Pico_Doctor.xlsx"));
+        fileChooser.setFileFilter(new FileNameExtensionFilter("Archivos de Excel (*.xlsx)", "xlsx"));
+
+        int seleccion = fileChooser.showSaveDialog(this);
+        if (seleccion == JFileChooser.APPROVE_OPTION) {
+            File archivo = fileChooser.getSelectedFile();
+            String rutaArchivo = archivo.getAbsolutePath();
+            if (!rutaArchivo.endsWith(".xlsx")) {
+                rutaArchivo += ".xlsx";
+            }
+
+            try {
+                ReporteDoctor.generarReporteMesPico(doctorActual.getIdNumber(), rutaArchivo);
+                JOptionPane.showMessageDialog(this, "Reporte generado exitosamente en:\n" + rutaArchivo, "Éxito", JOptionPane.INFORMATION_MESSAGE);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Error al generar el reporte de doctor: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    private void generarReporteRendimientoGeneral() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Guardar Reporte de Rendimiento General");
+        fileChooser.setSelectedFile(new File("Reporte_Rendimiento_General.xlsx"));
+        fileChooser.setFileFilter(new FileNameExtensionFilter("Archivos de Excel (*.xlsx)", "xlsx"));
+
+        int seleccion = fileChooser.showSaveDialog(this);
+        if (seleccion == JFileChooser.APPROVE_OPTION) {
+            File archivo = fileChooser.getSelectedFile();
+            String rutaArchivo = archivo.getAbsolutePath();
+            if (!rutaArchivo.endsWith(".xlsx")) {
+                rutaArchivo += ".xlsx";
+            }
+
+            try {
+                ReporteRendimientoGeneral.generarReporteGeneral(rutaArchivo);
+                JOptionPane.showMessageDialog(this, "Reporte general generado exitosamente en:\n" + rutaArchivo, "Éxito", JOptionPane.INFORMATION_MESSAGE);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Error al generar el reporte de rendimiento general: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
     // --- PERSISTENCIA Y RESPALDOS ---
 
     private void guardarDatos() {
@@ -581,7 +651,6 @@ public class MainConsultorio extends JFrame {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             try {
-
                 Usuario userPrueba = new Usuario(1, "admin", "admin", "Doctor", "activo");
                 MainConsultorio frame = new MainConsultorio(userPrueba);
                 frame.setVisible(true);
